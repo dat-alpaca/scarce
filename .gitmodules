@@ -1,0 +1,3 @@
+[submodule "subprojects/stb"]
+	path = subprojects/stb
+	url = https://github.com/nothings/stb
