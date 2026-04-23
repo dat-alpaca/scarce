@@ -1,0 +1,2 @@
+option('build_loader', type: 'boolean', value: true, description: 'Builds the scarce loader executable')
+option('build_testbed', type: 'boolean', value: false, description: 'Builds and extracts the testbed binaries')

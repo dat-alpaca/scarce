@@ -1,0 +1,7 @@
+build/
+deploy/
+.vscode/
+
+subprojects/*
+!subprojects/*.wrap
+!subprojects/stb

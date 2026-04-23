@@ -1,0 +1,1 @@
+meson configure build --prefix=$(pwd)/deploy -Dbuild_loader=true -Dbuild_testbed=false
