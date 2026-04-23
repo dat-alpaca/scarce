@@ -15,7 +15,7 @@ Building this project requires the following:
 
 * [Meson](https://mesonbuild.com/index.html)
 
-Additionally, you need to install the Mesa drivers. 
+Additionally, you may need to install the Mesa drivers. 
 Debian:
 ```bash
 sudo apt install libgl1-mesa-dev libgl1-mesa-dri mesa-utils
@@ -34,19 +34,20 @@ sudo dnf install mesa-libGL mesa-libGL-devel
     ```
     <br>
 
-2. **Generate the project**
+2. **Setup the project**
     The only options available are `BUILD_LOADER` and `BUILD_TESTBED`. They should be pretty self-explanatory. The engine (or core features) is always generated.
     
     ```bash
-    ./scripts/generate
+    ./scripts/setup
+    ./scripts/configure
     ```
 
-4. **Compile the project**
+4. **Install the project**
     ```bash
-    ./scripts/build
+    ./scripts/install
     ```
 
-    After that you should have a working copy under `deploy/`. It should contain a copy of the `res` folder, the scarce loader executable (`scarce`), and the testbin stripped binary. 
+    After installation, you should have a working copy under `deploy/`. It should contain a copy of the `res` folder, the scarce loader executable (`scarce`), and the testbin stripped binary.
 
 # License
 This project is licensed under the [MIT License](LICENSE).
