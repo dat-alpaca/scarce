@@ -29,6 +29,9 @@ static int handler(void* user, const char* section, const char* name, const char
     else if (MATCH("general", "memoryPageAmount"))
         pConfig->memoryPageAmount = atoi(value);
 
+    else if (MATCH("general", "userSpaceBytes"))
+        pConfig->userSpaceBytes = atoi(value);
+
     else
         return 0;
     
@@ -48,7 +51,8 @@ static config_result create_default_config(const char* configFilepath)
         .fontFilepath = "assets/core/basis33/basis33.ttf",
         .vertexFilepath = "assets/core/shaders/text.vert",
         .fragmentFilepath = "assets/core/shaders/text.frag",
-        .memoryPageAmount = 1
+        .memoryPageAmount = 1,
+        .userSpaceBytes = 1024
     };
 
     char buffer[1024];
@@ -58,12 +62,14 @@ static config_result create_default_config(const char* configFilepath)
         "fontFilepath = %s\n"
         "vertexFilepath = %s\n"
         "fragmentFilepath = %s\n"
-        "memoryPageAmount = %" PRIu64 "\n",
+        "memoryPageAmount = %" PRIu64 "\n"
+        "userSpaceBytes = %" PRIu64 "\n",
         config.mainBinaryFilepath,
         config.fontFilepath,
         config.vertexFilepath,
         config.fragmentFilepath,
-        config.memoryPageAmount
+        config.memoryPageAmount,
+        config.userSpaceBytes
     );
     if (length > 0)
         platform_write_file(file, (void*)buffer, (u32)length);

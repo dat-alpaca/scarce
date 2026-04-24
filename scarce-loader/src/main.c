@@ -138,7 +138,7 @@ int main()
     config* config = &configResult.configuration;
 
     context context = { 0 };
-    static u8 memoryPool[TO_KiB(1) - 1];
+    u8* memoryPool = (u8*)malloc(config->memoryPageAmount);
     
     font_loader_init(&context.library);
 

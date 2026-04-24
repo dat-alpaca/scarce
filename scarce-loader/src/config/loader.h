@@ -9,6 +9,7 @@ typedef struct
     const char* fragmentFilepath;
     const char* fontFilepath;
     u64 memoryPageAmount;
+    u64 userSpaceBytes;
 } config;
 
 typedef struct
