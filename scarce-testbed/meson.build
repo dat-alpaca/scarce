@@ -1,8 +1,5 @@
 sources = files(
     'src/main.c',
-    'src/renderer.c',
-    'src/timing.c',
-    'src/utils.c',
 )
 
 executable(
@@ -26,6 +23,6 @@ executable(
 meson.add_install_script(
     post_install,
     'scarce-testbed',
-    'scarce-testbed.bin',
+    'main.bin',
     install_tag: 'application'
 )
