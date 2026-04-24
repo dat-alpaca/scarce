@@ -1,6 +1,6 @@
 #include "loader.h"
 
-void* get_application_space(const char* filepath)
+void* get_application_space(const char* filepath, u64 memoryPageAmount)
 {
     file_descriptor mainBinary = platform_open_file(filepath, SCA_FILE_READ);
     if (mainBinary == invalid_file_descriptor)
@@ -15,7 +15,7 @@ void* get_application_space(const char* filepath)
         invalid_file_descriptor, 0
     );
 
-    platform_read_file(mainBinary, applicationSpace, TO_KiB(4));
+    platform_read_file(mainBinary, applicationSpace, TO_KiB(4) * memoryPageAmount);
     return applicationSpace;
 }
 

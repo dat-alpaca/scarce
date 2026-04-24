@@ -1,4 +1,6 @@
+#include <inttypes.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ini.h>
 
@@ -24,6 +26,9 @@ static int handler(void* user, const char* section, const char* name, const char
     else if (MATCH("general", "fontFilepath"))
         pConfig->fontFilepath = strdup(value);
 
+    else if (MATCH("general", "memoryPageAmount"))
+        pConfig->memoryPageAmount = atoi(value);
+
     else
         return 0;
     
@@ -42,7 +47,8 @@ static config_result create_default_config(const char* configFilepath)
         .mainBinaryFilepath = "main.bin",
         .fontFilepath = "assets/core/basis33/basis33.ttf",
         .vertexFilepath = "assets/core/shaders/text.vert",
-        .fragmentFilepath = "assets/core/shaders/text.frag"
+        .fragmentFilepath = "assets/core/shaders/text.frag",
+        .memoryPageAmount = 1
     };
 
     char buffer[1024];
@@ -51,11 +57,13 @@ static config_result create_default_config(const char* configFilepath)
         "mainBinaryFilepath = %s\n"
         "fontFilepath = %s\n"
         "vertexFilepath = %s\n"
-        "fragmentFilepath = %s\n",
+        "fragmentFilepath = %s\n"
+        "memoryPageAmount = %" PRIu64 "\n",
         config.mainBinaryFilepath,
         config.fontFilepath,
         config.vertexFilepath,
-        config.fragmentFilepath
+        config.fragmentFilepath,
+        config.memoryPageAmount
     );
     if (length > 0)
         platform_write_file(file, (void*)buffer, (u32)length);

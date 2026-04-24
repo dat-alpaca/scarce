@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include "core/defines.h"
 
 typedef struct
 {
@@ -7,6 +8,7 @@ typedef struct
     const char* vertexFilepath;
     const char* fragmentFilepath;
     const char* fontFilepath;
+    u64 memoryPageAmount;
 } config;
 
 typedef struct

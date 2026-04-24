@@ -9,7 +9,7 @@ void on_load(memory_pool* pool, engine* engine)
 
 bool on_update(memory_pool* pool)
 {
-    return false;
+    return true;
 }
 
 void on_unload(memory_pool* pool)

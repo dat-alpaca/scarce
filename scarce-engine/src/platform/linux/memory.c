@@ -1,5 +1,6 @@
 #include "platform/platform.h"
 #include <sys/mman.h>
+#include <unistd.h>
 
 void* platform_mmap(void *address, u32 length, protection_mode protection, memory_flags flags, file_descriptor fileDescriptor, i64 offset)
 {
@@ -32,4 +33,9 @@ void* platform_mmap(void *address, u32 length, protection_mode protection, memor
 void platform_munmmap(void *address, u32 length)
 {
     munmap(address, length);
+}
+
+u64 platform_page_size()
+{
+    return (u64)sysconf(_SC_PAGESIZE);
 }

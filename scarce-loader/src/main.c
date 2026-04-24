@@ -146,7 +146,7 @@ int main()
     load_func onLoad;
     update_func onUpdate;
     unload_func onUnload;
-    void* applicationSpace = get_application_space(config->mainBinaryFilepath);
+    void* applicationSpace = get_application_space(config->mainBinaryFilepath, config->memoryPageAmount);
     if (!applicationSpace)
         return 1;
 
