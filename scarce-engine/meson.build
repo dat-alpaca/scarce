@@ -24,17 +24,17 @@ endif
 
 # Main library:
 engine_internal_includes = include_directories('src', 'src/core', 'src/graphics')
-engine_includes = [engine_internal_includes, stb_inc]
+engine_includes = [engine_internal_includes]
 
 scarce_engine_lib = static_library(
     'scarce-engine',
     sources: sources,
     include_directories: engine_includes,
-    dependencies: [glew_dep, gl_dep, cglm_dep, freetype_dep, glfw_dep],
+    dependencies: [glew_dep, gl_dep, cglm_dep, freetype_dep, glfw_dep, stb_dep],
 )
 
 scarce_engine_dep = declare_dependency(
     link_with: scarce_engine_lib,
     include_directories: engine_includes,
-    dependencies: [glew_dep, gl_dep, cglm_dep, freetype_dep, glfw_dep]
+    dependencies: [glew_dep, gl_dep, cglm_dep, freetype_dep, glfw_dep, stb_dep]
 )

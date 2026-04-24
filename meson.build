@@ -12,7 +12,7 @@ freetype_dep    = dependency('freetype2', static: true)
 glfw_dep        = dependency('glfw3', static: true)
 glew_dep        = dependency('glew', static: true, fallback: ['glew', 'glew_dep'])
 inih_dep        = dependency('inih', static: true)
-stb_inc         = include_directories('subprojects/stb')
+stb_dep         = dependency('stb')
 
 cglm_includes     = cglm_dep.partial_dependency(compile_args: true, includes: true)
 freetype_includes = freetype_dep.partial_dependency(compile_args: true, includes: true)
