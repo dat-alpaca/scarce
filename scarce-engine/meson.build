@@ -1,6 +1,7 @@
 sources = files(
     'src/core/fixed_array.c',
     'src/core/font/font.c',
+    'src/core/random.c',
     'src/core/memory/memory.c',
     'src/core/memory/stack.c',
     'src/core/string_utils.c',

@@ -1,6 +1,7 @@
 #include "core/font/font.h"
 #include "freetype/freetype.h"
 #include "graphics/graphics.h"
+#include "random.h"
 #include "scarce.h"
 
 #include "config/loader.h"
@@ -22,6 +23,10 @@ static engine gEngine =
 
     .scarce_push = scarce_push,
     .scarce_pop = scarce_pop,
+
+    // Random:
+    .random_int = random_int,
+    .random_float = random_float,
 
     // Timing:
     .get_timestamp_ns = platform_timestamp_ns,
@@ -140,6 +145,7 @@ int main()
     context context = { 0 };
     u8* memoryPool = (u8*)malloc(config->memoryPageAmount);
     
+    random_init();
     font_loader_init(&context.library);
 
     // Application space:
@@ -153,7 +159,7 @@ int main()
     get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
 
     // Window:
-    u32 characterSize = 16;
+    u32 characterSize = 24;
     u32 screenX = 640;
     u32 screenY = 480;
     if (!window_init("Scarce v0.1", screenX, screenY))

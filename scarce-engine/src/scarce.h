@@ -18,6 +18,10 @@ typedef struct
     scarce_push_func scarce_push;
     scarce_pop_func scarce_pop;
 
+    // Random:
+    i32 (*random_int)(i32 min, i32 max);
+    f32 (*random_float)(f32 min, f32 max);
+
     // Time:
     u64 (*get_timestamp_ns)();
 
