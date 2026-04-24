@@ -5,34 +5,15 @@ sources = files(
     'src/utils.c',
 )
 
-testbed = executable(
+executable(
     'scarce-testbed',
     sources: sources,
-
-    # PIC:
-    pie: true,
-    c_args: [
-        '-fvisibility=hidden',
-        '-ffreestanding',
-        '-fno-stack-protector',
-        '-fno-asynchronous-unwind-tables',
-        '-fno-ident',
-        '-Os'
-    ],
-    gnu_symbol_visibility: 'hidden',
-
-    # Linker:
-    link_args: [
-        '-nostdlib',
-        '-static',
-        '-fno-common',
-        '-fno-stack-protector',
-        '-s',
-        '-T' + linker_script,
-        '-Wl,--build-id=none',
-        '-Wl,-n',
-    ],
+    dependencies: [application_dep],
+    c_args: testbed_c_args,
+    link_args: testbed_link_args,
     link_depends: linker_script,
+    pie: true,
+    gnu_symbol_visibility: 'hidden',
 
     dependencies: [cglm_includes, freetype_includes],
     include_directories: [engine_internal_includes],
@@ -43,7 +24,7 @@ testbed = executable(
 )
 
 meson.add_install_script(
-    meson.project_source_root() / 'scripts/post_install.py',
+    post_install,
     'scarce-testbed',
     'scarce-testbed.bin',
     install_tag: 'application'

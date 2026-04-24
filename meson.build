@@ -17,11 +17,38 @@ stb_inc         = include_directories('subprojects/stb')
 cglm_includes     = cglm_dep.partial_dependency(compile_args: true, includes: true)
 freetype_includes = freetype_dep.partial_dependency(compile_args: true, includes: true)
 
-# Linker:
+# Paths:
 linker_script = meson.current_source_dir() / 'linker.ld'
+post_install = meson.current_source_dir() / 'scripts/post_install.py'
 
 # Subdirectories:
 subdir('scarce-engine')
+
+# Application:
+application_c_args = [
+    '-fvisibility=hidden', 
+    '-ffreestanding', 
+    '-fno-stack-protector',
+    '-fno-asynchronous-unwind-tables', 
+    '-fno-ident', 
+    '-Os'
+]
+application_link_args = [
+    '-nostdlib', 
+    '-static', 
+    '-fno-common', 
+    '-fno-stack-protector', 
+    '-s',
+    '-T' + linker_script,
+    '-Wl,--build-id=none', 
+    '-Wl,-n',
+]
+
+application_dep = declare_dependency(
+    include_directories: engine_internal_includes,
+    dependencies: [cglm_includes, freetype_includes],
+    link_args: [application_link_args],
+)
 
 if get_option('build_loader')
     subdir('scarce-loader')
