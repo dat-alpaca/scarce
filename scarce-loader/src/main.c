@@ -159,7 +159,7 @@ int main()
     get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
 
     // Window:
-    u32 characterSize = 24;
+    u32 characterSize = 16;
     u32 screenX = 640;
     u32 screenY = 480;
     if (!window_init("Scarce v0.1", screenX, screenY))
@@ -183,6 +183,7 @@ int main()
     mat4 project;
     glm_ortho(0.0f, (float)screenX, (float)screenY, 0.0f, 0.f, 1.0f, project);
     text_renderer_set_world(&context.renderer, project);
+    text_renderer_set_character_size(&context.renderer, 10);
 
     onLoad(memoryPool, &gEngine);
     while(!glfwWindowShouldClose(window))

@@ -25,7 +25,6 @@ typedef struct
 {
     font* loadedFont;
     fixed_array characters;
-    mat4 model;
     
     text_renderer_world world;
     pipeline pipeline;
@@ -37,6 +36,8 @@ typedef struct
     
     gl_handle fontTexture;
     
+    u32 windowWidth;
+    u32 windowHeight;
     u32 gridWidth;
     u32 gridHeight;
     u32 characterSize;

@@ -2,6 +2,8 @@
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
+#include <string.h>
+#include <stdio.h>
 
 #include "cglm/mat4.h"
 #include "cglm/types.h"
@@ -9,7 +11,6 @@
 #include "graphics/graphics.h"
 #include "platform/platform.h"
 #include "pipeline.h"
-#include <string.h>
 
 static gl_handle read_shader(const char* filepath, shader_type type)
 {
@@ -66,8 +67,7 @@ static void zero_buffer(text_renderer* renderer)
 static void reallocate_buffers(text_renderer* renderer)
 {
     bool wasValidRenderer = false;
-    fixed_array bufferCopy;
-    bufferCopy.capacity = 0;
+    fixed_array bufferCopy = { 0 };
 
     if (renderer->characters.buffer)
     {
@@ -110,28 +110,39 @@ void text_renderer_init(text_renderer* renderer, font* font, shader_filepaths* s
     renderer->characters.buffer = NULL;
     renderer->loadedFont = font;
     renderer->charactersSSBO = -1;
-    renderer->characterSize = characterSize;
 
+    // Buffers:
+    glm_mat4_identity(renderer->world.model);
+    vec3 scaleVec = {characterSize, characterSize, 1.0f};
+    glm_scale(renderer->world.model, scaleVec);
+    graphics_update_buffer(renderer->worldUBO, &renderer->world, sizeof(text_renderer_world), 0);
+
+    renderer->characterSize = characterSize;
+    renderer->windowWidth = windowWidth;
+    renderer->windowHeight = windowHeight;
+    renderer->gridWidth = windowWidth / renderer->characterSize;
+    renderer->gridHeight = windowHeight / renderer->characterSize;
+
+    reallocate_buffers(renderer);
+
+    // Graphics:
     glCreateVertexArrays(1, &renderer->vao);
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
 
-    // Buffers:
-    text_renderer_on_resize(renderer, windowWidth, windowHeight);
-    renderer->worldUBO = graphics_create_buffer(sizeof(text_renderer_world), BUFFER_DYNAMIC);
-    
-    // Shaders:
     gl_handle vertexShader = read_shader(shaders->vertexFilepath, SHADER_VERTEX);
     gl_handle fragmentShader = read_shader(shaders->fragmentFilepath, SHADER_FRAGMENT);
-
+    
     renderer->pipeline = graphics_create_pipeline(vertexShader, fragmentShader);
+    renderer->worldUBO = graphics_create_buffer(sizeof(text_renderer_world), BUFFER_DYNAMIC);
 }
 
 void text_renderer_on_resize(text_renderer* renderer, i32 windowWidth, i32 windowHeight)
 {
+    renderer->windowWidth = windowWidth;
+    renderer->windowHeight = windowHeight;
     renderer->gridWidth = windowWidth / renderer->characterSize;
     renderer->gridHeight = windowHeight / renderer->characterSize;
-    text_renderer_set_character_size(renderer, renderer->characterSize);
 }
 
 void text_renderer_set_texture(text_renderer* renderer, gl_handle texture)
@@ -141,22 +152,22 @@ void text_renderer_set_texture(text_renderer* renderer, gl_handle texture)
 
 void text_renderer_set_world(text_renderer* renderer, mat4 projection)
 {
-    glm_mat4_copy(renderer->model, renderer->world.model);
     glm_mat4_copy(projection, renderer->world.projection);
     graphics_update_buffer(renderer->worldUBO, &renderer->world, sizeof(text_renderer_world), 0);
 }
 
 void text_renderer_set_character_size(text_renderer* renderer, u32 characterSize)
 {
-    renderer->gridWidth *= renderer->characterSize / characterSize;
-    renderer->gridHeight *= renderer->characterSize / characterSize;
     renderer->characterSize = characterSize;
+    renderer->gridWidth = renderer->windowWidth / renderer->characterSize;
+    renderer->gridHeight = renderer->windowHeight / renderer->characterSize;
 
     reallocate_buffers(renderer);
 
-    glm_mat4_identity(renderer->model);
+    glm_mat4_identity(renderer->world.model);
     vec3 scaleVec = {characterSize, characterSize, 1.0f};
-    glm_scale(renderer->model, scaleVec);
+    glm_scale(renderer->world.model, scaleVec);
+    graphics_update_buffer(renderer->worldUBO, &renderer->world, sizeof(text_renderer_world), 0);
 }
 
 void text_renderer_render(text_renderer* renderer)
