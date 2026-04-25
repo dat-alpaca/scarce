@@ -235,3 +235,7 @@ u32 text_renderer_window_height(text_renderer* renderer)
 {
     return renderer->windowHeight;    
 }
+u32 text_renderer_character_size(text_renderer* renderer)
+{
+    return renderer->characterSize;
+}
