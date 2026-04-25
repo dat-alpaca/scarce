@@ -9,7 +9,7 @@ void* get_application_space(const char* filepath, u64 memoryPageAmount)
     void* applicationSpace = platform_mmap
     (
         NULL,
-        TO_KiB(2),
+        TO_KiB(4) * memoryPageAmount,
         PROTECTION_READ | PROTECTION_WRITE | PROTECTION_EXECUTE, 
         MEMORY_PRIVATE | MEMORY_ANON, 
         invalid_file_descriptor, 0
