@@ -50,6 +50,8 @@ static engine gEngine =
     .renderer_set_character_size = text_renderer_set_character_size,
     .renderer_width = text_renderer_width,
     .renderer_height = text_renderer_height,
+    .renderer_window_width = text_renderer_window_height,
+    .renderer_window_height = text_renderer_window_height,
 };
 
 static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)

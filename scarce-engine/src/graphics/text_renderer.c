@@ -3,7 +3,6 @@
 #define GLEW_NO_GLU
 #include <GL/glew.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "cglm/mat4.h"
 #include "cglm/types.h"
@@ -227,4 +226,12 @@ u32 text_renderer_width(text_renderer* renderer)
 u32 text_renderer_height(text_renderer* renderer)
 {
     return renderer->gridHeight;    
+}
+u32 text_renderer_window_width(text_renderer* renderer)
+{
+    return renderer->windowWidth;    
+}
+u32 text_renderer_window_height(text_renderer* renderer)
+{
+    return renderer->windowHeight;    
 }

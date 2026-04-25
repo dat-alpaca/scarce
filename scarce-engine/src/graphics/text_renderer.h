@@ -63,3 +63,5 @@ void text_renderer_set_character_background_color(text_renderer* renderer, u32 x
 
 u32 text_renderer_width(text_renderer* renderer);
 u32 text_renderer_height(text_renderer* renderer);
+u32 text_renderer_window_width(text_renderer* renderer);
+u32 text_renderer_window_height(text_renderer* renderer);

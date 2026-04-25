@@ -44,6 +44,8 @@ typedef struct
     void (*renderer_set_character_size)(text_renderer* renderer, u32 characterSize);
     u32  (*renderer_width)(text_renderer* renderer);
     u32  (*renderer_height)(text_renderer* renderer);
+    u32  (*renderer_window_width)(text_renderer* renderer);
+    u32  (*renderer_window_height)(text_renderer* renderer);
 } engine;
 
 typedef void (*load_func)(memory_pool*, engine*);
