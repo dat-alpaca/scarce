@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -24,11 +25,15 @@ file_descriptor platform_open_file(const char* filepath, file_mode modeFlags)
 
 void platform_read_file(file_descriptor fileDescriptor, void* buffer, u32 length)
 {
+    assert(buffer);
+    assert(length > 0);
     read(fileDescriptor, buffer, length);
 }
 
 void platform_write_file(file_descriptor fileDescriptor, void* buffer, u32 length)
 {
+    assert(buffer);
+    assert(length > 0);
     write(fileDescriptor, buffer, length);
 }
 

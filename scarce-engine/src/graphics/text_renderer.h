@@ -58,6 +58,7 @@ void text_renderer_set_character_size(text_renderer* renderer, u32 characterSize
 
 void text_renderer_render(text_renderer* renderer);
 
+text_renderer_character* text_renderer_get_character(text_renderer* renderer, u32 x, u32 y);
 void text_renderer_set_character_letter(text_renderer* renderer, u32 x, u32 y, char letter);
 void text_renderer_set_character_color(text_renderer* renderer, u32 x, u32 y, float r, float g, float b);
 void text_renderer_set_character_background_color(text_renderer* renderer, u32 x, u32 y, float r, float g, float b, bool paint);

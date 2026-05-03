@@ -116,13 +116,10 @@ static void initialize_data(FT_Library* library, const char* fontFilepath, gl_ha
 	}
 }
 
-const static double gResizeTimeout = 0.2;
 struct
 {
     text_renderer renderer;
     FT_Library library;
-    double lastResize;
-    bool isResizing;
 } typedef context;
 
 /* Window */
@@ -132,12 +129,7 @@ void window_size_callback(window_handle* window, i32 width, i32 height)
     text_renderer* r = &userContext->renderer;
 
     glViewport(0, 0, width, height);
-    
-    if(!userContext->isResizing)
-        text_renderer_on_resize(r, width, height);
-
-    userContext->lastResize = window_get_time(window);
-    userContext->isResizing = true;
+    text_renderer_on_resize(r, width, height);
 }
 
 int main()
@@ -189,20 +181,10 @@ int main()
     text_renderer_set_texture(&context.renderer, fontTexture);
     gEngine.renderer = &context.renderer;
 
-    // World:
-    mat4 project;
-    glm_ortho(0.0f, (float)screenX, (float)screenY, 0.0f, 0.f, 1.0f, project);
-    text_renderer_set_world(&context.renderer, project);
-
     onLoad(memoryPool, &gEngine);
     while(!window_is_open(window))
     {
         window_poll_events(window);
-
-        if (context.isResizing && (window_get_time(window) - context.lastResize > gResizeTimeout)) 
-        {
-            context.isResizing = false;
-        }
 
         if(!onUpdate(memoryPool))
             break;

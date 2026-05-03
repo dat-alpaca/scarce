@@ -1,6 +1,5 @@
 #include "text_renderer.h"
-#include <math.h>
-#include <stdlib.h>
+#include "defines.h"
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
@@ -26,9 +25,11 @@ static gl_handle read_shader(const char* filepath, shader_type type)
     fixed_array buffer = { 0 };
     fixed_array_init(&buffer, fileSize + 1);
 
-    char* bufferData = (char*)buffer.buffer;
     platform_read_file(file, buffer.buffer, fileSize);
-    bufferData[fileSize] = '\0';
+    buffer.current = fileSize;
+
+    char null = '\0';
+    fixed_array_push(&buffer, &null, 1);
 
     gl_handle shader = graphics_create_shader(type, buffer.buffer);
     platform_close_file(file);
@@ -39,78 +40,52 @@ static gl_handle read_shader(const char* filepath, shader_type type)
 
 static void zero_buffer(text_renderer* renderer)
 {
-    text_renderer_character* characters = (text_renderer_character*)renderer->characters.buffer;
-    
-    u32 gridWidth = renderer->gridWidth;
-    u32 gridHeight = renderer->gridHeight;
-    for (u32 x = 0; x < gridWidth; ++x)
+    u32 totalCells = renderer->gridWidth * renderer->gridHeight;
+
+    for (u32 i = 0; i < totalCells; ++i)
     {
-        for (u32 y = 0; y < gridHeight; ++y)
-        {
-            characters[y * gridWidth + x].position[0] = x;
-            characters[y * gridWidth + x].position[1] = y;
-            characters[y * gridWidth + x].uvSize[0] = 0;
-            characters[y * gridWidth + x].uvSize[1] = 0;
-            characters[y * gridWidth + x].color[0] = 0.0f;
-            characters[y * gridWidth + x].color[1] = 0.0f;
-            characters[y * gridWidth + x].color[2] = 0.0f;
-            characters[y * gridWidth + x].color[3] = 1.0f;
-            characters[y * gridWidth + x].backgroundColor[0] = 0.0f;
-            characters[y * gridWidth + x].backgroundColor[1] = 0.0f;
-            characters[y * gridWidth + x].backgroundColor[2] = 0.0f;
-            characters[y * gridWidth + x].backgroundColor[3] = 1.0f;
-            characters[y * gridWidth + x].layer = 0;
-            characters[y * gridWidth + x].paintBackground = 0;
-        }
+        text_renderer_character* c = (text_renderer_character*)fixed_array_get(
+            &renderer->characters, i, sizeof(text_renderer_character)
+        );
+
+        u32 x = i % renderer->gridWidth;
+        u32 y = i / renderer->gridWidth;
+
+        c->position[0] = (float)x;
+        c->position[1] = (float)y;
+        c->uvSize[0] = 0;
+        c->uvSize[1] = 0;
+        c->color[3] = 1.0f;
+        c->paintBackground = 0;
+        c->backgroundColor[3] = 1.0f;
     }
 }
 
 static void reallocate_buffers(text_renderer* renderer)
 {
-    bool wasValidRenderer = false;
-    fixed_array bufferCopy = { 0 };
-
-    if (renderer->characters.buffer)
-    {
-        fixed_array_init(&bufferCopy, renderer->characters.capacity);
-        memcpy(bufferCopy.buffer, renderer->characters.buffer, renderer->characters.capacity);
-        bufferCopy.capacity = renderer->characters.capacity;
-
+    if (renderer->characters.buffer != NULL)
         fixed_array_destroy(&renderer->characters);
-        wasValidRenderer = true;
-    }
-
-    fixed_array_init(&renderer->characters, renderer->gridWidth * renderer->gridHeight * sizeof(text_renderer_character));
     
-    if (!wasValidRenderer)
-    {
-        zero_buffer(renderer);
-        renderer->characters.current = renderer->gridWidth * renderer->gridHeight * sizeof(text_renderer_character);
-    }
+    u32 totalCells = renderer->gridWidth * renderer->gridHeight;
+    u32 totalBytes = totalCells * sizeof(text_renderer_character);
+    fixed_array_init(&renderer->characters, totalBytes);
 
-    if (bufferCopy.capacity)
-    {
-        if (renderer->characters.capacity <= bufferCopy.capacity)
-            memcpy(renderer->characters.buffer, bufferCopy.buffer, renderer->characters.capacity);
-        else
-            memcpy(renderer->characters.buffer, bufferCopy.buffer, bufferCopy.capacity);
-
-        renderer->characters.current = renderer->characters.capacity;
-
-        fixed_array_destroy(&bufferCopy);
-    }
+    text_renderer_character emptyCell = { 0 };
+    for (u32 i = 0; i < totalCells; ++i)
+        fixed_array_push(&renderer->characters, &emptyCell, sizeof(text_renderer_character));
 
     if (renderer->charactersSSBO != (gl_handle)-1)
         graphics_destroy_buffer(renderer->charactersSSBO);
 
-    renderer->charactersSSBO = graphics_create_buffer(renderer->gridWidth * renderer->gridHeight * sizeof(text_renderer_character), BUFFER_COHERENT);
+    renderer->charactersSSBO = graphics_create_buffer(totalBytes, BUFFER_COHERENT);
+    zero_buffer(renderer);
 }
 
 void text_renderer_init(text_renderer* renderer, font* font, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 characterSize)
 {
-    renderer->characters.buffer = NULL;
     renderer->loadedFont = font;
-    renderer->charactersSSBO = -1;
+    renderer->charactersSSBO = (gl_handle)-1;
+    renderer->characters.buffer = NULL;
 
     // Buffers:
     glm_mat4_identity(renderer->world.model);
@@ -124,7 +99,7 @@ void text_renderer_init(text_renderer* renderer, font* font, shader_filepaths* s
     renderer->gridWidth = windowWidth / renderer->characterSize;
     renderer->gridHeight = windowHeight / renderer->characterSize;
 
-    reallocate_buffers(renderer);
+    text_renderer_on_resize(renderer, windowWidth, windowHeight);
 
     // Graphics:
     glCreateVertexArrays(1, &renderer->vao);
@@ -144,6 +119,12 @@ void text_renderer_on_resize(text_renderer* renderer, i32 windowWidth, i32 windo
     renderer->windowHeight = windowHeight;
     renderer->gridWidth = windowWidth / renderer->characterSize;
     renderer->gridHeight = windowHeight / renderer->characterSize;
+
+    reallocate_buffers(renderer);
+
+    mat4 project;
+    glm_ortho(0.0f, (float)windowWidth, (float)windowHeight, 0.0f, -1.f, 1.0f, project);
+    text_renderer_set_world(renderer, project);
 }
 
 void text_renderer_set_texture(text_renderer* renderer, gl_handle texture)
@@ -182,43 +163,60 @@ void text_renderer_render(text_renderer* renderer)
     
     graphics_bind_pipeline(renderer->vao, renderer->pipeline);
     graphics_bind_ssbo(renderer->charactersSSBO, 0);
-    graphics_bind_texture(renderer->fontTexture, 2);
     graphics_bind_ubo(renderer->worldUBO, 1);
+    graphics_bind_texture(renderer->fontTexture, 2);
 
     graphics_draw(renderer->characters.current / sizeof(text_renderer_character) * 6);
 
     graphics_end_frame();
 }
 
+text_renderer_character* text_renderer_get_character(text_renderer* renderer, u32 x, u32 y)
+{
+    if (x >= renderer->gridWidth || y >= renderer->gridHeight) 
+        return NULL;
+    
+    u32 index = y * renderer->gridWidth + x;
+    return (text_renderer_character*)fixed_array_get
+    (
+        &renderer->characters, index, sizeof(text_renderer_character)
+    );
+}
+
 void text_renderer_set_character_letter(text_renderer* renderer, u32 x, u32 y, char letter)
 {
-    text_renderer_character* characters = (text_renderer_character*)renderer->characters.buffer;
+    text_renderer_character* c = text_renderer_get_character(renderer, x, y);
+    assert (c && letter >= '!' && letter < '~');
     
-    font_character* fontCharacterBuffer = (font_character*)renderer->loadedFont->characters.buffer;
-    font_character character = fontCharacterBuffer[letter - '!'];
-    
-    characters[y * renderer->gridWidth + x].uvSize[0] = character.size[0] / renderer->loadedFont->maxWidth;
-    characters[y * renderer->gridWidth + x].uvSize[1] = character.size[1] / renderer->loadedFont->maxHeight;
-    characters[y * renderer->gridWidth + x].layer = character.layer;
+    font_character* fontChars = (font_character*)renderer->loadedFont->characters.buffer;
+    font_character* fc = &fontChars[letter - '!'];
+
+    c->uvSize[0] = fc->size[0] / renderer->loadedFont->maxWidth;
+    c->uvSize[1] = fc->size[1] / renderer->loadedFont->maxHeight;
+    c->layer = fc->layer;
 }
 
 void text_renderer_set_character_color(text_renderer* renderer, u32 x, u32 y, float r, float g, float b)
 {
-    text_renderer_character* characters = (text_renderer_character*)renderer->characters.buffer;
-    characters[y * renderer->gridWidth + x].color[0] = r;
-    characters[y * renderer->gridWidth + x].color[1] = g;
-    characters[y * renderer->gridWidth + x].color[2] = b;
-    characters[y * renderer->gridWidth + x].color[3] = 1.0f;
+    text_renderer_character* c = text_renderer_get_character(renderer, x, y);
+    assert(c);
+
+    c->color[0] = r;
+    c->color[1] = g;
+    c->color[2] = b;
+    c->color[3] = 1.0f;
 }
 
 void text_renderer_set_character_background_color(text_renderer* renderer, u32 x, u32 y, float r, float g, float b, bool paint)
 {
-    text_renderer_character* characters = (text_renderer_character*)renderer->characters.buffer;
-    characters[y * renderer->gridWidth + x].backgroundColor[0] = r;
-    characters[y * renderer->gridWidth + x].backgroundColor[1] = g;
-    characters[y * renderer->gridWidth + x].backgroundColor[2] = b;
-    characters[y * renderer->gridWidth + x].backgroundColor[3] = 1.0f;
-    characters[y * renderer->gridWidth + x].paintBackground = paint;
+    text_renderer_character* c = text_renderer_get_character(renderer, x, y);
+    assert(c);
+
+    c->backgroundColor[0] = r;
+    c->backgroundColor[1] = g;
+    c->backgroundColor[2] = b;
+    c->backgroundColor[3] = 1.0f;
+    c->paintBackground = paint;
 }
 
 u32 text_renderer_width(text_renderer* renderer)
@@ -247,19 +245,27 @@ void text_renderer_get_mouse_grid_position(window_handle* windowHandle, text_ren
     double mouseX, mouseY;
     window_get_mouse_position(windowHandle, &mouseX, &mouseY);
 
-    mouseX /= renderer->characterSize;
-    mouseY /= renderer->characterSize;
-    
-    *x = mouseX;
-    *y = mouseY;
-
     if (mouseX < 0)
         mouseX = 0;
-    if (mouseX > text_renderer_width(renderer))
-        mouseX = text_renderer_width(renderer);
-
+    
     if (mouseY < 0)
         mouseY = 0;
-    if (mouseY > text_renderer_height(renderer))
-        mouseY = text_renderer_height(renderer);
+
+    if (mouseX >= renderer->windowWidth)
+        mouseX = renderer->windowWidth - 1;
+
+    if (mouseY >= renderer->windowHeight)
+        mouseY = renderer->windowHeight - 1;
+
+    u32 gridX = (u32)(mouseX / renderer->characterSize);
+    u32 gridY = (u32)(mouseY / renderer->characterSize);
+    
+    if (gridX >= renderer->gridWidth)
+        gridX = renderer->gridWidth - 1;
+
+    if (gridY >= renderer->gridHeight)
+        gridY = renderer->gridHeight - 1;
+
+    *x = gridX;
+    *y = gridY;
 }
