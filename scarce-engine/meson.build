@@ -5,6 +5,7 @@ sources = files(
     'src/core/memory/memory.c',
     'src/core/memory/stack.c',
     'src/core/string_utils.c',
+    'src/core/logging/logger.c',
 
     'src/graphics/graphics.c',
     'src/graphics/pipeline.c',

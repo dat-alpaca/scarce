@@ -60,3 +60,12 @@ void platform_close_file(file_descriptor fileDescriptor)
 
     close(fileDescriptor);
 }
+
+u32 platform_stdout()
+{
+    return STDOUT_FILENO;
+}
+u32 platform_stderr()
+{
+    return STDERR_FILENO;
+}

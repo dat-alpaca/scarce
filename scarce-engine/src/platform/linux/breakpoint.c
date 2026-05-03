@@ -1,6 +1,6 @@
 #include "platform/platform.h"
 
-void breakpoint()
+void platform_breakpoint()
 {
     __builtin_trap();
 }

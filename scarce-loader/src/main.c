@@ -1,6 +1,7 @@
 #include "core/font/font.h"
 #include "freetype/freetype.h"
 #include "graphics/graphics.h"
+#include "logging/logger.h"
 #include "random.h"
 #include "scarce.h"
 
@@ -182,7 +183,7 @@ int main()
     gEngine.renderer = &context.renderer;
 
     onLoad(memoryPool, &gEngine);
-    while(!window_is_open(window))
+    while(window_is_open(window))
     {
         window_poll_events(window);
 

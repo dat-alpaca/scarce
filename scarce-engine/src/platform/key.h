@@ -2,8 +2,10 @@
 
 typedef enum
 {
+    SCA_KEY_NONE = 0,
+    
     /* Numbers */
-    SCA_KEY_0,
+    SCA_KEY_0 = 1,
     SCA_KEY_1,
     SCA_KEY_2,
     SCA_KEY_3,

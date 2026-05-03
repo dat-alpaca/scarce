@@ -1,10 +1,11 @@
 #pragma once
 #include "core/defines.h"
+#include "mouse.h"
 #include "key.h"
 
 /* Core */
 #define invalid_handle ((u8)(-1))
-void breakpoint();
+void platform_breakpoint();
 
 /* Time */
 u64 platform_timestamp_ns();
@@ -27,6 +28,9 @@ void platform_write_file(file_descriptor fileDescriptor, void* buffer, u32 lengt
 bool platform_is_file_open(file_descriptor fileDescriptor);
 u32 platform_file_size(file_descriptor fileDescriptor);
 void platform_close_file(file_descriptor fileDescriptor);
+
+u32 platform_stdout();
+u32 platform_stderr();
 
 /* Memory */
 typedef enum
@@ -55,6 +59,7 @@ typedef void (*window_resize_callback)(window_handle*, i32, i32);
 
 window_handle window_init(const char* title, u32 width, u32 height);
 bool window_is_key_pressed(window_handle* handle, key key);
+bool window_is_mouse_btn_pressed(window_handle* handle, mouse_button button);
 bool window_is_open(window_handle* handle);
 void window_poll_events(window_handle*);
 void window_swap_buffers(window_handle* handle);

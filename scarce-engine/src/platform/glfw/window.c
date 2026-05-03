@@ -143,7 +143,7 @@ void window_get_mouse_position(window_handle* handle, double* x, double* y)
 
 bool window_is_open(window_handle* handle)
 {
-    return glfwWindowShouldClose((GLFWwindow*)handle);
+    return !glfwWindowShouldClose((GLFWwindow*)handle);
 }
 
 void window_poll_events(window_handle* _)
