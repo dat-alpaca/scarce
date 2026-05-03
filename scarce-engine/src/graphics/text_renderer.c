@@ -1,4 +1,6 @@
 #include "text_renderer.h"
+#include <math.h>
+#include <stdlib.h>
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
@@ -238,4 +240,26 @@ u32 text_renderer_window_height(text_renderer* renderer)
 u32 text_renderer_character_size(text_renderer* renderer)
 {
     return renderer->characterSize;
+}
+
+void text_renderer_get_mouse_grid_position(window_handle* windowHandle, text_renderer* renderer, u32* x, u32* y)
+{
+    double mouseX, mouseY;
+    window_get_mouse_position(windowHandle, &mouseX, &mouseY);
+
+    mouseX /= renderer->characterSize;
+    mouseY /= renderer->characterSize;
+    
+    *x = mouseX;
+    *y = mouseY;
+
+    if (mouseX < 0)
+        mouseX = 0;
+    if (mouseX > text_renderer_width(renderer))
+        mouseX = text_renderer_width(renderer);
+
+    if (mouseY < 0)
+        mouseY = 0;
+    if (mouseY > text_renderer_height(renderer))
+        mouseY = text_renderer_height(renderer);
 }

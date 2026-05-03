@@ -6,9 +6,10 @@
 
 #include "config/loader.h"
 #include "graphics/text_renderer.h"
-#include "core/window/window.h"
 #include "loader.h"
 #include <string.h>
+
+#include "platform/platform.h"
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
@@ -41,7 +42,7 @@ static engine gEngine =
 
     // Input:
     .is_key_pressed = window_is_key_pressed,
-
+    
     // Rendering:
     .renderer = NULL,
     .renderer_set_character_letter = text_renderer_set_character_letter,
@@ -52,7 +53,9 @@ static engine gEngine =
     .renderer_height = text_renderer_height,
     .renderer_window_width = text_renderer_window_height,
     .renderer_window_height = text_renderer_window_height,
-    .renderer_character_size = text_renderer_character_size
+    .renderer_character_size = text_renderer_character_size,
+    
+    .get_mouse_position = text_renderer_get_mouse_grid_position,
 };
 
 static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)
@@ -123,9 +126,9 @@ struct
 } typedef context;
 
 /* Window */
-void window_size_callback(GLFWwindow* window, int width, int height)
+void window_size_callback(window_handle* window, i32 width, i32 height)
 {
-    context* userContext = (context*)glfwGetWindowUserPointer(window);
+    context* userContext = (context*)window_get_user_pointer(window);
     text_renderer* r = &userContext->renderer;
 
     glViewport(0, 0, width, height);
@@ -133,7 +136,7 @@ void window_size_callback(GLFWwindow* window, int width, int height)
     if(!userContext->isResizing)
         text_renderer_on_resize(r, width, height);
 
-    userContext->lastResize = glfwGetTime();
+    userContext->lastResize = window_get_time(window);
     userContext->isResizing = true;
 }
 
@@ -162,14 +165,18 @@ int main()
     get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
 
     // Window:
+    window_handle* window;
     u32 characterSize = 16;
     u32 screenX = 640;
     u32 screenY = 480;
-    if (!window_init("Scarce v0.1", screenX, screenY))
+    window = window_init("Scarce v0.1", screenX, screenY);
+    if (!window)
         return 1;
 
-    glfwSetWindowUserPointer(window, &context);
-    glfwSetWindowSizeCallback(window, window_size_callback);
+    gEngine.window = window;
+
+    window_set_user_pointer(window, &context);
+    window_set_resize_callback(window, window_size_callback);
 
     // Application resources:
     gl_handle fontTexture;
@@ -186,14 +193,13 @@ int main()
     mat4 project;
     glm_ortho(0.0f, (float)screenX, (float)screenY, 0.0f, 0.f, 1.0f, project);
     text_renderer_set_world(&context.renderer, project);
-    text_renderer_set_character_size(&context.renderer, 10);
 
     onLoad(memoryPool, &gEngine);
-    while(!glfwWindowShouldClose(window))
+    while(!window_is_open(window))
     {
-        glfwPollEvents();
+        window_poll_events(window);
 
-        if (context.isResizing && (glfwGetTime() - context.lastResize > gResizeTimeout)) 
+        if (context.isResizing && (window_get_time(window) - context.lastResize > gResizeTimeout)) 
         {
             context.isResizing = false;
         }
@@ -203,7 +209,7 @@ int main()
 
         text_renderer_render(&context.renderer);
 
-        glfwSwapBuffers(window);
+        window_swap_buffers(window);
     }
     onUnload(memoryPool);
     

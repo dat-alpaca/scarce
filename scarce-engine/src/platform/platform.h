@@ -1,5 +1,6 @@
 #pragma once
 #include "core/defines.h"
+#include "key.h"
 
 /* Core */
 #define invalid_handle ((u8)(-1))
@@ -47,3 +48,21 @@ typedef enum
 void* platform_mmap(void *address, u32 length, protection_mode protection, memory_flags flags, file_descriptor fileDescriptor, i64 offset);
 void platform_munmmap(void *address, u32 length);
 u64 platform_page_size();
+
+/* Window */
+typedef void* window_handle;
+typedef void (*window_resize_callback)(window_handle*, i32, i32);
+
+window_handle window_init(const char* title, u32 width, u32 height);
+bool window_is_key_pressed(window_handle* handle, key key);
+bool window_is_open(window_handle* handle);
+void window_poll_events(window_handle*);
+void window_swap_buffers(window_handle* handle);
+void window_get_mouse_position(window_handle*, double* x, double* y);
+
+void* window_get_user_pointer(window_handle* handle);
+void  window_set_user_pointer(window_handle* handle, void* pointer);
+
+void window_set_resize_callback(window_handle* handle, window_resize_callback callback);
+
+u64 window_get_time(window_handle*);

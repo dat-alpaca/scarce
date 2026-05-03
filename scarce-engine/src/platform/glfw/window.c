@@ -1,11 +1,14 @@
+#include "platform/platform.h"
+#include <math.h>
+
+#define GLFW_INCLUDE_NONE
+#define GLEW_NO_GLU
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #include <stdbool.h>
-#include <stdio.h>
 
-#include "window.h"
-
-GLFWwindow* window = NULL;
-
-bool window_init(const char* title, u32 width, u32 height)
+window_handle window_init(const char* title, u32 width, u32 height)
 {
     if (!glfwInit())
         return false;
@@ -15,18 +18,21 @@ bool window_init(const char* title, u32 width, u32 height)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(width, height, title, NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (!window)
-        return false;
+        return NULL;
 
     glfwMakeContextCurrent(window);
     glewInit();
 
-    return true;
+    return window;
 }
 
-bool window_is_key_pressed(key key)
+bool window_is_key_pressed(window_handle* handle, key key)
 {
+    if (!handle)
+        return false;
+
     int keyCode = -1;
     switch(key)
     {
@@ -127,5 +133,45 @@ bool window_is_key_pressed(key key)
     if (keyCode == -1)
         return false;
 
-    return glfwGetKey(window, keyCode);
+    return glfwGetKey((GLFWwindow*)handle, keyCode);
+}
+
+void window_get_mouse_position(window_handle* handle, double* x, double* y)
+{
+    glfwGetCursorPos((GLFWwindow*)handle, x, y);
+}
+
+bool window_is_open(window_handle* handle)
+{
+    return glfwWindowShouldClose((GLFWwindow*)handle);
+}
+
+void window_poll_events(window_handle* _)
+{
+    glfwPollEvents();
+}
+
+void window_swap_buffers(window_handle* handle)
+{
+    glfwSwapBuffers((GLFWwindow*)handle);
+}
+
+void* window_get_user_pointer(window_handle* handle)
+{
+    return glfwGetWindowUserPointer((GLFWwindow*)handle);
+}
+
+void  window_set_user_pointer(window_handle* handle, void* pointer)
+{
+    glfwSetWindowUserPointer((GLFWwindow*)handle, pointer);
+}
+
+void window_set_resize_callback(window_handle* handle, window_resize_callback callback)
+{
+    glfwSetWindowSizeCallback((GLFWwindow*)handle, (GLFWwindowsizefun)callback);
+}
+
+u64 window_get_time(window_handle* _)
+{
+    return glfwGetTime();
 }

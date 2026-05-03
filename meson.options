@@ -1,2 +1,3 @@
 option('build_loader', type: 'boolean', value: true, description: 'Builds the scarce loader executable')
 option('build_testbed', type: 'boolean', value: false, description: 'Builds and extracts the testbed binaries')
+option('use_native_windowing', type: 'boolean', value: false, description: 'Determines whether to use the native windowing system or GLFW')

@@ -3,7 +3,6 @@
 #include "core/memory/memory.h"
 #include "core/memory/stack.h"
 #include "core/defines.h"
-#include "core/events.h"
 
 #include "graphics/text_renderer.h"
 
@@ -26,6 +25,7 @@ typedef struct
     u64 (*get_timestamp_ns)();
 
     // Files:
+    window_handle* window;
     file_descriptor (*platform_open_file)(const char*, file_mode);
     void (*platform_read_file)(file_descriptor, void*, u32);
     void (*platform_write_file)(file_descriptor, void*, u32);
@@ -34,8 +34,8 @@ typedef struct
     void (*platform_close_file)(file_descriptor);
 
     // Input:
-    bool (*is_key_pressed)(key key);
-
+    bool (*is_key_pressed)(window_handle*, key key);
+    
     // Rendering:
     text_renderer* renderer;
     void (*renderer_set_character_letter)(text_renderer* renderer, u32 x, u32 y, char letter);
@@ -47,6 +47,8 @@ typedef struct
     u32  (*renderer_window_width)(text_renderer* renderer);
     u32  (*renderer_window_height)(text_renderer* renderer);
     u32  (*renderer_character_size)(text_renderer* renderer);
+
+    void (*get_mouse_position)(window_handle* windowHandle, text_renderer* renderer, u32* x, u32* y);
 } engine;
 
 typedef void (*load_func)(memory_pool*, engine*);

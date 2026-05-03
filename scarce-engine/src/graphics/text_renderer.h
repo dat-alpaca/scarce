@@ -4,6 +4,7 @@
 #include "graphics/graphics.h"
 #include "core/fixed_array.h"
 #include "graphics/pipeline.h"
+#include "platform/platform.h"
 
 typedef struct
 {
@@ -66,3 +67,5 @@ u32 text_renderer_height(text_renderer* renderer);
 u32 text_renderer_window_width(text_renderer* renderer);
 u32 text_renderer_window_height(text_renderer* renderer);
 u32 text_renderer_character_size(text_renderer* renderer);
+
+void text_renderer_get_mouse_grid_position(window_handle* window, text_renderer* renderer, u32* x, u32* y);

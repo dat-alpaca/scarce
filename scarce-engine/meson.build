@@ -5,7 +5,6 @@ sources = files(
     'src/core/memory/memory.c',
     'src/core/memory/stack.c',
     'src/core/string_utils.c',
-    'src/core/window/window.c',
 
     'src/graphics/graphics.c',
     'src/graphics/pipeline.c',
@@ -16,12 +15,26 @@ sources = files(
 if host_machine.system() == 'windows'
     sources += files('src/platform/win32/file.c')
     sources += files('src/platform/win32/breakpoint.c')
+
+    if get_option('use_native_windowing')
+        sources += files('src/platform/win32/window.c')
+    endif
+
 elif host_machine.system() == 'linux'
     sources += files('src/platform/linux/breakpoint.c')
     sources += files('src/platform/linux/file.c')
     sources += files('src/platform/linux/memory.c')
     sources += files('src/platform/linux/time.c')
+
+    if get_option('use_native_windowing')
+        sources += files('src/platform/linux/window.c')
+    endif
 endif
+
+if not get_option('use_native_windowing')
+    sources += files('src/platform/glfw/window.c')
+endif
+
 
 # Main library:
 engine_internal_includes = include_directories('src', 'src/core', 'src/graphics')
