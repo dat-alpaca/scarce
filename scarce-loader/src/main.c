@@ -166,10 +166,7 @@ int main()
     get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
 
     // Window:
-    u32 characterSize = 16;
-    u32 screenX = 640;
-    u32 screenY = 480;
-    gEngine.window = window_init("Scarce v0.1", screenX, screenY);
+    gEngine.window = window_init("Scarce v0.1", config->minWindowWidth, config->minWindowHeight);
     if (!gEngine.window)
         return 1;
 
@@ -182,8 +179,10 @@ int main()
     initialize_data(&context.library, config->fontFilepath, &fontTexture, &monoFont);
     
     // Renderer:
+    u32 characterSize = 16;
+
     shader_filepaths shaders = { .vertexFilepath = config->vertexFilepath, .fragmentFilepath = config->fragmentFilepath };
-    text_renderer_init(&context.renderer, &monoFont, &shaders, screenX, screenY, characterSize);
+    text_renderer_init(&context.renderer, &monoFont, &shaders, config->minWindowWidth, config->minWindowHeight, characterSize);
     text_renderer_set_texture(&context.renderer, fontTexture);
     gEngine.renderer = &context.renderer;
 
