@@ -61,6 +61,7 @@ static engine gEngine =
     .log_warn = log_warn,
     .log_error = log_error,
     .log_critical = log_critical,
+    .logger_set_header = logger_set_header,
 };
 
 static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)
@@ -183,6 +184,11 @@ int main()
     text_renderer_init(&context.renderer, &monoFont, &shaders, screenX, screenY, characterSize);
     text_renderer_set_texture(&context.renderer, fontTexture);
     gEngine.renderer = &context.renderer;
+
+    // Logger:
+    logger mainLogger;
+    logger_initialize(&mainLogger);
+    gEngine.logger = &mainLogger;
 
     onLoad(memoryPool, &gEngine);
     while(window_is_open(gEngine.window))

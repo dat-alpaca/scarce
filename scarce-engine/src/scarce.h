@@ -1,4 +1,5 @@
 #pragma once
+#include "logging/logger.h"
 #include "platform/platform.h"
 #include "core/memory/memory.h"
 #include "core/memory/stack.h"
@@ -53,10 +54,13 @@ typedef struct
     void (*get_mouse_position)(window_handle* windowHandle, text_renderer* renderer, u32* x, u32* y);
 
     // Logging:
-    void (*log_info)(const char* message, u32 length);
-    void (*log_warn)(const char* message, u32 length);
-    void (*log_error)(const char* message, u32 length);
-    void (*log_critical)(const char* message, u32 length);
+    logger* logger;
+    void (*log_info)(logger*, const char* message, u32 length);
+    void (*log_warn)(logger*, const char* message, u32 length);
+    void (*log_error)(logger*, const char* message, u32 length);
+    void (*log_critical)(logger*, const char* message, u32 length);
+    
+    void (*logger_set_header)(logger*, bool state);
 } engine;
 
 typedef void (*load_func)(memory_pool*, engine*);
