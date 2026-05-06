@@ -65,16 +65,16 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
                       ButtonReleaseMask | PointerMotionMask | StructureNotifyMask
     };
 
+    window->window = XCreateWindow(window->display, RootWindow(window->display, vi->screen), 
+                                   0, 0, minWidth, minHeight, 0, vi->depth, InputOutput, 
+                                   vi->visual, CWColormap | CWEventMask, &swa);
+
     XSizeHints* sizeHints = XAllocSizeHints();
     sizeHints->flags = PMinSize;
     sizeHints->min_width = minWidth;
     sizeHints->min_height = minHeight;
     XSetWMNormalHints(window->display, window->window, sizeHints);
     XFree(sizeHints);
-
-    window->window = XCreateWindow(window->display, RootWindow(window->display, vi->screen), 
-                                   0, 0, minWidth, minHeight, 0, vi->depth, InputOutput, 
-                                   vi->visual, CWColormap | CWEventMask, &swa);
 
     XMapWindow(window->display, window->window);
     XStoreName(window->display, window->window, title);
