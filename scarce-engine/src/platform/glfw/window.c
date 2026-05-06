@@ -1,3 +1,4 @@
+#include "platform/mouse.h"
 #include "platform/platform.h"
 #include <math.h>
 
@@ -134,6 +135,23 @@ bool window_is_key_pressed(window_handle* handle, key key)
         return false;
 
     return glfwGetKey((GLFWwindow*)handle, keyCode);
+}
+
+bool window_is_mouse_btn_pressed(window_handle* handle, mouse_button button)
+{
+    switch(button)
+    {
+        case SCA_MOUSE_LEFT:
+            return glfwGetMouseButton((GLFWwindow*)handle, GLFW_MOUSE_BUTTON_1);
+
+        case SCA_MOUSE_RIGHT:
+            return glfwGetMouseButton((GLFWwindow*)handle, GLFW_MOUSE_BUTTON_2);
+
+        case SCA_MOUSE_MIDDLE:
+            return glfwGetMouseButton((GLFWwindow*)handle, GLFW_MOUSE_BUTTON_3);
+    }
+
+    return false;
 }
 
 void window_get_mouse_position(window_handle* handle, double* x, double* y)
