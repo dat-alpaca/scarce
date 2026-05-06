@@ -7,6 +7,9 @@
 #include "core/defines.h"
 #include "core/fixed_array.h"
 
+#define SCA_FONT_START_INDEX (0)
+#define SCA_FONT_END_INDEX ('~')
+
 typedef struct
 {
 	fixed_array data;

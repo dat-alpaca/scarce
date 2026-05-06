@@ -193,10 +193,10 @@ text_renderer_character* text_renderer_get_character(text_renderer* renderer, u3
 void text_renderer_set_character_letter(text_renderer* renderer, u32 x, u32 y, char letter)
 {
     text_renderer_character* c = text_renderer_get_character(renderer, x, y);
-    assert (c && letter >= '!' && letter < '~');
+    assert (c && letter >= SCA_FONT_START_INDEX && letter < SCA_FONT_END_INDEX);
     
     font_character* fontChars = (font_character*)renderer->loadedFont->characters.buffer;
-    font_character* fc = &fontChars[letter - '!'];
+    font_character* fc = &fontChars[letter - SCA_FONT_START_INDEX];
 
     c->uvSize[0] = fc->size[0] / renderer->loadedFont->maxWidth;
     c->uvSize[1] = fc->size[1] / renderer->loadedFont->maxHeight;

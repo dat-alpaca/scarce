@@ -22,7 +22,7 @@ bool load_font(FT_Library* library, font* output, const char* filepath)
 
     FT_Set_Pixel_Sizes(output->face, 0, 64);
 
-    u32 charCount = ('~' - '!' + 1);
+    u32 charCount = (SCA_FONT_END_INDEX - SCA_FONT_START_INDEX + 1);
     fixed_array_init(&output->characters, charCount * sizeof(font_character));
 
     for(u32 i = 0; i < charCount; ++i) 
@@ -31,9 +31,9 @@ bool load_font(FT_Library* library, font* output, const char* filepath)
         fixed_array_push(&output->characters, &emptyCharacter, sizeof(font_character));
     }
 
-    for(unsigned char character = '!'; character <= '~'; ++character)
+    for(unsigned char character = SCA_FONT_START_INDEX; character <= SCA_FONT_END_INDEX; ++character)
     {
-        u32 index = character - '!';
+        u32 index = character - SCA_FONT_START_INDEX;
 
         if (FT_Load_Char(output->face, character, FT_LOAD_DEFAULT))
             continue;
