@@ -36,9 +36,6 @@ static void clear_buffer()
 void on_load(memory_pool* pool, engine* engine)
 {
     _e = engine;
-    _e->log_info("hi", 2);
-    _e->log_error("hi", 2);
-    _e->log_warn("hi", 2);
     _e->renderer_set_character_size(_e->renderer, 24);
 }
 

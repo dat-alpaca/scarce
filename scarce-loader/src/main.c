@@ -146,8 +146,9 @@ int main()
     config* config = &configResult.configuration;
 
     context context = { 0 };
-    u8* memoryPool = (u8*)malloc(config->memoryPageAmount);
-    
+    u8* memoryPool = (u8*)malloc(config->userSpaceBytes);
+    gEngine.memoryPoolSize = config->userSpaceBytes;
+
     random_init();
     font_loader_init(&context.library);
 
@@ -182,8 +183,6 @@ int main()
     text_renderer_init(&context.renderer, &monoFont, &shaders, screenX, screenY, characterSize);
     text_renderer_set_texture(&context.renderer, fontTexture);
     gEngine.renderer = &context.renderer;
-
-    gEngine.log_info = log_info;
 
     onLoad(memoryPool, &gEngine);
     while(window_is_open(gEngine.window))

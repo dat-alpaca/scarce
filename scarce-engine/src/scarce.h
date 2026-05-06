@@ -10,6 +10,7 @@ typedef struct
 {
     window_handle* window;
     text_renderer* renderer;
+    u32 memoryPoolSize;
 
     // Memory:
     void* (*scarce_read)(memory_pool*, u32 address);
