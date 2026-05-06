@@ -42,7 +42,8 @@ static engine gEngine =
 
     // Input:
     .is_key_pressed = window_is_key_pressed,
-    
+    .is_mouse_btn_pressed = window_is_mouse_btn_pressed,
+
     // Rendering:
     .renderer_set_character_letter = text_renderer_set_character_letter,
     .renderer_set_character_color = text_renderer_set_character_color,

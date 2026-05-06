@@ -1,3 +1,4 @@
+#include "platform/mouse.h"
 #include <scarce.h>
 
 static engine* _e = 0;
@@ -38,13 +39,17 @@ void on_load(memory_pool* pool, engine* engine)
     _e = engine;
 
     _e->logger_set_header(_e->logger, false);
-    _e->log_warn(_e->logger, "hello", 5);
     _e->renderer_set_character_size(_e->renderer, 24);
 }
 
 bool on_update(memory_pool* pool)
 {
     clear_buffer();
+
+    if(_e->is_mouse_btn_pressed(_e->window, SCA_MOUSE_LEFT))
+    {
+        _e->log_warn(_e->logger, "hello", 5);
+    }
 
     _e->renderer_set_character_background_color(_e->renderer, 0, 0, 0.0f, 1.0f, 0.0f, true);
     _e->renderer_set_character_background_color(_e->renderer, 1, 1, 0.0f, 1.0f, 0.0f, true);
