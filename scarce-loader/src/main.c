@@ -45,6 +45,7 @@ static engine gEngine =
     .is_mouse_btn_pressed = window_is_mouse_btn_pressed,
 
     // Rendering:
+    .renderer_zero_buffer = text_renderer_zero_buffer,
     .renderer_set_character_letter = text_renderer_set_character_letter,
     .renderer_set_character_color = text_renderer_set_character_color,
     .renderer_set_character_background_color = text_renderer_set_character_background_color,

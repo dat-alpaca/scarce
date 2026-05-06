@@ -42,6 +42,7 @@ typedef struct
     bool (*is_mouse_btn_pressed)(window_handle* handle, mouse_button button);
 
     // Rendering:
+    void (*renderer_zero_buffer)(text_renderer* renderer);
     void (*renderer_set_character_letter)(text_renderer* renderer, u32 x, u32 y, char letter);
     void (*renderer_set_character_color)(text_renderer* renderer, u32 x, u32 y, float r, float g, float b);
     void (*renderer_set_character_background_color)(text_renderer* renderer, u32 x, u32 y, float r, float g, float b, bool paint);

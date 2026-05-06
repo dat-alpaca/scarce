@@ -22,18 +22,6 @@ static void display_random_characters()
     }
 }
 
-static void clear_buffer()
-{
-    for(u32 x = 0; x < _e->renderer_width(_e->renderer); ++x)
-    {
-        for(u32 y = 0; y < _e->renderer_height(_e->renderer); ++y)
-        {
-            _e->renderer_set_character_color(_e->renderer, x, y, 0.0f, 0.0f, 0.0f);
-            _e->renderer_set_character_background_color(_e->renderer, x, y, 0.0f, 0.0f, 0.0f, false);
-        }
-    }
-}
-
 void on_load(memory_pool* pool, engine* engine)
 {
     _e = engine;
@@ -44,7 +32,7 @@ void on_load(memory_pool* pool, engine* engine)
 
 bool on_update(memory_pool* pool)
 {
-    clear_buffer();
+    _e->renderer_zero_buffer(_e->renderer);
 
     if(_e->is_mouse_btn_pressed(_e->window, SCA_MOUSE_LEFT))
     {

@@ -1,5 +1,6 @@
 #include "text_renderer.h"
 #include "defines.h"
+#include <assert.h>
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
@@ -169,6 +170,12 @@ void text_renderer_render(text_renderer* renderer)
     graphics_draw(renderer->characters.current / sizeof(text_renderer_character) * 6);
 
     graphics_end_frame();
+}
+
+void text_renderer_zero_buffer(text_renderer* renderer)
+{
+    assert(renderer);
+    zero_buffer(renderer);
 }
 
 text_renderer_character* text_renderer_get_character(text_renderer* renderer, u32 x, u32 y)
