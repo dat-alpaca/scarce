@@ -8,7 +8,6 @@
 #include "config/loader.h"
 #include "graphics/text_renderer.h"
 #include "loader.h"
-#include <string.h>
 
 #include "platform/platform.h"
 
@@ -45,7 +44,6 @@ static engine gEngine =
     .is_key_pressed = window_is_key_pressed,
     
     // Rendering:
-    .renderer = NULL,
     .renderer_set_character_letter = text_renderer_set_character_letter,
     .renderer_set_character_color = text_renderer_set_character_color,
     .renderer_set_character_background_color = text_renderer_set_character_background_color,
@@ -57,6 +55,12 @@ static engine gEngine =
     .renderer_character_size = text_renderer_character_size,
     
     .get_mouse_position = text_renderer_get_mouse_grid_position,
+
+    // Logging:
+    .log_info = log_info,
+    .log_warn = log_warn,
+    .log_error = log_error,
+    .log_critical = log_critical,
 };
 
 static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)
@@ -158,18 +162,15 @@ int main()
     get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
 
     // Window:
-    window_handle* window;
     u32 characterSize = 16;
     u32 screenX = 640;
     u32 screenY = 480;
-    window = window_init("Scarce v0.1", screenX, screenY);
-    if (!window)
+    gEngine.window = window_init("Scarce v0.1", screenX, screenY);
+    if (!gEngine.window)
         return 1;
 
-    gEngine.window = window;
-
-    window_set_user_pointer(window, &context);
-    window_set_resize_callback(window, window_size_callback);
+    window_set_user_pointer(gEngine.window, &context);
+    window_set_resize_callback(gEngine.window, window_size_callback);
 
     // Application resources:
     gl_handle fontTexture;
@@ -182,17 +183,19 @@ int main()
     text_renderer_set_texture(&context.renderer, fontTexture);
     gEngine.renderer = &context.renderer;
 
+    gEngine.log_info = log_info;
+
     onLoad(memoryPool, &gEngine);
-    while(window_is_open(window))
+    while(window_is_open(gEngine.window))
     {
-        window_poll_events(window);
+        window_poll_events(gEngine.window);
 
         if(!onUpdate(memoryPool))
             break;
 
         text_renderer_render(&context.renderer);
 
-        window_swap_buffers(window);
+        window_swap_buffers(gEngine.window);
     }
     onUnload(memoryPool);
     

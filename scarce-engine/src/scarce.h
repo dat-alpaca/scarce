@@ -8,6 +8,9 @@
 
 typedef struct
 {
+    window_handle* window;
+    text_renderer* renderer;
+
     // Memory:
     void* (*scarce_read)(memory_pool*, u32 address);
     void  (*scarce_write)(memory_pool*, u32 address, u8 value);
@@ -25,7 +28,6 @@ typedef struct
     u64 (*get_timestamp_ns)();
 
     // Files:
-    window_handle* window;
     file_descriptor (*platform_open_file)(const char*, file_mode);
     void (*platform_read_file)(file_descriptor, void*, u32);
     void (*platform_write_file)(file_descriptor, void*, u32);
@@ -37,7 +39,6 @@ typedef struct
     bool (*is_key_pressed)(window_handle*, key key);
     
     // Rendering:
-    text_renderer* renderer;
     void (*renderer_set_character_letter)(text_renderer* renderer, u32 x, u32 y, char letter);
     void (*renderer_set_character_color)(text_renderer* renderer, u32 x, u32 y, float r, float g, float b);
     void (*renderer_set_character_background_color)(text_renderer* renderer, u32 x, u32 y, float r, float g, float b, bool paint);
@@ -49,6 +50,12 @@ typedef struct
     u32  (*renderer_character_size)(text_renderer* renderer);
 
     void (*get_mouse_position)(window_handle* windowHandle, text_renderer* renderer, u32* x, u32* y);
+
+    // Logging:
+    void (*log_info)(const char* message, u32 length);
+    void (*log_warn)(const char* message, u32 length);
+    void (*log_error)(const char* message, u32 length);
+    void (*log_critical)(const char* message, u32 length);
 } engine;
 
 typedef void (*load_func)(memory_pool*, engine*);
