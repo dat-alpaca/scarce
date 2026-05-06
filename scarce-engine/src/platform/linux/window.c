@@ -28,7 +28,7 @@ typedef struct x11_window
     bool isOpen;
 } x11_window;
 
-window_handle window_init(const char* title, u32 width, u32 height)
+window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 {
     x11_window* window = malloc(sizeof(x11_window));
     // platform_mmap(window, sizeof(x11_window), PROTECTION_READ | PROTECTION_WRITE, 
@@ -65,8 +65,15 @@ window_handle window_init(const char* title, u32 width, u32 height)
                       ButtonReleaseMask | PointerMotionMask | StructureNotifyMask
     };
 
+    XSizeHints* sizeHints = XAllocSizeHints();
+    sizeHints->flags = PMinSize;
+    sizeHints->min_width = minWidth;
+    sizeHints->min_height = minHeight;
+    XSetWMNormalHints(window->display, window->window, sizeHints);
+    XFree(sizeHints);
+
     window->window = XCreateWindow(window->display, RootWindow(window->display, vi->screen), 
-                                   0, 0, width, height, 0, vi->depth, InputOutput, 
+                                   0, 0, minWidth, minHeight, 0, vi->depth, InputOutput, 
                                    vi->visual, CWColormap | CWEventMask, &swa);
 
     XMapWindow(window->display, window->window);

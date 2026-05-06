@@ -1,6 +1,5 @@
 #include "platform/mouse.h"
 #include "platform/platform.h"
-#include <math.h>
 
 #define GLFW_INCLUDE_NONE
 #define GLEW_NO_GLU
@@ -9,7 +8,7 @@
 
 #include <stdbool.h>
 
-window_handle window_init(const char* title, u32 width, u32 height)
+window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 {
     if (!glfwInit())
         return false;
@@ -19,9 +18,11 @@ window_handle window_init(const char* title, u32 width, u32 height)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(minWidth, minHeight, title, NULL, NULL);
     if (!window)
         return NULL;
+
+    glfwSetWindowSizeLimits(window, minWidth, minHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
     glfwMakeContextCurrent(window);
     glewInit();

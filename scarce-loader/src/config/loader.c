@@ -32,6 +32,12 @@ static int handler(void* user, const char* section, const char* name, const char
     else if (MATCH("general", "userSpaceBytes"))
         pConfig->userSpaceBytes = atoi(value);
 
+    else if (MATCH("general", "minWindowWidth"))
+        pConfig->minWindowWidth = atoi(value);
+
+    else if (MATCH("general", "minWindowHeight"))
+        pConfig->minWindowHeight = atoi(value);
+
     else
         return 0;
     
@@ -63,13 +69,17 @@ static config_result create_default_config(const char* configFilepath)
         "vertexFilepath = %s\n"
         "fragmentFilepath = %s\n"
         "memoryPageAmount = %" PRIu64 "\n"
-        "userSpaceBytes = %" PRIu64 "\n",
+        "userSpaceBytes = %" PRIu64 "\n"
+        "minWindowWidth = %" PRIu32 "\n"
+        "minWindowHeight = %" PRIu32 "\n",
         config.mainBinaryFilepath,
         config.fontFilepath,
         config.vertexFilepath,
         config.fragmentFilepath,
         config.memoryPageAmount,
-        config.userSpaceBytes
+        config.userSpaceBytes,
+        config.minWindowWidth,
+        config.minWindowHeight
     );
     if (length > 0)
         platform_write_file(file, (void*)buffer, (u32)length);

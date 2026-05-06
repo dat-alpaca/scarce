@@ -10,6 +10,8 @@ typedef struct
     const char* fontFilepath;
     u64 memoryPageAmount;
     u64 userSpaceBytes;
+    u32 minWindowWidth;
+    u32 minWindowHeight;
 } config;
 
 typedef struct
