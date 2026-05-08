@@ -3,7 +3,6 @@
 #include "scarce.h"
 #include "view.h"
 #include "logging/logger.h"
-#include "platform/platform.h"
 
 #define SCA_VIEW_MAX_CAPACITY 32
 
@@ -11,7 +10,7 @@ void view_holder_init(view_holder* holder, u32 capacity)
 {
     assert(holder);
     assert(capacity > 0);
-    assert(capacity < SCA_VIEW_MAX_CAPACITY);
+    assert(capacity <= SCA_VIEW_MAX_CAPACITY);
 
     holder->currentViewIndex = SCA_VIEW_INVALID;
     holder->count = 0;
@@ -21,7 +20,8 @@ void view_holder_init(view_holder* holder, u32 capacity)
 void view_holder_destroy(view_holder* holder)
 {
     assert(holder);
-    platform_munmmap(holder->data, holder->capacity * sizeof(view_data));
+
+    free(holder->data);
     holder->data = NULL;
 }
 
@@ -44,17 +44,22 @@ void view_holder_switch_view(view_holder* holder, engine* e, memory_pool* pool, 
     assert(pool);
 
     u32 index = SCA_VIEW_INVALID;
-    for(u32 i = 0; i < holder->capacity; ++i)
+    for(u32 i = 0; i < holder->count; ++i)
     {
-        if(holder->data[i].id == id)
-            index = i;
+        if(holder->data[i].id != id)
+            continue;
+
+        index = i;
+        break;
     }
 
-    if (index == -1)
+    if (index == SCA_VIEW_INVALID)
         log_critical(e->logger, "Invalid view_id", 16);
 
     holder->currentViewIndex = index;
-    holder->data[index].load(e, pool);
+
+    if (holder->data[index].load)
+        holder->data[index].load(e, pool);
 }
 
 view_data* view_holder_current(view_holder* holder)
