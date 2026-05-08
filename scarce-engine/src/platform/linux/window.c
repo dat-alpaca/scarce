@@ -1,5 +1,6 @@
 #include "logging/logger.h"
 #include "platform/platform.h"
+#include <stdio.h>
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
@@ -32,34 +33,39 @@ typedef struct x11_window
 window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 {
     x11_window* window;
-    window = platform_mmap(NULL, sizeof(x11_window), PROTECTION_READ | PROTECTION_WRITE, 
-                           MEMORY_ANON | MEMORY_PRIVATE, invalid_file_descriptor, 0);
-
+    window = malloc(sizeof(x11_window)); 
     window->resizeCallback = NULL;
 
     window->display = XOpenDisplay(NULL);
     if (!window->display) 
         log_critical_s("Failed to open X11 display", 27);
 
-    static int visual_attribs[] = 
+    static int visualAttribs[] = 
     {
-        GLX_RENDER_TYPE, GLX_RGBA_BIT,
+        GLX_X_RENDERABLE,  True,
         GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-        GLX_DOUBLEBUFFER, True,
-        GLX_RED_SIZE, 8,
-        GLX_GREEN_SIZE, 8,
-        GLX_BLUE_SIZE, 8,
+        GLX_RENDER_TYPE,   GLX_RGBA_BIT,
+        GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+        GLX_RED_SIZE,      8,
+        GLX_GREEN_SIZE,    8,
+        GLX_BLUE_SIZE,     8,
+        GLX_ALPHA_SIZE,    8,
+        GLX_DEPTH_SIZE,    24,
+        GLX_STENCIL_SIZE,  8,
+        GLX_DOUBLEBUFFER,  True,
         None
     };
 
     int framebufferCount;
-    GLXFBConfig* fbc = glXChooseFBConfig(window->display, DefaultScreen(window->display), visual_attribs, &framebufferCount);
+    GLXFBConfig* fbc = glXChooseFBConfig(window->display, DefaultScreen(window->display), visualAttribs, &framebufferCount);
     XVisualInfo* vi = glXGetVisualFromFBConfig(window->display, fbc[0]);
 
     XSetWindowAttributes swa = 
     {
         .colormap = XCreateColormap(window->display, RootWindow(window->display, vi->screen), vi->visual, AllocNone),
-        
+        .background_pixmap = None,
+        .border_pixel = 0,
+
         .event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | 
                       ButtonReleaseMask | PointerMotionMask | StructureNotifyMask
     };
@@ -77,10 +83,11 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 
     XMapWindow(window->display, window->window);
     XStoreName(window->display, window->window, title);
+    XSync(window->display, False);
     window->isOpen = true;
 
     // Context
-    int context_attribs[] = 
+    int contextAttribs[] = 
     {
         GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
         GLX_CONTEXT_MINOR_VERSION_ARB, 6,
@@ -91,12 +98,13 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
     PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB = 
         (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
     
-    window->context = glXCreateContextAttribsARB(window->display, fbc[0], NULL, True, context_attribs);
+    window->context = glXCreateContextAttribsARB(window->display, fbc[0], NULL, True, contextAttribs);
+    XFree(fbc);
     glXMakeCurrent(window->display, window->window, window->context);
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) 
-        log_critical_s("Failed to initialize GLEW", 26);
+        log_error_s("Failed to initialize GLEW", 26);
 
     window->wm_delete_window = XInternAtom(window->display, "WM_DELETE_WINDOW", False);
     XSetWMProtocols(window->display, window->window, &window->wm_delete_window, 1);
@@ -174,32 +182,32 @@ void window_poll_events(window_handle* handle)
                     case XK_8: scanKey = SCA_KEY_8; break;
                     case XK_9: scanKey = SCA_KEY_9; break;
 
-                    case XK_A: scanKey = SCA_KEY_A; break;
-                    case XK_B: scanKey = SCA_KEY_B; break;
-                    case XK_C: scanKey = SCA_KEY_C; break;
-                    case XK_D: scanKey = SCA_KEY_D; break;
-                    case XK_E: scanKey = SCA_KEY_E; break;
-                    case XK_F: scanKey = SCA_KEY_F; break;
-                    case XK_G: scanKey = SCA_KEY_G; break;
-                    case XK_H: scanKey = SCA_KEY_H; break;
-                    case XK_I: scanKey = SCA_KEY_I; break;
-                    case XK_J: scanKey = SCA_KEY_J; break;
-                    case XK_K: scanKey = SCA_KEY_K; break;
-                    case XK_L: scanKey = SCA_KEY_L; break;
-                    case XK_M: scanKey = SCA_KEY_M; break;
-                    case XK_N: scanKey = SCA_KEY_N; break;
-                    case XK_O: scanKey = SCA_KEY_O; break;
-                    case XK_P: scanKey = SCA_KEY_P; break;
-                    case XK_Q: scanKey = SCA_KEY_Q; break;
-                    case XK_R: scanKey = SCA_KEY_R; break;
-                    case XK_S: scanKey = SCA_KEY_S; break;
-                    case XK_T: scanKey = SCA_KEY_T; break;
-                    case XK_U: scanKey = SCA_KEY_U; break;
-                    case XK_V: scanKey = SCA_KEY_V; break;
-                    case XK_W: scanKey = SCA_KEY_W; break;
-                    case XK_X: scanKey = SCA_KEY_X; break;
-                    case XK_Y: scanKey = SCA_KEY_Y; break;
-                    case XK_Z: scanKey = SCA_KEY_Z; break;
+                    case XK_a: scanKey = SCA_KEY_A; break;
+                    case XK_b: scanKey = SCA_KEY_B; break;
+                    case XK_c: scanKey = SCA_KEY_C; break;
+                    case XK_d: scanKey = SCA_KEY_D; break;
+                    case XK_e: scanKey = SCA_KEY_E; break;
+                    case XK_f: scanKey = SCA_KEY_F; break;
+                    case XK_g: scanKey = SCA_KEY_G; break;
+                    case XK_h: scanKey = SCA_KEY_H; break;
+                    case XK_i: scanKey = SCA_KEY_I; break;
+                    case XK_j: scanKey = SCA_KEY_J; break;
+                    case XK_k: scanKey = SCA_KEY_K; break;
+                    case XK_l: scanKey = SCA_KEY_L; break;
+                    case XK_m: scanKey = SCA_KEY_M; break;
+                    case XK_n: scanKey = SCA_KEY_N; break;
+                    case XK_o: scanKey = SCA_KEY_O; break;
+                    case XK_p: scanKey = SCA_KEY_P; break;
+                    case XK_q: scanKey = SCA_KEY_Q; break;
+                    case XK_r: scanKey = SCA_KEY_R; break;
+                    case XK_s: scanKey = SCA_KEY_S; break;
+                    case XK_t: scanKey = SCA_KEY_T; break;
+                    case XK_u: scanKey = SCA_KEY_U; break;
+                    case XK_v: scanKey = SCA_KEY_V; break;
+                    case XK_w: scanKey = SCA_KEY_W; break;
+                    case XK_x: scanKey = SCA_KEY_X; break;
+                    case XK_y: scanKey = SCA_KEY_Y; break;
+                    case XK_z: scanKey = SCA_KEY_Z; break;
 
                     case XK_KP_0: scanKey = SCA_KEY_KP_0; break;
                     case XK_KP_1: scanKey = SCA_KEY_KP_1; break;

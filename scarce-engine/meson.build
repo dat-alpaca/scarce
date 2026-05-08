@@ -18,6 +18,9 @@ sources = files(
     'src/ui/text_box.c',
 )
 
+# Dependencies:
+dependencies = [glew_dep, gl_dep, cglm_dep, freetype_dep, stb_dep]
+
 # Platform-dependent files:
 if host_machine.system() == 'windows'
     sources += files('src/platform/win32/file.c')
@@ -34,12 +37,15 @@ elif host_machine.system() == 'linux'
     sources += files('src/platform/linux/time.c')
 
     if get_option('use_native_windowing')
+        x11_dep = dependency('x11')
         sources += files('src/platform/linux/window.c')
+        dependencies += x11_dep
     endif
 endif
 
 if not get_option('use_native_windowing')
     sources += files('src/platform/glfw/window.c')
+    dependencies += glfw_dep
 endif
 
 
@@ -51,11 +57,11 @@ scarce_engine_lib = static_library(
     'scarce-engine',
     sources: sources,
     include_directories: engine_includes,
-    dependencies: [glew_dep, gl_dep, cglm_dep, freetype_dep, glfw_dep, stb_dep],
+    dependencies: dependencies,
 )
 
 scarce_engine_dep = declare_dependency(
     link_with: scarce_engine_lib,
     include_directories: engine_includes,
-    dependencies: [glew_dep, gl_dep, cglm_dep, freetype_dep, glfw_dep, stb_dep]
+    dependencies: dependencies
 )

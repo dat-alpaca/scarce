@@ -130,6 +130,9 @@ bool window_is_key_pressed(window_handle* handle, key key)
         case SCA_KEY_END: keyCode = SCA_KEY_END; break;
         case SCA_KEY_PAGEUP: keyCode = SCA_KEY_PAGEUP; break;
         case SCA_KEY_PAGEDOWN: keyCode = SCA_KEY_PAGEDOWN; break;
+    
+        default:
+            return false;
     }
 
     if (keyCode == -1)
@@ -150,9 +153,10 @@ bool window_is_mouse_btn_pressed(window_handle* handle, mouse_button button)
 
         case SCA_MOUSE_MIDDLE:
             return glfwGetMouseButton((GLFWwindow*)handle, GLFW_MOUSE_BUTTON_3);
+    
+        default:
+            return false;
     }
-
-    return false;
 }
 
 void window_get_mouse_position(window_handle* handle, double* x, double* y)

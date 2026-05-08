@@ -127,7 +127,6 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
                 if (!window_is_key_pressed(e->window, SCA_KEY_0 + i) || textBox->isKeyPressed)
                     continue;
 
-
                 if (textBox->current < textBox->width)
                 {
                     textBox->isKeyPressed = true;
