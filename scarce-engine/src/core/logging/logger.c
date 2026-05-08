@@ -91,3 +91,73 @@ void log_critical(logger* logger, const char* message, u32 length)
     fixed_array_destroy(&buffer);
     platform_breakpoint();
 }
+
+// Standalone version:
+void log_warn_s(const char* message, u32 length)
+{
+    const char* prefix = "[" SCA_YELLOW "Warn" SCA_RESET "]: ";
+    const u32 prefixLength = 18;
+
+    platform_write_file(platform_stderr(), (char*)prefix, prefixLength);
+
+    fixed_array buffer = { 0 };
+    fixed_array_init(&buffer, length);
+    fixed_array_push(&buffer, (void*)message, length);
+
+    platform_write_file(platform_stderr(), buffer.buffer, length);
+    platform_write_file(platform_stderr(), "\n", 1);
+
+    fixed_array_destroy(&buffer);
+}
+
+void log_error_s( const char* message, u32 length)
+{
+    const char* prefix = "[" SCA_RED "Error" SCA_RESET "]: ";
+    const u32 prefixLength = 19;
+
+    platform_write_file(platform_stderr(), (char*)prefix, prefixLength);
+
+    fixed_array buffer = { 0 };
+    fixed_array_init(&buffer, length);
+    fixed_array_push(&buffer, (void*)message, length);
+
+    platform_write_file(platform_stderr(), buffer.buffer, length);
+    platform_write_file(platform_stderr(), "\n", 1);
+
+    fixed_array_destroy(&buffer);
+}
+
+void log_info_s(const char* message, u32 length)
+{
+    const char* prefix = "[" SCA_BLUE "Info" SCA_RESET "]: ";
+    const u32 prefixLength = 18;
+
+    platform_write_file(platform_stderr(), (char*)prefix, prefixLength);
+
+    fixed_array buffer = { 0 };
+    fixed_array_init(&buffer, length);
+    fixed_array_push(&buffer, (void*)message, length);
+
+    platform_write_file(platform_stderr(), buffer.buffer, length);
+    platform_write_file(platform_stderr(), "\n", 1);
+
+    fixed_array_destroy(&buffer);
+}
+
+void log_critical_s(const char* message, u32 length)
+{
+    const char* prefix = "[" SCA_MAGENTA "Critical" SCA_RESET "]: ";
+    const u32 prefixLength = 22;
+
+    platform_write_file(platform_stderr(), (char*)prefix, prefixLength);
+
+    fixed_array buffer = { 0 };
+    fixed_array_init(&buffer, length);
+    fixed_array_push(&buffer, (void*)message, length);
+
+    platform_write_file(platform_stderr(), buffer.buffer, length);
+    platform_write_file(platform_stderr(), "\n", 1);
+
+    fixed_array_destroy(&buffer);
+    platform_breakpoint();
+}

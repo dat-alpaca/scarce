@@ -6,10 +6,15 @@ sources = files(
     'src/core/memory/stack.c',
     'src/core/string_utils.c',
     'src/core/logging/logger.c',
-
+    'src/core/view/view.c',
+    'src/core/physics/aabb.c',
+    
     'src/graphics/graphics.c',
     'src/graphics/pipeline.c',
     'src/graphics/text_renderer.c',
+
+    'src/ui/ui.c',
+    'src/ui/button.c',
 )
 
 # Platform-dependent files:

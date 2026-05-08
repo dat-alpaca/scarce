@@ -10,6 +10,8 @@
 #include "loader.h"
 
 #include "platform/platform.h"
+#include "ui/ui.h"
+#include "view/view.h"
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
@@ -44,6 +46,14 @@ static engine gEngine =
     .is_key_pressed = window_is_key_pressed,
     .is_mouse_btn_pressed = window_is_mouse_btn_pressed,
 
+    // View:
+    .view_holder_init = view_holder_init,
+    .view_holder_destroy = view_holder_destroy,
+    .view_holder_register = view_holder_register,
+
+    .view_holder_switch_view = view_holder_switch_view,
+    .view_holder_current = view_holder_current,
+
     // Rendering:
     .renderer_zero_buffer = text_renderer_zero_buffer,
     .renderer_set_character_letter = text_renderer_set_character_letter,
@@ -64,6 +74,29 @@ static engine gEngine =
     .log_error = log_error,
     .log_critical = log_critical,
     .logger_set_header = logger_set_header,
+
+    // UI:
+    .ui_begin = ui_begin,
+    .ui_end = ui_end,
+    .ui_clear = ui_clear,
+
+    .ui_text = ui_text,
+    .ui_text_absolute = ui_text_absolute,
+
+    .ui_set_align = ui_set_align,
+    .ui_set_position = ui_set_position,
+    .ui_set_color = ui_set_color,
+
+    .ui_sameline = ui_sameline,
+    .ui_feed = ui_feed,
+    .ui_nudge = ui_nudge,
+    .ui_space = ui_space,
+    .ui_hline = ui_hline,
+    
+    // UI Button:
+    .ui_button_init = ui_button_init,
+    .ui_button_render = ui_button_render,
+    .ui_button_update = ui_button_update
 };
 
 static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)

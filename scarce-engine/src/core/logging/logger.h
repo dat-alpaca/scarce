@@ -13,3 +13,8 @@ void log_warn(logger* logger, const char* message, u32 length);
 void log_error(logger* logger, const char* message, u32 length);
 void log_info(logger* logger, const char* message, u32 length);
 void log_critical(logger* logger, const char* message, u32 length);
+
+void log_warn_s(const char* message, u32 length);
+void log_error_s(const char* message, u32 length);
+void log_info_s(const char* message, u32 length);
+void log_critical_s(const char* message, u32 length);

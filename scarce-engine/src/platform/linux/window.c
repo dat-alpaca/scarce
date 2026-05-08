@@ -1,3 +1,4 @@
+#include "logging/logger.h"
 #include "platform/platform.h"
 
 #define GLEW_NO_GLU
@@ -30,17 +31,15 @@ typedef struct x11_window
 
 window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 {
-    x11_window* window = malloc(sizeof(x11_window));
-    // platform_mmap(window, sizeof(x11_window), PROTECTION_READ | PROTECTION_WRITE, 
-    //               MEMORY_ANON | MEMORY_PRIVATE, invalid_file_descriptor, 0);
+    x11_window* window;
+    window = platform_mmap(NULL, sizeof(x11_window), PROTECTION_READ | PROTECTION_WRITE, 
+                           MEMORY_ANON | MEMORY_PRIVATE, invalid_file_descriptor, 0);
 
     window->resizeCallback = NULL;
 
     window->display = XOpenDisplay(NULL);
     if (!window->display) 
-    {
-        // TODO: Failed to open X display
-    }
+        log_critical_s("Failed to open X11 display", 27);
 
     static int visual_attribs[] = 
     {
@@ -97,9 +96,7 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) 
-    {
-        // TODO: GLEW init failed
-    }
+        log_critical_s("Failed to initialize GLEW", 26);
 
     window->wm_delete_window = XInternAtom(window->display, "WM_DELETE_WINDOW", False);
     XSetWMProtocols(window->display, window->window, &window->wm_delete_window, 1);
