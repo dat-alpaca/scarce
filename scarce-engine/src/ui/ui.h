@@ -64,7 +64,8 @@ typedef struct
     bool sameLine; 
 } ui_state;
 
-ui_state* ui_begin(memory_pool* pool, text_renderer* renderer);
+void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer);
+ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer);
 void ui_end(ui_state* state);
 void ui_clear(struct engine* e);
 

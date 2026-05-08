@@ -61,7 +61,7 @@ bool on_update(memory_pool* pool)
 {
     // render:
     _e->ui_clear(_e);
-    ui_state* state = _e->ui_begin(pool, _e->renderer);
+    ui_state* state = _e->ui_begin_stack(pool, _e->renderer);
     
     text_color color = { 0 };
     color.color = SY_COLOR_WHITE;

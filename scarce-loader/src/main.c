@@ -77,6 +77,7 @@ static engine gEngine =
 
     // UI:
     .ui_begin = ui_begin,
+    .ui_begin_stack = ui_begin_stack,
     .ui_end = ui_end,
     .ui_clear = ui_clear,
 

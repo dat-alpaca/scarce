@@ -53,7 +53,34 @@ static u32 render_get_center(u32 screenWidth, u32 length)
     return screenWidth / 2 - length / 2;
 }
 
-ui_state* ui_begin(memory_pool* pool, text_renderer* renderer)
+void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer)
+{
+    assert(state);
+    assert(pool);
+    assert(renderer);
+
+    state->pool = pool;
+    state->renderer = renderer;
+
+    state->alignment = ALIGN_CENTER;
+    state->positioning = POS_NONE;
+
+    state->color.color = SY_COLOR_NONE;
+    state->color.colorIntense = false;
+    state->color.colorFaint = false;
+
+    state->color.background = SY_COLOR_NONE;
+    state->color.backgroundIntense = false;
+    state->color.backgroundFaint = false;
+
+    state->color.renderBackground = false;
+
+    state->x = 0;
+    state->y = 0;
+    state->prevX = 0;
+    state->prevY = 0;
+}
+ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer)
 {
     assert(pool);
     assert(renderer);
