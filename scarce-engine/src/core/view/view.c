@@ -16,7 +16,7 @@ void view_holder_init(view_holder* holder, u32 capacity)
     holder->currentViewIndex = SCA_VIEW_INVALID;
     holder->count = 0;
     holder->capacity = capacity;
-    holder->data = platform_mmap(NULL, capacity * sizeof(view_data), PROTECTION_READ | PROTECTION_WRITE, MEMORY_ANON |MEMORY_PRIVATE, invalid_file_descriptor, 0);
+    holder->data = malloc(capacity * sizeof(view_data));
 }
 void view_holder_destroy(view_holder* holder)
 {

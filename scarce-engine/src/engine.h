@@ -48,6 +48,7 @@ typedef struct engine
     bool (*is_mouse_btn_pressed)(window_handle* handle, mouse_button button);
 
     // View:
+    view_holder* viewHolder;
     void (*view_holder_init)(view_holder* holder, u32 capacity);
     void (*view_holder_destroy)(view_holder* holder);
     void (*view_holder_register)(view_holder* holder, view_data* data);

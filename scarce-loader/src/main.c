@@ -47,6 +47,7 @@ static engine gEngine =
     .is_mouse_btn_pressed = window_is_mouse_btn_pressed,
 
     // View:
+    .viewHolder = NULL,
     .view_holder_init = view_holder_init,
     .view_holder_destroy = view_holder_destroy,
     .view_holder_register = view_holder_register,
@@ -230,6 +231,11 @@ int main()
     logger mainLogger;
     logger_initialize(&mainLogger);
     gEngine.logger = &mainLogger;
+
+    // View:
+    view_holder viewHolder;
+    gEngine.viewHolder = &viewHolder;
+    view_holder_init(gEngine.viewHolder, 10);
 
     onLoad(memoryPool, &gEngine);
     while(window_is_open(gEngine.window))
