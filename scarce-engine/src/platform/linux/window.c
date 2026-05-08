@@ -103,8 +103,7 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
     glXMakeCurrent(window->display, window->window, window->context);
 
     glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) 
-        log_error_s("Failed to initialize GLEW", 26);
+    glewInit();
 
     window->wm_delete_window = XInternAtom(window->display, "WM_DELETE_WINDOW", False);
     XSetWMProtocols(window->display, window->window, &window->wm_delete_window, 1);
