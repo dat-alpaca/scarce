@@ -184,6 +184,7 @@ void ui_number(ui_state* state, u32 number)
     }
 
     ui_text(state, numberBuffer.buffer, numberBuffer.current);
+    fixed_array_destroy(&numberBuffer);
 }
 void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 length)
 {
