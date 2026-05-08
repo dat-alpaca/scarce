@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "core/memory/memory.h"
 #include <stdbool.h>
+#include "fixed_array.h"
 #include "memory/stack.h"
 #include "scarce.h"
 #include "text_renderer.h"
@@ -153,6 +154,36 @@ void ui_text(ui_state* state, const char* content, u32 length)
 
     scarce_pop(pool, sizeof(float) * 3);
     scarce_pop(pool, sizeof(float) * 3);
+}
+void ui_number(ui_state* state, u32 number)
+{
+    fixed_array numberBuffer = { 0 };
+
+    if (number == 0)
+    {
+        fixed_array_init(&numberBuffer, 1);
+
+        char zero = '0';
+        fixed_array_push(&numberBuffer, (void*)&zero, 1);
+    }
+    else
+    {
+        fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH);
+        char temp[SCA_UI_MAX_NUMBER_LENGTH];
+
+        u32 length = 0;
+        while (number > 0)
+        {
+            temp[length] = (number % 10) + '0';
+            number /= 10;
+            ++length;
+        }
+
+        for (i32 i = length - 1; i >= 0; --i)
+            fixed_array_push(&numberBuffer, &temp[i], 1);
+    }
+
+    ui_text(state, numberBuffer.buffer, numberBuffer.current);
 }
 void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 length)
 {

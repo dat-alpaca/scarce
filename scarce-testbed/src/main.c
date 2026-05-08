@@ -67,6 +67,8 @@ bool on_update(memory_pool* pool)
     _e->ui_button_update(button, state, _e);
     _e->ui_button_render(button, state, "press");
 
+    _e->ui_number(state, 10);
+
     _e->ui_end(state);
 
     // Misc:

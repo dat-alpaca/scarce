@@ -3,6 +3,8 @@
 #include "core/memory/memory.h"
 #include "text_renderer.h"
 
+#define SCA_UI_MAX_NUMBER_LENGTH 10 // u32
+
 struct engine;
 
 // Symbol:
@@ -67,6 +69,7 @@ void ui_end(ui_state* state);
 void ui_clear(struct engine* e);
 
 void ui_text(ui_state* state, const char* content, u32 length);
+void ui_number(ui_state* state, u32 number);
 void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 length);
 
 void ui_set_align(ui_state* state, text_align align, u16 xOffset);

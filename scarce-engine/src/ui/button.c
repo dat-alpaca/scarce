@@ -64,7 +64,14 @@ void ui_button_update(ui_button* button, ui_state* state, engine* e)
             button->isHovered = true;
 
             if (e->is_mouse_btn_pressed(e->window, SCA_MOUSE_LEFT) && button->callback)
-                button->callback(e, pool, button);
+            {
+                if (!button->isPressed)
+                    button->callback(e, pool, button);
+
+                button->isPressed = true;
+            }
+            else
+                button->isPressed = false;
         }
         
         e->scarce_pop(pool, sizeof(aabb));
