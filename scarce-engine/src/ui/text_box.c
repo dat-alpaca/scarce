@@ -1,4 +1,6 @@
 #include "text_box.h"
+#include "platform/key.h"
+#include "platform/platform.h"
 #include "ui/ui.h"
 #include "core/physics/aabb.h"
 
@@ -11,6 +13,8 @@ void ui_text_box_init(ui_text_box* textBox, char* contents, text_color* color, t
     textBox->color = *color;
     textBox->hoveredColor = *hoveredColor;
     textBox->width = width;
+    textBox->current = 0;
+    textBox->isKeyPressed = false;
 
     for(u32 i = 0; i < width; ++i)
         textBox->contents[i] = '_';
@@ -85,9 +89,66 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
         scarce_pop(pool, sizeof(aabb));
     }
 
-    if (textBox->isSelected)
-    {
+    bool anyKeyDown = false;
+    if (window_is_key_pressed(e->window, SCA_KEY_BACKSPACE))
+        anyKeyDown = true;
 
+    for (u32 i = 0; i < 10; ++i)
+        if (window_is_key_pressed(e->window, SCA_KEY_0 + i)) 
+            anyKeyDown = true;
+    
+    for (u32 i = 0; i < 26; ++i)
+        if (window_is_key_pressed(e->window, SCA_KEY_A + i)) 
+            anyKeyDown = true;
+
+    if (!anyKeyDown)
+        textBox->isKeyPressed = false;
+
+    if (textBox->isSelected && !textBox->isKeyPressed)
+    {
+        if (window_is_key_pressed(e->window, SCA_KEY_ENTER))
+            textBox->isSelected = false;
+
+        if (window_is_key_pressed(e->window, SCA_KEY_BACKSPACE))
+        {
+            if(textBox->current >= 0)
+            {
+                textBox->isKeyPressed = true;
+                textBox->contents[textBox->current] = '_';
+                
+                if (textBox->current != 0)
+                    --textBox->current;
+            }
+        }
+        else
+        {
+            for(u32 i = 0; i < 10; ++i)
+            {
+                if (!window_is_key_pressed(e->window, SCA_KEY_0 + i) || textBox->isKeyPressed)
+                    continue;
+
+
+                if (textBox->current < textBox->width)
+                {
+                    textBox->isKeyPressed = true;
+                    textBox->contents[textBox->current] = '0' + i;
+                    ++textBox->current;
+                }
+            }
+
+            for(u32 i = 0; i < 26; ++i)
+            {
+                if (!window_is_key_pressed(e->window, SCA_KEY_A + i) || textBox->isKeyPressed)
+                    continue;
+
+                if (textBox->current < textBox->width)
+                {
+                    textBox->isKeyPressed = true;
+                    textBox->contents[textBox->current] = 'a' + i;
+                    ++textBox->current;
+                }
+            }
+        }
     }
 
     scarce_pop(pool, sizeof(aabb));

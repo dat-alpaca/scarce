@@ -85,8 +85,8 @@ bool on_update(memory_pool* pool)
     // txt:
     _e->ui_feed(state);
     ui_text_box* textbox = (ui_text_box*)&pool[760];
-    _e->ui_text_box_update(textbox, state, _e);
     _e->ui_text_box_render(textbox, state);
+    _e->ui_text_box_update(textbox, state, _e);
 
     _e->ui_end(state);
 
