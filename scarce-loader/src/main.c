@@ -97,7 +97,12 @@ static engine gEngine =
     // UI Button:
     .ui_button_init = ui_button_init,
     .ui_button_render = ui_button_render,
-    .ui_button_update = ui_button_update
+    .ui_button_update = ui_button_update,
+
+    // UI Textbox:
+    .ui_text_box_init = ui_text_box_init,
+    .ui_text_box_render = ui_text_box_render,
+    .ui_text_box_update = ui_text_box_update,
 };
 
 static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)

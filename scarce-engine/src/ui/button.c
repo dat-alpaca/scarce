@@ -2,6 +2,7 @@
 #include "button.h"
 
 #include "scarce.h"
+#include "text_renderer.h"
 #include "ui.h"
 #include "memory/memory.h"
 #include "physics/aabb.h"
@@ -26,6 +27,8 @@ void ui_button_render(ui_button* button, ui_state* state, const char* content)
     
     ui_set_color(state, button->isHovered ? &button->hoveredColor : &button->color);
     ui_text(state, content, button->width);
+    button->x = state->prevX;
+    button->y = state->prevY;
 }
 
 void ui_button_update(ui_button* button, ui_state* state, engine* e)
@@ -40,20 +43,20 @@ void ui_button_update(ui_button* button, ui_state* state, engine* e)
         u32* mouseX = scarce_push(pool, sizeof(u32));
         u32* mouseY = scarce_push(pool, sizeof(u32));
 
-        e->get_mouse_position(e->window, e->renderer, mouseX, mouseY);
+        text_renderer_get_mouse_grid_position(e->window, e->renderer, mouseX, mouseY);
         mouseAABB->x = *mouseX;
         mouseAABB->y = *mouseY;
         mouseAABB->width = 1;
         mouseAABB->height = 1;
 
-        e->scarce_pop(pool, sizeof(u32));
-        e->scarce_pop(pool, sizeof(u32));
+        scarce_pop(pool, sizeof(u32));
+        scarce_pop(pool, sizeof(u32));
     }
 
     {
-        aabb* buttonAABB = e->scarce_push(pool, sizeof(aabb));
-        buttonAABB->x = state->lastX;
-        buttonAABB->y = state->yOffset;
+        aabb* buttonAABB = scarce_push(pool, sizeof(aabb));
+        buttonAABB->x = button->x;
+        buttonAABB->y = button->y;
         buttonAABB->width = button->width;
         buttonAABB->height = 1;
 
@@ -63,7 +66,7 @@ void ui_button_update(ui_button* button, ui_state* state, engine* e)
         {
             button->isHovered = true;
 
-            if (e->is_mouse_btn_pressed(e->window, SCA_MOUSE_LEFT) && button->callback)
+            if (window_is_mouse_btn_pressed(e->window, SCA_MOUSE_LEFT) && button->callback)
             {
                 if (!button->isPressed)
                     button->callback(e, pool, button);
@@ -74,8 +77,8 @@ void ui_button_update(ui_button* button, ui_state* state, engine* e)
                 button->isPressed = false;
         }
         
-        e->scarce_pop(pool, sizeof(aabb));
+        scarce_pop(pool, sizeof(aabb));
     }
 
-    e->scarce_pop(pool, sizeof(aabb));
+    scarce_pop(pool, sizeof(aabb));
 }

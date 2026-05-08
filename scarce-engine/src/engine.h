@@ -7,6 +7,7 @@
 
 #include "ui/ui.h"
 #include "ui/button.h"
+#include "ui/text_box.h"
 
 #include "core/view/view.h"
 
@@ -100,4 +101,9 @@ typedef struct engine
     void (*ui_button_init)(ui_button* button, ui_button_callback callback, text_color* color, text_color* hoveredColor, u8 width);
     void (*ui_button_render)(ui_button* button, ui_state* state, const char* content);
     void (*ui_button_update)(ui_button* button, ui_state* state, struct engine* e);
+
+    // UI Text box::
+    void (*ui_text_box_init)(ui_text_box* textBox, char* contents, text_color* color, text_color* hoveredColor, u8 width);
+    void (*ui_text_box_render)(ui_text_box* textBox, ui_state* state);
+    void (*ui_text_box_update)(ui_text_box* textBox, ui_state* state, struct engine* e);
 } engine;

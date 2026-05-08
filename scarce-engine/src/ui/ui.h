@@ -37,8 +37,8 @@ typedef enum : u8
 
 typedef struct
 {
-    symbol_color color;
-    symbol_color background;
+    symbol_color color : 3;
+    symbol_color background : 3;
 
     u8 colorIntense : 1;
     u8 colorFaint : 1;
@@ -52,10 +52,10 @@ typedef struct
     memory_pool* pool;
     text_renderer* renderer;
 
-    u16 xOffset;
-    u16 yOffset;
-    u16 lastX;
-    u16 lastY;
+    u16 x;
+    u16 y;
+    u16 prevX;
+    u16 prevY;
     
     text_align alignment;
     text_position positioning;

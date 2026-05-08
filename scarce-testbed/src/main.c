@@ -1,6 +1,7 @@
 #include "memory/memory.h"
 #include "platform/mouse.h"
 #include "ui/button.h"
+#include "ui/text_box.h"
 #include "ui/ui.h"
 #include <scarce.h>
 
@@ -49,6 +50,11 @@ void on_load(memory_pool* pool, engine* engine)
     hovered.color = SY_COLOR_BLUE;
 
     _e->ui_button_init(button, button_callback, &color, &hovered, 5);
+
+    // textbox:
+    ui_text_box* textbox = (ui_text_box*)&pool[760];
+    char* textboxContents = (char*)&pool[900];
+    _e->ui_text_box_init(textbox, textboxContents, &color, &hovered,  10);
 }
 
 bool on_update(memory_pool* pool)
@@ -61,16 +67,30 @@ bool on_update(memory_pool* pool)
     color.color = SY_COLOR_WHITE;
 
     _e->ui_set_color(state, &color);
-    _e->ui_text(state, "hello", 5);
+
+    _e->ui_sameline(state, true);
+    _e->ui_text(state, "hell", 4);
+    _e->ui_text(state, "hell2", 5);
+    _e->ui_sameline(state, false);
+    _e->ui_space(state, 1);
+    _e->ui_feed(state);
+
+    //_e->ui_set_position(state, POS_BOTTOM, 0);
+    _e->ui_set_align(state, ALIGN_LEFT, 0);
 
     ui_button* button = (ui_button*)&pool[700];
-    _e->ui_button_update(button, state, _e);
     _e->ui_button_render(button, state, "press");
+    _e->ui_button_update(button, state, _e);
 
-    _e->ui_number(state, 10);
+    // txt:
+    _e->ui_feed(state);
+    ui_text_box* textbox = (ui_text_box*)&pool[760];
+    _e->ui_text_box_update(textbox, state, _e);
+    _e->ui_text_box_render(textbox, state);
 
     _e->ui_end(state);
 
+    return true;
     // Misc:
     if(_e->is_mouse_btn_pressed(_e->window, SCA_MOUSE_LEFT))
     {

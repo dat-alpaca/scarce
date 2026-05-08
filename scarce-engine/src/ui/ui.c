@@ -75,8 +75,10 @@ ui_state* ui_begin(memory_pool* pool, text_renderer* renderer)
 
     state->color.renderBackground = false;
 
-    state->xOffset = 0;
-    state->yOffset = 0;
+    state->x = 0;
+    state->y = 0;
+    state->prevX = 0;
+    state->prevY = 0;
 
     return state;
 }
@@ -97,92 +99,84 @@ void ui_text(ui_state* state, const char* content, u32 length)
     float* background = (float*)scarce_push(pool, sizeof(float) * 3);
     color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
     background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
-
+    
+    u32 x = 0, y = 0;
     switch (state->alignment)
     {
         case ALIGN_CENTER:
-            state->lastX = render_get_center(text_renderer_width(state->renderer), length);
+            x = render_get_center(text_renderer_width(state->renderer), length) + state->x;
         break;
 
         case ALIGN_LEFT:
-            state->lastX = state->xOffset;
+            x = state->x;
             break;
 
         case ALIGN_RIGHT:
-            state->lastX = text_renderer_width(state->renderer) - state->xOffset - length;
+            x = text_renderer_width(state->renderer) - state->x - length;
             break;
     }
 
     switch (state->positioning)
     {
+        case POS_TOP:
         case POS_NONE:
-            state->lastY = state->yOffset; 
+            y = state->y; 
             break;
         
         case POS_BOTTOM:
-            state->lastY = text_renderer_height(state->renderer) - 1 - state->yOffset;
-            break;
-
-        case POS_TOP:
-            state->lastY = 0 + state->yOffset;
+            y = text_renderer_height(state->renderer) - 1 - state->y;
             break;
     }
+
+    state->prevX = x;
+    state->prevY = y;
 
     for(u16 i = 0; i < length; ++i)
     {
         if(content[i] == '\0')
             break;
 
-        if (state->lastX + i > (u16)text_renderer_width(state->renderer))
+        if (x + i > (u16)text_renderer_width(state->renderer))
             break;
 
-        text_renderer_set_character_letter(state->renderer, state->lastX + i, state->lastY, content[i]);
-        text_renderer_set_character_color(state->renderer, state->lastX + i, state->lastY, color[0], color[1], color[2]);
+        text_renderer_set_character_letter(state->renderer, x + i, y, content[i]);
+        text_renderer_set_character_color(state->renderer, x + i, y, color[0], color[1], color[2]);
         
         text_renderer_set_character_background_color
         (
-            state->renderer, state->lastX + i, state->lastY, 
+            state->renderer, x + i, y, 
             background[0], background[1], background[2], 
             state->color.renderBackground
         );
     
-        state->xOffset++;
+        state->x++;
     }
     
     if(!state->sameLine)
-        state->yOffset += 1;
+        state->y += 1;
 
     scarce_pop(pool, sizeof(float) * 3);
     scarce_pop(pool, sizeof(float) * 3);
 }
 void ui_number(ui_state* state, u32 number)
 {
+    // Extract digits:
     fixed_array numberBuffer = { 0 };
+    fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH);
 
-    if (number == 0)
+    char temp[SCA_UI_MAX_NUMBER_LENGTH];
+    u32 length = 0;
+    while (number > 0)
     {
-        fixed_array_init(&numberBuffer, 1);
-
-        char zero = '0';
-        fixed_array_push(&numberBuffer, (void*)&zero, 1);
-    }
-    else
-    {
-        fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH);
-        char temp[SCA_UI_MAX_NUMBER_LENGTH];
-
-        u32 length = 0;
-        while (number > 0)
-        {
-            temp[length] = (number % 10) + '0';
-            number /= 10;
-            ++length;
-        }
-
-        for (i32 i = length - 1; i >= 0; --i)
-            fixed_array_push(&numberBuffer, &temp[i], 1);
+        temp[length] = (number % 10) + '0';
+        number /= 10;
+        ++length;
     }
 
+    for (i32 i = length - 1; i >= 0; --i)
+        fixed_array_push(&numberBuffer, &temp[i], 1);
+
+    // Render:
     ui_text(state, numberBuffer.buffer, numberBuffer.current);
     fixed_array_destroy(&numberBuffer);
 }
@@ -220,12 +214,12 @@ void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 le
 void ui_set_align(ui_state* state, text_align align, u16 xOffset)
 {
     state->alignment = align;
-    state->xOffset = xOffset;
+    state->x = xOffset;
 }
 void ui_set_position(ui_state* state, text_position position, u16 yOffset)
 {
     state->positioning = position;
-    state->yOffset = yOffset;
+    state->y = yOffset;
 }
 void ui_set_color(ui_state* state, text_color* color)
 {
@@ -238,15 +232,15 @@ void ui_sameline(ui_state* state, bool sameLine)
 }
 void ui_feed(ui_state* state)
 {
-    state->xOffset = 0;
+    state->x = 0;
 }
 void ui_nudge(ui_state* state, u32 xOffset)
 {
-    state->xOffset += xOffset;
+    state->x += xOffset;
 }
 void ui_space(ui_state* state, u32 yOffset)
 {
-    state->yOffset += yOffset;
+    state->y += yOffset;
 }
 void ui_hline(ui_state* state, u32 y, char lineChar)
 {

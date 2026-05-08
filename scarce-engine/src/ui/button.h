@@ -10,6 +10,8 @@ typedef struct ui_button
     text_color hoveredColor;
     
     u8 width;
+    u8 x, y;
+
     u8 isHovered : 1;
     u8 isPressed : 1;
 } ui_button;
