@@ -106,7 +106,6 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
             {
                 textBox->isKeyPressed = true;
                 
-                textBox->contents[textBox->current] = '_';
                 if (textBox->current != 0)
                     --textBox->current;
                 textBox->contents[textBox->current] = '_';
