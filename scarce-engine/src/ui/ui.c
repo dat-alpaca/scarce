@@ -299,6 +299,8 @@ void ui_hline(ui_state* state, u32 y, char lineChar)
         );
     }
 
+    state->prevY = y;
+
     scarce_pop(pool, sizeof(float) * 3);
     scarce_pop(pool, sizeof(float) * 3);
 }
