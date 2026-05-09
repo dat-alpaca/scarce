@@ -19,6 +19,7 @@ typedef struct engine
     text_renderer* renderer;
     void* baseAddress;
     u32 memoryPoolSize;
+    bool requestExit;
 
     // Memory:
     void* (*scarce_read)(memory_pool*, u32 address);

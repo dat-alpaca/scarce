@@ -33,6 +33,7 @@ static void display_random_characters()
 void button_callback(engine* e, memory_pool* pool, struct ui_button* button)
 {
     e->log_warn(_e->logger, "pressed the button", 19);
+    e->requestExit = true;
 }
 
 void on_load(memory_pool* pool, engine* engine)

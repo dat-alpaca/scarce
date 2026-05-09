@@ -206,6 +206,7 @@ int main()
     void* applicationSpace = get_application_space(config->mainBinaryFilepath, config->memoryPageAmount);
     if (!applicationSpace)
         return 1;
+
     gEngine.baseAddress = applicationSpace;
 
     get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
@@ -241,12 +242,13 @@ int main()
     gEngine.viewHolder = &viewHolder;
     view_holder_init(gEngine.viewHolder, 10);
 
+    gEngine.requestExit = false;
     onLoad(memoryPool, &gEngine);
     while(window_is_open(gEngine.window))
     {
         window_poll_events(gEngine.window);
 
-        if(!onUpdate(memoryPool))
+        if(!onUpdate(memoryPool) || gEngine.requestExit)
             break;
 
         text_renderer_render(&context.renderer);
