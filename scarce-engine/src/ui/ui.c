@@ -187,6 +187,12 @@ void ui_text(ui_state* state, const char* content, u32 length)
 }
 void ui_number(ui_state* state, u32 number)
 {
+    if (number == 0)
+    {
+        ui_text(state, "0", 1);
+        return;
+    }
+
     // Extract digits:
     fixed_array numberBuffer = { 0 };
     fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH);
