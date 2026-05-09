@@ -10,7 +10,6 @@
 void ui_button_init(ui_button* button, ui_button_callback callback, text_color* color, text_color* hoveredColor, u8 width)
 {
     assert(button);
-    assert(callback);
     assert(width > 0);
 
     button->callback = callback;
