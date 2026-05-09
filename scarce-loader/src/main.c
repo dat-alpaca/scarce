@@ -98,16 +98,22 @@ static engine gEngine =
     .ui_nudge = ui_nudge,
     .ui_space = ui_space,
     .ui_hline = ui_hline,
+
+    .ui_mouse_aabb = ui_mouse_aabb,
     
     // UI Button:
     .ui_button_init = ui_button_init,
     .ui_button_render = ui_button_render,
     .ui_button_update = ui_button_update,
 
+    .ui_button_aabb = ui_button_aabb,
+
     // UI Textbox:
     .ui_text_box_init = ui_text_box_init,
     .ui_text_box_render = ui_text_box_render,
     .ui_text_box_update = ui_text_box_update,
+
+    .ui_text_box_aabb = ui_text_box_aabb,
 };
 
 static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)

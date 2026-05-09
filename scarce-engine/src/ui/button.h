@@ -21,3 +21,5 @@ typedef void (*ui_button_callback)(struct engine* e, memory_pool* pool, struct u
 void ui_button_init(ui_button* button, ui_button_callback callback, text_color* color, text_color* hoveredColor, u8 width);
 void ui_button_render(ui_button* button, ui_state* state, const char* content);
 void ui_button_update(ui_button* button, ui_state* state, struct engine* e);
+
+aabb ui_button_aabb(ui_button* button);

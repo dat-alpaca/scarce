@@ -1,3 +1,5 @@
+#include <engine.h>
+
 #include "text_box.h"
 #include "platform/key.h"
 #include "platform/platform.h"
@@ -46,33 +48,12 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
     assert(textBox);
     assert(state);
 
-    memory_pool* pool = state->pool;
-
-    aabb* mouseAABB = scarce_push(pool, sizeof(aabb));
+    aabb mouseAABB = ui_mouse_aabb(e);
     {
-        u32* mouseX = scarce_push(pool, sizeof(u32));
-        u32* mouseY = scarce_push(pool, sizeof(u32));
-
-        text_renderer_get_mouse_grid_position(e->window, e->renderer, mouseX, mouseY);
-        mouseAABB->x = *mouseX;
-        mouseAABB->y = *mouseY;
-        mouseAABB->width = 1;
-        mouseAABB->height = 1;
-
-        scarce_pop(pool, sizeof(u32));
-        scarce_pop(pool, sizeof(u32));
-    }
-
-    {
-        aabb* textBoxAABB = scarce_push(pool, sizeof(aabb));
-        textBoxAABB->x = textBox->x;
-        textBoxAABB->y = textBox->y;
-        textBoxAABB->width = textBox->width;
-        textBoxAABB->height = 1;
-
+        aabb textBoxAABB = ui_text_box_aabb(textBox);
         textBox->isHovered = false;
         
-        if (aabb_check_collision(*mouseAABB, *textBoxAABB))
+        if (aabb_check_collision(mouseAABB, textBoxAABB))
         {
             textBox->isHovered = true;
 
@@ -85,8 +66,6 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
             if (window_is_mouse_btn_pressed(e->window, SCA_MOUSE_LEFT))
                 textBox->isSelected = false;
         }
-
-        scarce_pop(pool, sizeof(aabb));
     }
 
     bool anyKeyDown = false;
@@ -162,6 +141,17 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
             }
         }
     }
+}
 
-    scarce_pop(pool, sizeof(aabb));
+aabb ui_text_box_aabb(ui_text_box* textBox)
+{
+    aabb textBoxAABB = { 0 };
+    {
+        textBoxAABB.x = textBox->x;
+        textBoxAABB.y = textBox->y;
+        textBoxAABB.width = textBox->width;
+        textBoxAABB.height = 1;
+    }
+
+    return textBoxAABB;
 }

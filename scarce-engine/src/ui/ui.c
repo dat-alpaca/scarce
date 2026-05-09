@@ -1,8 +1,10 @@
 #include "ui.h"
 #include "core/memory/memory.h"
 #include <stdbool.h>
+#include "engine.h"
 #include "fixed_array.h"
 #include "memory/stack.h"
+#include "physics/aabb.h"
 #include "scarce.h"
 #include "text_renderer.h"
 
@@ -299,4 +301,21 @@ void ui_hline(ui_state* state, u32 y, char lineChar)
 
     scarce_pop(pool, sizeof(float) * 3);
     scarce_pop(pool, sizeof(float) * 3);
+}
+
+aabb ui_mouse_aabb(engine* e)
+{
+    aabb mouseAABB = { 0 };
+    {
+        u32 mouseX;
+        u32 mouseY;
+
+        text_renderer_get_mouse_grid_position(e->window, e->renderer, &mouseX, &mouseY);
+        mouseAABB.x = mouseX;
+        mouseAABB.y = mouseY;
+        mouseAABB.width = 1;
+        mouseAABB.height = 1;
+    }
+
+    return mouseAABB;
 }
