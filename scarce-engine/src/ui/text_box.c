@@ -93,6 +93,9 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
     if (window_is_key_pressed(e->window, SCA_KEY_BACKSPACE))
         anyKeyDown = true;
 
+    if (window_is_key_pressed(e->window, SCA_KEY_SPACE))
+        anyKeyDown = true;
+
     for (u32 i = 0; i < 10; ++i)
         if (window_is_key_pressed(e->window, SCA_KEY_0 + i)) 
             anyKeyDown = true;
@@ -109,7 +112,16 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
         if (window_is_key_pressed(e->window, SCA_KEY_ENTER))
             textBox->isSelected = false;
 
-        if (window_is_key_pressed(e->window, SCA_KEY_BACKSPACE))
+        if (window_is_key_pressed(e->window, SCA_KEY_SPACE))
+        {
+            if (textBox->current < textBox->width)
+            {
+                textBox->isKeyPressed = true;
+                textBox->contents[textBox->current] = ' ';
+                ++textBox->current;
+            }
+        }
+        else if (window_is_key_pressed(e->window, SCA_KEY_BACKSPACE))
         {
             if(textBox->current >= 0)
             {
