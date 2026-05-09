@@ -129,19 +129,17 @@ void ui_text(ui_state* state, const char* content, u32 length)
     color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
     background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
     
-    u32 x = 0, y = 0;
     switch (state->alignment)
     {
         case ALIGN_CENTER:
-            x = render_get_center(text_renderer_width(state->renderer), length) + state->x;
+            state->x += render_get_center(text_renderer_width(state->renderer), length);
         break;
 
         case ALIGN_LEFT:
-            x = state->x;
             break;
 
         case ALIGN_RIGHT:
-            x = text_renderer_width(state->renderer) - state->x - length;
+            state->x = text_renderer_width(state->renderer) - state->x - length;
             break;
     }
 
@@ -149,31 +147,39 @@ void ui_text(ui_state* state, const char* content, u32 length)
     {
         case POS_TOP:
         case POS_NONE:
-            y = state->y; 
             break;
         
         case POS_BOTTOM:
-            y = text_renderer_height(state->renderer) - 1 - state->y;
+            state->y = text_renderer_height(state->renderer) - 1 - state->y;
             break;
     }
 
-    state->prevX = x;
-    state->prevY = y;
+    state->prevX = state->x;
+    state->prevY = state->y;
 
     for(u16 i = 0; i < length; ++i)
     {
-        if(content[i] == '\0')
+        char symbol = content[i];
+        if (symbol == '\0')
             break;
+        if (symbol == '\n')
+        {
+            ++state->y;
+            continue;
+        }
 
-        if (x + i > (u16)text_renderer_width(state->renderer))
-            break;
+        if (state->x >= (u16)text_renderer_width(state->renderer))
+        {
+            state->x = state->prevX;
+            ++state->y;
+        }
 
-        text_renderer_set_character_letter(state->renderer, x + i, y, content[i]);
-        text_renderer_set_character_color(state->renderer, x + i, y, color[0], color[1], color[2]);
+        text_renderer_set_character_letter(state->renderer, state->x, state->y, content[i]);
+        text_renderer_set_character_color(state->renderer, state->x, state->y, color[0], color[1], color[2]);
         
         text_renderer_set_character_background_color
         (
-            state->renderer, x + i, y, 
+            state->renderer, state->x, state->y, 
             background[0], background[1], background[2], 
             state->color.renderBackground
         );
