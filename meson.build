@@ -16,6 +16,7 @@ stb_dep         = dependency('stb')
 
 cglm_includes     = cglm_dep.partial_dependency(compile_args: true, includes: true)
 freetype_includes = freetype_dep.partial_dependency(compile_args: true, includes: true)
+executable_dependencies = [cglm_includes, freetype_includes]
 
 # Paths:
 linker_script = meson.current_source_dir() / 'linker.ld'
@@ -26,12 +27,11 @@ subdir('scarce-engine')
 
 # Application:
 application_c_args = [
-    '-fvisibility=hidden', 
     '-ffreestanding', 
     '-fno-stack-protector',
     '-fno-asynchronous-unwind-tables', 
     '-fno-ident', 
-    '-Os'
+    '-Os',
 ]
 application_link_args = [
     '-nostdlib', 

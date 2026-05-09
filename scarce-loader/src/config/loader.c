@@ -58,7 +58,9 @@ static config_result create_default_config(const char* configFilepath)
         .vertexFilepath = "assets/core/shaders/text.vert",
         .fragmentFilepath = "assets/core/shaders/text.frag",
         .memoryPageAmount = 1,
-        .userSpaceBytes = 1024
+        .userSpaceBytes = 1024,
+        .minWindowWidth = 640,
+        .minWindowHeight = 480
     };
 
     char buffer[1024];

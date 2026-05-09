@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 
 #include "scarce.h"
 #include "view.h"
@@ -58,8 +59,34 @@ void view_holder_switch_view(view_holder* holder, engine* e, memory_pool* pool, 
 
     holder->currentViewIndex = index;
 
-    if (holder->data[index].load)
-        holder->data[index].load(e, pool);
+    on_view_load loadFunction = (on_view_load)((uintptr_t)holder->data[index].load + (uintptr_t)e->baseAddress);    
+    if (loadFunction)
+        loadFunction(e, pool);
+}
+
+void view_holder_update(view_holder* holder, struct engine* e, memory_pool* pool)
+{
+    assert(holder);
+    assert(pool);
+    assert(e);
+
+    view_data* data = view_holder_current(holder);
+    
+    on_view_update updateFunction = (on_view_update)((uintptr_t)data->update + (uintptr_t)e->baseAddress);    
+    if (updateFunction)
+        updateFunction(e, pool);
+}
+void view_holder_render(view_holder* holder, struct engine* e, memory_pool* pool)
+{
+    assert(holder);
+    assert(pool);
+    assert(e);
+
+    view_data* data = view_holder_current(holder);
+    
+    on_view_render renderFunction = (on_view_render)((uintptr_t)data->render + (uintptr_t)e->baseAddress);    
+    if (renderFunction)
+        renderFunction(e, pool);
 }
 
 view_data* view_holder_current(view_holder* holder)

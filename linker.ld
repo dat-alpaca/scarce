@@ -1,20 +1,20 @@
 SECTIONS
 {
     . = 0x0;
+    _app_start = .; 
 
     .text : {
         KEEP(*(.text.entry))
-        *(.text.*)
+        *(.text .text.*)
+    }
 
-        *(.rodata .rodata.*)
-        *(.data.rel.ro* .text.rel.ro*)
-        *(.got .got.*)
+    .rodata : { *(.rodata .rodata.*) }
+
+    .data : {
         *(.data .data.*)
+        *(.got .got.*)
+        *(.data.rel.ro*) 
     }
-
-    /DISCARD/ : {
-        *(.note*)
-        *(.comment)
-        *(.eh_frame)
-    }
+    
+    _app_end = .;
 }

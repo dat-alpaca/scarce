@@ -52,6 +52,9 @@ static engine gEngine =
     .view_holder_destroy = view_holder_destroy,
     .view_holder_register = view_holder_register,
 
+    .view_holder_update = view_holder_update,
+    .view_holder_render = view_holder_render,
+
     .view_holder_switch_view = view_holder_switch_view,
     .view_holder_current = view_holder_current,
 
@@ -203,6 +206,7 @@ int main()
     void* applicationSpace = get_application_space(config->mainBinaryFilepath, config->memoryPageAmount);
     if (!applicationSpace)
         return 1;
+    gEngine.baseAddress = applicationSpace;
 
     get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
 

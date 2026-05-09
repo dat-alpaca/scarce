@@ -1,9 +1,13 @@
+#include "defines.h"
 #include "memory/memory.h"
 #include "platform/mouse.h"
 #include "ui/button.h"
 #include "ui/text_box.h"
 #include "ui/ui.h"
 #include <scarce.h>
+
+#include "view.h"
+#include "view/view.h"
 
 static engine* _e = 0;
 
@@ -55,56 +59,25 @@ void on_load(memory_pool* pool, engine* engine)
     ui_text_box* textbox = (ui_text_box*)&pool[760];
     char* textboxContents = (char*)&pool[900];
     _e->ui_text_box_init(textbox, textboxContents, &color, &hovered,  10);
+
+    // view test:
+    view_data* mainMenu = _e->scarce_push(pool, sizeof(view_data)); 
+    {
+        mainMenu->id = 0;
+        mainMenu->load = on_load_view;
+        mainMenu->render = NULL;
+        mainMenu->update = on_update_view;
+        
+        _e->view_holder_register(_e->viewHolder, mainMenu);
+        _e->scarce_pop(pool, sizeof(view_data)); 
+    }
+
+    _e->view_holder_switch_view(_e->viewHolder, _e, pool, 0);
 }
 
 bool on_update(memory_pool* pool)
 {
-    // render:
-    _e->ui_clear(_e);
-    ui_state* state = _e->ui_begin_stack(pool, _e->renderer);
-    
-    text_color color = { 0 };
-    color.color = SY_COLOR_WHITE;
-
-    _e->ui_set_color(state, &color);
-
-    _e->ui_sameline(state, true);
-    _e->ui_text(state, "hell", 4);
-    _e->ui_text(state, "hell2", 5);
-    _e->ui_sameline(state, false);
-    _e->ui_space(state, 1);
-    _e->ui_feed(state);
-
-    //_e->ui_set_position(state, POS_BOTTOM, 0);
-    _e->ui_set_align(state, ALIGN_LEFT, 0);
-
-    ui_button* button = (ui_button*)&pool[700];
-    _e->ui_button_render(button, state, "press");
-    _e->ui_button_update(button, state, _e);
-
-    // txt:
-    _e->ui_feed(state);
-    ui_text_box* textbox = (ui_text_box*)&pool[760];
-    _e->ui_text_box_render(textbox, state);
-    _e->ui_text_box_update(textbox, state, _e);
-
-    _e->ui_end(state);
-
-    return true;
-    // Misc:
-    if(_e->is_mouse_btn_pressed(_e->window, SCA_MOUSE_LEFT))
-    {
-        _e->log_warn(_e->logger, "hello", 5);
-    }
-
-    _e->renderer_set_character_background_color(_e->renderer, 0, 0, 1.0f, 1.0f, 0.0f, true);
-    _e->renderer_set_character_background_color(_e->renderer, 1, 1, 0.0f, 1.0f, 0.0f, true);
-    _e->renderer_set_character_background_color(_e->renderer, 5, 5, 0.0f, 1.0f, 0.0f, true);
-
-    u32 mouseX, mouseY;
-    _e->get_mouse_position(_e->window, _e->renderer, &mouseX, &mouseY);
-
-    _e->renderer_set_character_background_color(_e->renderer, mouseX, mouseY, 0.0f, 0.0f, 0.0f, true);
+    _e->view_holder_update(_e->viewHolder, _e, pool);
     return true;
 }
 

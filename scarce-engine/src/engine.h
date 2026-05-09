@@ -17,6 +17,7 @@ typedef struct engine
 {
     window_handle* window;
     text_renderer* renderer;
+    void* baseAddress;
     u32 memoryPoolSize;
 
     // Memory:
@@ -52,6 +53,9 @@ typedef struct engine
     void (*view_holder_init)(view_holder* holder, u32 capacity);
     void (*view_holder_destroy)(view_holder* holder);
     void (*view_holder_register)(view_holder* holder, view_data* data);
+
+    void (*view_holder_update)(view_holder* holder, struct engine* e, memory_pool* pool);
+    void (*view_holder_render)(view_holder* holder, struct engine* e, memory_pool* pool);
 
     void (*view_holder_switch_view)(view_holder* holder, struct engine* e, memory_pool* pool, view_id id);
     view_data* (*view_holder_current)(view_holder* holder);
