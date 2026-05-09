@@ -58,9 +58,10 @@ void view_holder_switch_view(view_holder* holder, engine* e, memory_pool* pool, 
         log_critical(e->logger, "Invalid view_id", 16);
 
     holder->currentViewIndex = index;
+    if (!holder->data[index].load)
+        return;
 
     on_view_load loadFunction = (on_view_load)((uintptr_t)holder->data[index].load + (uintptr_t)e->baseAddress);    
-    if (loadFunction)
         loadFunction(e, pool);
 }
 
@@ -71,7 +72,9 @@ void view_holder_update(view_holder* holder, struct engine* e, memory_pool* pool
     assert(e);
 
     view_data* data = view_holder_current(holder);
-    
+    if (!data->update)
+        return;
+
     on_view_update updateFunction = (on_view_update)((uintptr_t)data->update + (uintptr_t)e->baseAddress);    
     if (updateFunction)
         updateFunction(e, pool);
@@ -83,7 +86,9 @@ void view_holder_render(view_holder* holder, struct engine* e, memory_pool* pool
     assert(e);
 
     view_data* data = view_holder_current(holder);
-    
+    if (!data->render)
+        return;
+
     on_view_render renderFunction = (on_view_render)((uintptr_t)data->render + (uintptr_t)e->baseAddress);    
     if (renderFunction)
         renderFunction(e, pool);
