@@ -8,6 +8,7 @@
 #include "ui/button.h"
 #include "ui/text_box.h"
 
+#include "core/physics/aabb.h"
 #include "core/view/view.h"
 
 #include "graphics/text_renderer.h"
@@ -19,6 +20,9 @@ typedef struct engine
     void* baseAddress;
     u32 memoryPoolSize;
     bool requestExit;
+
+    // AABB:
+    bool (*aabb_check_collision)(aabb a, aabb b);
 
     // Memory:
     void* (*scarce_read)(memory_pool*, u32 address);

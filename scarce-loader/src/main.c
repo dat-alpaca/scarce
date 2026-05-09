@@ -18,6 +18,9 @@
 
 static engine gEngine =
 {
+    // AABB:
+    .aabb_check_collision = aabb_check_collision,
+
     // Memory:
     .scarce_read = scarce_read,
     .scarce_write = scarce_write,
