@@ -12,6 +12,7 @@
 #include "core/view/view.h"
 
 #include "graphics/text_renderer.h"
+#include "ui/ui.h"
 
 typedef struct engine
 {
@@ -42,7 +43,7 @@ typedef struct engine
 
     // Files:
     file_descriptor (*platform_open_file)(const char*, file_mode);
-    void (*platform_read_file)(file_descriptor, void*, u32);
+    bool (*platform_read_file)(file_descriptor, void*, u32);
     void (*platform_write_file)(file_descriptor, void*, u32);
     bool (*platform_is_file_open)(file_descriptor);
     u32 (*platform_file_size)(file_descriptor);
@@ -116,10 +117,13 @@ typedef struct engine
 
     aabb (*ui_button_aabb)(ui_button* button);
 
-    // UI Text box::
+    // UI Text box:
     void (*ui_text_box_init)(ui_text_box* textBox, char* contents, text_color* color, text_color* hoveredColor, u8 width);
     void (*ui_text_box_render)(ui_text_box* textBox, ui_state* state);
     void (*ui_text_box_update)(ui_text_box* textBox, ui_state* state, struct engine* e);
 
     aabb (*ui_text_box_aabb)(ui_text_box* textBox);
+
+    // UI HSML:
+    void (*ui_hsml)(ui_state* state, const char* filepath);
 } engine;

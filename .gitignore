@@ -7,3 +7,5 @@ con/
 subprojects/*
 !subprojects/*.wrap
 !subprojects/packagefiles
+
+*.hsml

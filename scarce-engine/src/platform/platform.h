@@ -19,13 +19,21 @@ typedef enum
     SCA_FILE_CREATE = 1 << 2,
 } file_mode;
 
+typedef enum
+{
+    SEEK_MODE_SET,
+    SEEK_MODE_CURRENT,
+    SEEK_MODE_END
+} seek_mode;
+
 typedef u32 file_descriptor;
 #define invalid_file_descriptor (0xFFFFFFFF)
 
 file_descriptor platform_open_file(const char* filepath, file_mode modeFlags);
-void platform_read_file(file_descriptor fileDescriptor, void* buffer, u32 length);
+bool platform_read_file(file_descriptor fileDescriptor, void* buffer, u32 length);
 void platform_write_file(file_descriptor fileDescriptor, void* buffer, u32 length);
 bool platform_is_file_open(file_descriptor fileDescriptor);
+void platform_file_seek(file_descriptor fileDescriptor, seek_mode seekMode, i32 offset);
 u32 platform_file_size(file_descriptor fileDescriptor);
 void platform_close_file(file_descriptor fileDescriptor);
 

@@ -1,0 +1,51 @@
+#pragma once
+#include "ui/ui.h"
+
+// Hyper Scarce Markup Language
+
+typedef enum
+{
+    HSML_TOKEN_NONE,
+    
+    HSML_TOKEN_START,
+    HSML_TOKEN_END,
+
+    HSML_TOKEN_ALIGN_CENTER,
+    HSML_TOKEN_ALIGN_LEFT,
+    HSML_TOKEN_ALIGN_RIGHT,
+
+    HSML_TOKEN_POS_NONE,
+    HSML_TOKEN_POS_TOP,
+    HSML_TOKEN_POS_BOTTOM,
+
+    HSML_TOKEN_HLINE,
+    HSML_TOKEN_SPACE,
+    HSML_TOKEN_NUDGE,
+    HSML_TOKEN_FEED,
+    HSML_TOKEN_SAMELINE,
+
+    HSML_TOKEN_COLOR,
+    HSML_TOKEN_BG_COLOR,
+    HSML_TOKEN_BG,
+} hsml_token;
+
+typedef enum
+{
+    HSML_COLOR_INVALID = 0,
+    HSML_COLOR_DEFAULT,
+    HSML_COLOR_NONE,
+    HSML_COLOR_RED,
+    HSML_COLOR_GREEN,
+    HSML_COLOR_YELLOW,
+    HSML_COLOR_BLUE,
+    HSML_COLOR_PURPLE,
+    HSML_COLOR_CYAN,
+    HSML_COLOR_WHITE,
+    
+    HSML_COLOR_INTENSE,
+    HSML_COLOR_NOT_INTENSE,
+    HSML_COLOR_FAINT,
+    HSML_COLOR_NOT_FAINT,
+} hsml_color_token;
+
+void ui_hsml(ui_state* state, const char* filepath);

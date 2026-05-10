@@ -23,11 +23,13 @@ file_descriptor platform_open_file(const char* filepath, file_mode modeFlags)
     return open(filepath, flags);
 }
 
-void platform_read_file(file_descriptor fileDescriptor, void* buffer, u32 length)
+bool platform_read_file(file_descriptor fileDescriptor, void* buffer, u32 length)
 {
     assert(buffer);
     assert(length > 0);
-    read(fileDescriptor, buffer, length);
+
+    u32 count = read(fileDescriptor, buffer, length);
+    return count == length;
 }
 
 void platform_write_file(file_descriptor fileDescriptor, void* buffer, u32 length)
@@ -40,6 +42,11 @@ void platform_write_file(file_descriptor fileDescriptor, void* buffer, u32 lengt
 bool platform_is_file_open(file_descriptor fileDescriptor)
 {
     return (fileDescriptor != invalid_file_descriptor);
+}
+
+void platform_file_seek(file_descriptor fileDescriptor, seek_mode seekMode, i32 offset)
+{
+    lseek(fileDescriptor, offset, seekMode);
 }
 
 u32 platform_file_size(file_descriptor fileDescriptor)

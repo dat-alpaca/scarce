@@ -1,3 +1,4 @@
+#include "ui/ui.h"
 #include <scarce.h>
 
 void on_load_view(engine* e, memory_pool* pool)
@@ -7,21 +8,11 @@ void on_load_view(engine* e, memory_pool* pool)
 
 void on_update_view(engine* e, memory_pool* pool)
 {
-    // render:
-    e->ui_clear(e);
     ui_state* state = e->ui_begin_stack(pool, e->renderer);
-    
-    text_color color = { 0 };
-    color.color = SY_COLOR_WHITE;
-
-    e->ui_set_color(state, &color);
-
-    e->ui_sameline(state, true);
-    e->ui_text(state, "hell", 4);
-    e->ui_text(state, "hell2", 5);
-    e->ui_sameline(state, false);
-    e->ui_space(state, 1);
-    e->ui_feed(state);
+    e->ui_clear(e);
+    e->ui_hsml(state, "test.hsml");
+    e->ui_end(state);
+    return;
 
     //e->ui_set_position(state, POS_BOTTOM, 0);
     e->ui_set_align(state, ALIGN_LEFT, 0);
@@ -36,7 +27,7 @@ void on_update_view(engine* e, memory_pool* pool)
     e->ui_text_box_render(textbox, state);
     e->ui_text_box_update(textbox, state, e);
 
-    e->ui_end(state);
+    
 
     // Misc:
     if(e->is_mouse_btn_pressed(e->window, SCA_MOUSE_LEFT))
