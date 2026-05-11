@@ -665,7 +665,8 @@ static void handle_text(ui_state* state, file_descriptor descriptor, enum hsml_m
     fixed_array buffer = { 0 };
     fixed_array_init(&buffer, helperValue);
     fixed_array_push(&buffer, &current, 1);
-    platform_read_file(descriptor, buffer.buffer + 1, helperValue - 1);
+    if (helperValue - 1 > 0)
+        platform_read_file(descriptor, buffer.buffer + 1, helperValue - 1);
     buffer.current += helperValue - 1;
 
     // Check for placeholders:
