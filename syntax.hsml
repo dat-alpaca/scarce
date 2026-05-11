@@ -56,3 +56,15 @@
     \start; 12;
     Footer right
     \end;
+
+\if; %0 <= 21;
+    \feed;
+        \start; 11;
+        hello world
+        \end;
+    \feed;
+\endif;
+
+
+\space; 2;
+\include; body.hsml;

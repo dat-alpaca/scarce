@@ -10,8 +10,21 @@ void on_update_view(engine* e, memory_pool* pool)
 {
     ui_state* state = e->ui_begin_stack(pool, e->renderer);
     e->ui_clear(e);
-    e->ui_hsml(state, "test.hsml");
-    e->ui_end(state);
+
+    {
+        u8* value = e->scarce_push(pool, 5);
+        value[0] = 20;
+        value[1] = 10;
+        value[2] = 5;
+        value[3] = 3;
+        value[4] = 4;
+
+        e->ui_hsml(state, "test.hsml");
+        e->ui_end(state);
+
+        e->scarce_pop(pool, 5);
+    }
+    
     return;
 
     //e->ui_set_position(state, POS_BOTTOM, 0);

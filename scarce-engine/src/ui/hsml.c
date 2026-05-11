@@ -1,14 +1,19 @@
 #include "hsml.h"
 
+#include "dynamic_array.h"
 #include "fixed_array.h"
+#include "memory/memory.h"
 #include "ui/ui.h"
 #include "logging/logger.h"
 #include "platform/platform.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/select.h>
 
 #define SCA_HSML_MAX_COLOR_KEYWORDS 5
+#define SCA_HSML_MAX_TEXT_CAP 256
+#define SCA_HSML_MAX_TEXT_VALUE_LENGTH 3
 
 enum hsml_mode
 {
@@ -54,6 +59,15 @@ static hsml_token get_next_token(file_descriptor descriptor)
 
     char null = '\0';
     fixed_array_push(&buffer, &null, 1);
+
+    if (strcmp(buffer.buffer, "include") == 0)
+        token = HSML_TOKEN_INCLUDE;
+    if (strcmp(buffer.buffer, "ifn") == 0 || strcmp(buffer.buffer, "if_n") == 0)
+        token = HSML_TOKEN_IFN;
+    if (strcmp(buffer.buffer, "if") == 0)
+        token = HSML_TOKEN_IF;
+    if (strcmp(buffer.buffer, "endif") == 0)
+        token = HSML_TOKEN_END_IF;
 
     if (strcmp(buffer.buffer, "start") == 0)
         token = HSML_TOKEN_START;
@@ -157,6 +171,7 @@ static u32 get_numeric_token(file_descriptor descriptor)
         return 0;
     }
 
+    fixed_array_destroy(&buffer);
     return num;
 }
 
@@ -178,6 +193,41 @@ static char get_character_token(file_descriptor descriptor)
     }
 
     return symbol;
+}
+
+static void get_text_token(file_descriptor descriptor, dynamic_array* buffer)
+{
+    const u32 initialCapacity = 16 * sizeof(char);
+    dynamic_array_init(buffer, initialCapacity);
+
+    bool possiblyValid = false;
+    while(true)
+    {
+        char symbol = 0;
+        platform_read_file(descriptor, &symbol, 1);
+
+        if (symbol == ' ')
+            continue;
+
+        if (symbol == '\n')
+            break;
+
+        if (symbol == ';')
+        {
+            possiblyValid = true;
+            break;
+        }
+
+        dynamic_array_push(buffer, &symbol, 1);
+
+        if (buffer->capacity > SCA_HSML_MAX_TEXT_CAP)
+            break;
+
+
+    }
+
+    if (!possiblyValid)
+        log_critical_s("Invalid HSML file: Include might not have closing ;", 52);
 }
 
 static hsml_color_token get_color_token(fixed_array* buffer)
@@ -310,11 +360,12 @@ static void get_text_color_token(ui_state* state, file_descriptor descriptor, bo
         {
             fixed_array_push(&buffer[currentWord], &null, 1);
             currentWord++;
+
+            if (currentWord > SCA_HSML_MAX_COLOR_KEYWORDS)
+                log_critical_s("Invalid HSML: too many color keywords.", 39);
+
             continue;
         }
-
-        if (currentWord > SCA_HSML_MAX_COLOR_KEYWORDS)
-            log_critical_s("Invalid HSML: too many color keywords.", 39);
 
         fixed_array_push(&buffer[currentWord], &symbol, 1);
     }
@@ -335,14 +386,189 @@ static void get_text_color_token(ui_state* state, file_descriptor descriptor, bo
         fixed_array_destroy(&buffer[i]);
 }
 
-static void handle_token(ui_state* state, file_descriptor descriptor, enum hsml_mode* mode, u32* helperValue)
+static void handle_if_numeric(ui_state* state, file_descriptor descriptor, bool* shallSkip)
+{
+    *shallSkip = get_numeric_token(descriptor) <= 0;
+}
+
+static void handle_if(ui_state* state, file_descriptor descriptor, bool* shallSkip)
+{
+    memory_pool* pool = state->pool;
+    u8 possibleStackParameterAmount = (u8)pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - 1];
+
+    // Get parameter:
+    char first = 0;
+    while(true)
+    {
+        platform_read_file(descriptor, &first, 1);
+        if (first != ' ')
+            break;
+    }
+
+    if (first != '%')
+    {
+        log_critical_s("Invalid HSML: invalid if condition", 35);
+        return;
+    }
+    
+    u8 index = 0;
+    bool numberFound = false;
+    while(true)
+    {
+        char next = 0;  
+        platform_read_file(descriptor, &next, 1);
+    
+        if (!isdigit(next))
+            break;
+
+        numberFound = true;
+        index += next - '0';
+    }
+
+    if (!numberFound || index >= possibleStackParameterAmount)
+    {
+        log_critical_s("Invalid HSML: invalid parameter index", 35);
+        return;
+    }
+
+    u8 value = pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - possibleStackParameterAmount - 1 + index];
+
+    // Get operator:
+    enum operator : u8
+    {
+        INVALID = 0,
+        EQUAL,
+        GREATER,
+        GREATER_EQUAL,
+        LESS_EQUAL,
+        LESS
+    };
+
+    enum operator operator = INVALID;
+    while(true)
+    {
+        char next = 0;  
+        platform_read_file(descriptor, &next, 1);
+
+        if (next == ' ')
+            continue;
+
+        if (next == '=')
+        {
+            char follow = 0;  
+            platform_read_file(descriptor, &follow, 1);
+            if (follow == '=')
+            {
+                operator = EQUAL;
+                break;
+            }
+            
+            log_critical_s("Invalid HSML: invalid EQUAL operator", 35);
+        }
+
+        if (next == '>')
+        {
+            char follow = 0;  
+            platform_read_file(descriptor, &follow, 1);
+            if (follow == '=')
+            {
+                operator = GREATER_EQUAL;
+                break;
+            }
+
+            operator = GREATER;
+            break;
+        }
+
+        if (next == '<')
+        {
+            char follow = 0;  
+            bool valid = platform_read_file(descriptor, &follow, 1);
+            if (valid && follow == '=')
+            {
+                operator = LESS_EQUAL;
+                break;
+            }
+
+            operator = LESS;
+            break;
+        }
+    }
+
+    // Get number:
+    u32 compareNumber = get_numeric_token(descriptor);
+
+    if (operator == EQUAL)
+    {
+        *shallSkip = !(value == compareNumber);
+        return;
+    }
+
+    if (operator == GREATER)
+    {
+        *shallSkip = !(value > compareNumber);
+        return;
+    }
+    if (operator == GREATER_EQUAL)
+    {
+        *shallSkip = !(value >= compareNumber);
+        return;
+    }
+
+    if (operator == LESS)
+    {
+        *shallSkip = !(value < compareNumber);
+        return;
+    }
+    if (operator == LESS_EQUAL)
+    {
+        *shallSkip = !(value <= compareNumber);
+        return;
+    }
+
+   
+
+    log_critical_s("Invalid HSML: no if operator", 29);
+}
+
+static void handle_token(ui_state* state, file_descriptor descriptor, enum hsml_mode* mode, u32* helperValue, bool* shallSkip)
 {
     hsml_token currentToken = get_next_token(descriptor);
+
+    if (*shallSkip && currentToken == HSML_TOKEN_END_IF)
+    {
+        *shallSkip = false;
+        return;
+    }
+
+    if (*shallSkip)
+        return;
 
     switch(currentToken)
     {
         case HSML_TOKEN_NONE:
             *mode = HSML_MODE_NONE;
+            break;
+
+        case HSML_TOKEN_INCLUDE:
+        {
+            dynamic_array buffer = { 0 };
+            get_text_token(descriptor, &buffer);
+            ui_hsml(state, buffer.buffer);
+            dynamic_array_destroy(&buffer);
+        } break;
+
+        case HSML_TOKEN_IF:
+        {
+            handle_if(state, descriptor, shallSkip);
+            break;
+        }
+        case HSML_TOKEN_IFN:
+        {
+            handle_if_numeric(state, descriptor, shallSkip);
+            break;
+        }
+        case HSML_TOKEN_END_IF:
             break;
 
         case HSML_TOKEN_START:
@@ -431,6 +657,86 @@ static void handle_token(ui_state* state, file_descriptor descriptor, enum hsml_
     }
 }
 
+static void handle_text(ui_state* state, file_descriptor descriptor, enum hsml_mode* mode, u32 helperValue, char current)
+{
+    memory_pool* pool = state->pool;
+    u8 possibleStackParameterAmount = (u8)pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - 1];
+
+    fixed_array buffer = { 0 };
+    fixed_array_init(&buffer, helperValue);
+    fixed_array_push(&buffer, &current, 1);
+    platform_read_file(descriptor, buffer.buffer + 1, helperValue - 1);
+    buffer.current += helperValue - 1;
+
+    // Check for placeholders:
+    dynamic_array finalText = { 0 };
+    dynamic_array_init(&finalText, buffer.capacity);
+    {
+        char* data = (char*)buffer.buffer;
+        for (u32 i = 0; i < buffer.current; ++i)
+        {
+            char current = data[i];
+            if (current != '%')
+            {
+                dynamic_array_push(&finalText, &current, 1);
+                continue;
+            }
+
+            u8 index = 0;
+            bool numberFound = false;
+            while(true)
+            {
+                if (i + 1 >= buffer.current)
+                    break;
+
+                char next = data[i + 1];                  
+                if (!isdigit(next))
+                    break;
+
+                numberFound = true;
+                index += next - '0';
+                ++i;
+            }
+
+            if (!numberFound || index >= possibleStackParameterAmount)
+            {
+                char percentageSymbol = '%';
+                dynamic_array_push(&finalText, &percentageSymbol, 1);
+                continue;
+            }
+
+            u8 value = pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - possibleStackParameterAmount - 1 + index];
+            if (value == 0)
+            {
+                char zero = '0';
+                dynamic_array_push(&finalText, &zero, 1);
+                continue;
+            }
+
+            char temp[SCA_HSML_MAX_TEXT_VALUE_LENGTH];
+            u32 length = 0;
+            while (value > 0)
+            {
+                temp[length] = (value % 10) + '0';
+                value /= 10;
+                ++length;
+            }
+
+            for (i32 i = length - 1; i >= 0; --i)
+                dynamic_array_push(&finalText, &temp[i], 1);
+        }
+    }
+
+    ui_text(state, finalText.buffer, helperValue);
+
+    dynamic_array_destroy(&finalText);
+    fixed_array_destroy(&buffer);
+
+    helperValue = 0;
+    *mode = HSML_MODE_NONE;
+    current = 0;
+}
+
 void ui_hsml(ui_state* state, const char* filepath)
 {
     file_descriptor descriptor = platform_open_file(filepath, SCA_FILE_READ);
@@ -443,6 +749,7 @@ void ui_hsml(ui_state* state, const char* filepath)
     enum hsml_mode mode = HSML_MODE_NONE;
     u32 helperValue = 0;
 
+    bool shallSkip = false;
     char current = 0;
     while(platform_read_file(descriptor, &current, 1))
     {
@@ -468,24 +775,12 @@ void ui_hsml(ui_state* state, const char* filepath)
         if (current == '\\')
         {
             mode = HSML_MODE_FORMAT;
-            handle_token(state, descriptor, &mode, &helperValue);
+            handle_token(state, descriptor, &mode, &helperValue, &shallSkip);
             continue;
         }
 
         if (mode == HSML_MODE_TEXT)
-        {
-            fixed_array buffer = { 0 };
-            fixed_array_init(&buffer, helperValue);
-            fixed_array_push(&buffer, &current, 1);
-            platform_read_file(descriptor, buffer.buffer + 1, helperValue - 1);
-
-            ui_text(state, buffer.buffer, helperValue);
-            fixed_array_destroy(&buffer);
-
-            helperValue = 0;
-            mode = HSML_MODE_NONE;
-            current = 0;
-        }
+            handle_text(state, descriptor, &mode, helperValue, current);
     }
 
     platform_close_file(descriptor);

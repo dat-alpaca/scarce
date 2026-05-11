@@ -6,6 +6,10 @@
 typedef enum
 {
     HSML_TOKEN_NONE,
+    HSML_TOKEN_INCLUDE,
+    HSML_TOKEN_IF,
+    HSML_TOKEN_IFN,
+    HSML_TOKEN_END_IF,
     
     HSML_TOKEN_START,
     HSML_TOKEN_END,

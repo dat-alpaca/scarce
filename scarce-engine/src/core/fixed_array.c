@@ -19,7 +19,9 @@ void* fixed_array_get(fixed_array* array, u32 index, u32 elementSize)
 {
     u32 offset = index * elementSize;
     assert(array && array->buffer);
-    assert(offset + elementSize <= array->current); // Ensure we are within the "filled" part
+    assert(offset >= 0);
+    assert(offset + elementSize <= array->current);
+
     return (u8*)array->buffer + offset;
 }
 
