@@ -1,0 +1,58 @@
+# This is an HSML file
+# HSML stands for Hyper Scarce Markup Language, and it's nothing but a primitive HTML
+# clone with bad memory.
+
+# HSML works by setting the options of an internal state machine (similar to OpenGL) and then issuing a text command.
+# As you may have noticed, '#' defines a comment.
+
+# Header:
+    \sl; 0;
+    \center; 1;         # centralize text with xOffset = 1
+    \top; 1;            # render starting from y=0 with yOffset = 1
+
+    \bgcolor; red;      # red bg
+    \bg; 1;             # render background
+    \color; white;      # white text color
+
+    # Comments are not allowed inside this block. You must specify the character amount in your sentence as well.
+    \start; 18;
+    -= -= Header =- =-
+    \end;
+    \space; 1;
+
+# Body:
+# The states are persistent, so you only need to change what actually changes.
+
+    \left; 0;
+    \sl; 1;
+    \start; 2;
+    hi
+    \end;
+
+    \color; yellow;
+    \bgcolor; green;
+
+    \nudge; 1;          # increases the x offset by 1
+    \start; 4;
+    bob!
+    \end;
+
+    \sl; 0;
+
+# The colors from the body persisted:
+# Footer:
+    \bottom; 0;
+    \left; 0;
+
+    \start; 11;
+    Footer left
+    \end;
+
+    \bottom; 0;
+    \right; 0;
+
+    # Except here:
+    \bg; 0;             # don't render a bg
+    \start; 12;
+    Footer right
+    \end;
