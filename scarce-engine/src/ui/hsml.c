@@ -308,8 +308,8 @@ static void get_text_color_token(ui_state* state, file_descriptor descriptor, bo
 
         if (symbol == ',')
         {
-            currentWord++;
             fixed_array_push(&buffer[currentWord], &null, 1);
+            currentWord++;
             continue;
         }
 
