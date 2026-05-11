@@ -222,10 +222,10 @@ static void get_text_token(file_descriptor descriptor, dynamic_array* buffer)
 
         if (buffer->capacity > SCA_HSML_MAX_TEXT_CAP)
             break;
-
-
     }
 
+    char null = '\0';
+    dynamic_array_push(buffer, &null, 1);
     if (!possiblyValid)
         log_critical_s("Invalid HSML file: Include might not have closing ;", 52);
 }
