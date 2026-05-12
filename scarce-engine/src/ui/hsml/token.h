@@ -1,10 +1,12 @@
 #pragma once
 #include "dynamic_array.h"
+#include "memory/memory.h"
 
 
 #define HSML_TOKEN_SYMBOL  '\\'
 #define HSML_TOKEN_COMMENT '#'
 #define HSML_TOKEN_DELIMITER ';'
+#define HSML_TOKEN_PLACEHOLDER '%'
 
 typedef enum
 {
@@ -97,4 +99,4 @@ typedef struct
 
 hsml_token_argument hsml_get_argument_type(hsml_token_type type);
 
-void hsml_tokenize(const char* filepath, dynamic_array* tokens);
+void hsml_tokenize(const char* filepath, dynamic_array* tokens, memory_pool* pool);

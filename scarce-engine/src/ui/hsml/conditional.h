@@ -1,6 +1,7 @@
 #pragma once
 #include "dynamic_array.h"
 #include "logging/logger.h"
+#include "memory/memory.h"
 #include "platform/platform.h"
 #include <ctype.h>
 
@@ -10,6 +11,7 @@ typedef enum : u8
     HSML_COND_NUMBER,
     
     HSML_COND_EQU,      // ==
+    HSML_COND_NEQ,      // !=
     HSML_COND_GRT,      // >
     HSML_COND_LSS,      // <
     HSML_COND_GEQ,      // >=
@@ -28,4 +30,4 @@ typedef struct
     u32 value;
 } hsml_conditional;
 
-bool hsml_get_conditional_result(file_descriptor descriptor);
+bool hsml_get_conditional_result(file_descriptor descriptor, memory_pool* pool);

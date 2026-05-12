@@ -2,9 +2,13 @@
 
 #include "dynamic_array.h"
 #include "logging/logger.h"
+#include "memory/memory.h"
 #include "token.h"
 #include "ui/ui.h"
+#include <ctype.h>
 #include <string.h>
+
+#define SCA_HSML_MAX_TEXT_VALUE_LENGTH 3
 
 static void hsml_parse_argless_token(ui_state* state, hsml_token_type type, hsml_mode* mode, bool* executing)
 {
@@ -245,20 +249,75 @@ static void hsml_parse_tokens(ui_state* state, hsml_token* token, hsml_mode* mod
 
 static void hsml_parse_text(ui_state* state, hsml_token* token, hsml_token* next)
 {
-    char* content = (char*)(token->value.buffer);
-    ui_text(state, content, token->value.current);
+    memory_pool* pool = state->pool;
 
+    dynamic_array finalText = { 0 };
+    dynamic_array_init(&finalText, token->value.current, sizeof(char));
+
+    u8 placeholderAmount = pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - 1];
+
+    char* data = (char*)token->value.buffer;
+    for (u32 i = 0; i < dynamic_array_size(&token->value); ++i)
+    {
+        char current = data[i];
+        if (current != HSML_TOKEN_PLACEHOLDER)
+        {
+            dynamic_array_push(&finalText, &current, 1);
+            continue;
+        }
+
+        bool foundIndex = false;
+        u32 index = 0;
+        while (true)
+        {
+            ++i;
+            char next = data[i];
+            if (!isdigit(next))
+                break;
+
+            foundIndex = true;
+            index = (index * 10) + (next - '0');
+        }
+
+        if (!foundIndex)
+            log_critical_s("Invalid HSML: missing index for placeholder", 44);
+
+        u8 value = pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - placeholderAmount + index - 1];
+        if (value == 0)
+        {
+            char zero = '0';
+            dynamic_array_push(&finalText, &zero, 1);
+            continue;
+        }
+
+        char temp[SCA_HSML_MAX_TEXT_VALUE_LENGTH];
+        u32 length = 0;
+        while (value > 0)
+        {
+            temp[length] = (value % 10) + '0';
+            value /= 10;
+            ++length;
+        }
+
+        for (i32 i = length - 1; i >= 0; --i)
+            dynamic_array_push(&finalText, &temp[i], 1);
+    }
+
+    ui_text(state, finalText.buffer, finalText.current);
+    
     if (next->type == HSML_TOKEN_TEXT)
         ui_feed(state);
 
     if (token->value.buffer)
         dynamic_array_destroy(&token->value);
+    
+    dynamic_array_destroy(&finalText);
 }
 
 void ui_hsml_new(ui_state* state, const char* filepath)
 {
     dynamic_array tokens = { 0 };
-    hsml_tokenize(filepath, &tokens);
+    hsml_tokenize(filepath, &tokens, state->pool);
 
     hsml_token* next = NULL;
     bool executing = true;

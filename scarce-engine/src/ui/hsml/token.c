@@ -1,5 +1,6 @@
 #include "token.h"
 
+#include "memory/memory.h"
 #include "platform/platform.h"
 #include "dynamic_array.h"
 #include "logging/logger.h"
@@ -166,9 +167,9 @@ static void hsml_fetch_colors(file_descriptor descriptor, dynamic_array* colors)
     dynamic_array_destroy(&text);
 }
 
-static bool hsml_fetch_condition(file_descriptor descriptor)
+static bool hsml_fetch_condition(file_descriptor descriptor, memory_pool* pool)
 {
-    return hsml_get_conditional_result(descriptor);
+    return hsml_get_conditional_result(descriptor, pool);
 }
 
 // Token lookup:
@@ -229,7 +230,7 @@ static hsml_token_type hsml_get_token_type(file_descriptor descriptor)
     return type;
 }
 
-static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descriptor)
+static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descriptor, memory_pool* pool)
 {
     hsml_token token = { 0 };
     token.type = type;
@@ -239,7 +240,7 @@ static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descri
         // conditionals:
         case HSML_TOKEN_IF:
         {
-            u32 condition = (u32)hsml_fetch_condition(descriptor);
+            u32 condition = (u32)hsml_fetch_condition(descriptor, pool);
             dynamic_array_init(&token.value, 1, sizeof(u32));
             dynamic_array_push(&token.value, &condition, 1);
         } break;
@@ -353,7 +354,7 @@ hsml_token_argument hsml_get_argument_type(hsml_token_type type)
     return HSML_TOKEN_ARG_INVALID;
 }
 
-void hsml_tokenize(const char* filepath, dynamic_array* tokens)
+void hsml_tokenize(const char* filepath, dynamic_array* tokens, memory_pool* pool)
 {
     file_descriptor descriptor = platform_open_file(filepath, SCA_FILE_READ);
     if (descriptor == invalid_file_descriptor)
@@ -380,7 +381,7 @@ void hsml_tokenize(const char* filepath, dynamic_array* tokens)
                 }
 
                 platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
-                hsml_token token = hsml_create_token(HSML_TOKEN_TEXT, descriptor);
+                hsml_token token = hsml_create_token(HSML_TOKEN_TEXT, descriptor, pool);
                 dynamic_array_push(tokens, &token, 1);
                 
                 mode = HSML_MODE_NORMAL;
@@ -401,7 +402,7 @@ void hsml_tokenize(const char* filepath, dynamic_array* tokens)
                     if (type == HSML_TOKEN_INVALID)
                         log_critical_s("Invalid HSML: invalid token type tokenized.", 44);
 
-                    hsml_token token = hsml_create_token(type, descriptor);
+                    hsml_token token = hsml_create_token(type, descriptor, pool);
                     dynamic_array_push(tokens, &token, 1);
                 }
 

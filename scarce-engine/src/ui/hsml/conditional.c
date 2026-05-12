@@ -1,6 +1,7 @@
 #include "conditional.h"
 #include "dynamic_array.h"
 #include "logging/logger.h"
+#include "memory/memory.h"
 #include "platform/platform.h"
 #include <ctype.h>
 
@@ -29,6 +30,8 @@ static hsml_conditional_type hsml_parse_conditional_symbol(file_descriptor descr
 
     if (current == '=' && next == '=')
         return HSML_COND_EQU;
+    if (current == '!' && next == '=')
+        return HSML_COND_NEQ;
 
     if (current == '>' && next == '=')
         return HSML_COND_GEQ;
@@ -47,6 +50,7 @@ static u8 hsml_get_precedence(hsml_conditional_type type)
 {
     switch(type)
     {
+        case HSML_COND_NEQ:
         case HSML_COND_EQU:
         case HSML_COND_GRT:
         case HSML_COND_LSS:
@@ -65,10 +69,12 @@ static u8 hsml_get_precedence(hsml_conditional_type type)
     return 0;
 }
 
-static dynamic_array hsml_get_conditional_array(file_descriptor descriptor)
+static dynamic_array hsml_get_conditional_array(file_descriptor descriptor, memory_pool* pool)
 {
     dynamic_array conditionalArray = { 0 };
     dynamic_array_init(&conditionalArray, 16, sizeof(hsml_conditional));
+
+    u8 placeholderAmount = pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - 1];
 
     bool possiblyValid = false;
     while (true)
@@ -86,7 +92,7 @@ static dynamic_array hsml_get_conditional_array(file_descriptor descriptor)
         if (current == ' ')
             continue;
 
-        if (current == '%' || isdigit(current))
+        if (isdigit(current))
         {
             u32 value = (current == '%') ? 0 : current - '0';
             while(true)
@@ -100,6 +106,34 @@ static dynamic_array hsml_get_conditional_array(file_descriptor descriptor)
 
                 value = (value * 10) + (next - '0');
             }
+
+            hsml_conditional conditional = { .value = value, .type = HSML_COND_NUMBER };
+            dynamic_array_push(&conditionalArray, &conditional, 1);
+            continue;
+        }
+
+        if (current == '%')
+        {
+            bool foundValue = false;
+            u32 index = (current == '%') ? 0 : current - '0';
+            while(true)
+            {   
+                char next;
+                if (!platform_read_file(descriptor, &next, 1) || !isdigit(next))
+                {
+                    platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+                    break;
+                }
+
+                foundValue = true;
+                index = (index * 10) + (next - '0');
+            }
+
+            if (!foundValue)
+                log_critical_s("Invalid HSML: invalid index passed to conditional expression placeholder.", 74);
+
+            u8 value = pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - placeholderAmount + index - 1];
+
             hsml_conditional conditional = { .value = value, .type = HSML_COND_NUMBER };
             dynamic_array_push(&conditionalArray, &conditional, 1);
             continue;
@@ -228,6 +262,7 @@ static bool hsml_evaluate_postfix(dynamic_array* output)
         switch(current->type) 
         {
             case HSML_COND_EQU: partial = (lhs == rhs); break;
+            case HSML_COND_NEQ: partial = (lhs != rhs); break;
             case HSML_COND_GRT: partial = (lhs >  rhs); break;
             case HSML_COND_LSS: partial = (lhs <  rhs); break;
             case HSML_COND_GEQ: partial = (lhs >= rhs); break;
@@ -247,9 +282,9 @@ static bool hsml_evaluate_postfix(dynamic_array* output)
     return result;
 }
 
-bool hsml_get_conditional_result(file_descriptor descriptor)
+bool hsml_get_conditional_result(file_descriptor descriptor, memory_pool* pool)
 {
-    dynamic_array conditionalArray = hsml_get_conditional_array(descriptor);
+    dynamic_array conditionalArray = hsml_get_conditional_array(descriptor, pool);
     dynamic_array output = shunt_conditional_expression(&conditionalArray);
     
     bool result = hsml_evaluate_postfix(&output);
