@@ -206,19 +206,21 @@ static dynamic_array shunt_conditional_expression(dynamic_array* expression)
             continue;
         }
         
-        hsml_conditional topOperator = operatorData[dynamic_array_size(&operators) - 1];
-
         u8 currentPrecedence = hsml_get_precedence(current->type);
-        u8 topOperatorPrecedence = hsml_get_precedence(topOperator.type);
-
-        if (currentPrecedence > topOperatorPrecedence)
+        while (!dynamic_array_empty(&operators)) 
         {
-            dynamic_array_push(&output, current, 1);
-            continue;
-        }
+            hsml_conditional* top = &operatorData[dynamic_array_size(&operators) - 1];
             
-        dynamic_array_push(&output, &topOperator, 1);
-        dynamic_array_pop(&operators, 1);
+            if (top->type == HSML_COND_OPEN)
+                break;
+
+            if (hsml_get_precedence(top->type) < currentPrecedence) 
+                break;
+
+            dynamic_array_push(&output, top, 1);
+            dynamic_array_pop(&operators, 1);
+        }
+
         dynamic_array_push(&operators, current, 1);
     }
 
@@ -227,7 +229,6 @@ static dynamic_array shunt_conditional_expression(dynamic_array* expression)
         hsml_conditional* top = &operatorData[dynamic_array_size(&operators) - 1 - i];
         dynamic_array_push(&output, top, 1);
     }
-
 
     dynamic_array_destroy(&operators);
     return output;
