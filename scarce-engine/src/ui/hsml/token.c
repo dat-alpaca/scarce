@@ -11,7 +11,7 @@
 #include <sys/select.h>
 
 // Fetching:
-static void hsml_fetch_text(file_descriptor descriptor, dynamic_array* buffer, char delimiter, bool ignoreSpace)
+static void hsml_fetch_text(file_descriptor descriptor, dynamic_array* buffer, char delimiter, bool ignoreSpace, bool allLower)
 {
     dynamic_array_init(buffer, 32, sizeof(char));
 
@@ -27,7 +27,9 @@ static void hsml_fetch_text(file_descriptor descriptor, dynamic_array* buffer, c
         if (ignoreSpace && next == ' ')
             continue;
 
-        next = tolower(next);
+        if (allLower)
+            next = tolower(next);
+
         dynamic_array_push(buffer, &next, 1);
     }
 
@@ -214,7 +216,7 @@ static hsml_token_lookup_item s_tokenLookupTable[] =
 static hsml_token_type hsml_get_token_type(file_descriptor descriptor)
 {
     dynamic_array buffer = { 0 };
-    hsml_fetch_text(descriptor, &buffer, HSML_TOKEN_DELIMITER, false);
+    hsml_fetch_text(descriptor, &buffer, HSML_TOKEN_DELIMITER, false, true);
 
     if (!buffer.current)
         return HSML_TOKEN_INVALID;
@@ -262,11 +264,11 @@ static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descri
 
         // requires text argument
         case HSML_TOKEN_TEXT:
-            hsml_fetch_text(descriptor, &token.value, HSML_TOKEN_SYMBOL, false);
+            hsml_fetch_text(descriptor, &token.value, HSML_TOKEN_SYMBOL, false, false);
             break;
 
         case HSML_TOKEN_INCLUDE:
-            hsml_fetch_text(descriptor, &token.value, HSML_TOKEN_DELIMITER, true);
+            hsml_fetch_text(descriptor, &token.value, HSML_TOKEN_DELIMITER, true, false);
             break;
     
         // Requires numerical parameter:
