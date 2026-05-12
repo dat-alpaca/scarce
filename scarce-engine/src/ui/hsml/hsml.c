@@ -112,7 +112,7 @@ static void hsml_parse_color_token(symbol_color* color, u8* intense, u8* faint, 
         case HSML_COLOR_DEFAULT:
         {
             *color = SY_COLOR_WHITE;
-            *intense = true;
+            *intense = false;
             *faint = false;
         } break;
             
