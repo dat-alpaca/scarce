@@ -19,7 +19,18 @@ static void hsml_fetch_text(file_descriptor descriptor, dynamic_array* buffer, c
     {
         char next;
         if (!platform_read_file(descriptor, &next, 1) || next == '\n')
+        {
+            // Removes trailing space:
+            while (true)
+            {
+                char top = *(char*)&buffer->buffer[dynamic_array_size(buffer) - 1];
+                if (top != ' ')
+                    break;
+                dynamic_array_pop(buffer, 1);
+            }
+
             break;
+        }
 
         if (delimiter && next == delimiter)
             break;
@@ -32,6 +43,8 @@ static void hsml_fetch_text(file_descriptor descriptor, dynamic_array* buffer, c
 
         dynamic_array_push(buffer, &next, 1);
     }
+
+    
 
     char null = '\0';
     dynamic_array_push(buffer, &null, 1);
