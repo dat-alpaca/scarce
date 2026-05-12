@@ -153,8 +153,8 @@ static void hsml_parse_color_tokens(ui_state* state, hsml_token* tokens)
                 hsml_color_token_type current = data[i];
                 hsml_parse_color_token(
                     &color, 
-                    &colorFaint, 
                     &colorIntense, 
+                    &colorFaint, 
                     current
                 );
 
@@ -177,8 +177,8 @@ static void hsml_parse_color_tokens(ui_state* state, hsml_token* tokens)
                 hsml_color_token_type* current = &data[i];
                 hsml_parse_color_token(
                     &color, 
-                    &colorFaint, 
                     &colorIntense, 
+                    &colorFaint, 
                     *current
                 );
 
