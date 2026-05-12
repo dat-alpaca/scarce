@@ -17,7 +17,9 @@ sources = files(
     'src/ui/ui.c',
     'src/ui/button.c',
     'src/ui/text_box.c',
-    'src/ui/hsml.c',
+    'src/ui/hsml/hsml.c',
+    'src/ui/hsml/token.c',
+    'src/ui/hsml/conditional.c',
 )
 
 # Dependencies:

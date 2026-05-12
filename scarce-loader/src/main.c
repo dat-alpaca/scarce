@@ -11,6 +11,7 @@
 
 #include "platform/platform.h"
 #include "ui/hsml.h"
+#include "ui/hsml/hsml.h"
 #include "ui/ui.h"
 #include "view/view.h"
 
@@ -120,7 +121,8 @@ static engine gEngine =
     .ui_text_box_aabb = ui_text_box_aabb,
 
     // UI HSML:
-    .ui_hsml = ui_hsml,
+    ///.ui_hsml = ui_hsml,
+    .ui_hsml = ui_hsml_new,
 };
 
 static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)

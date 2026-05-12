@@ -6,33 +6,35 @@
 
 #define SCA_DA_GROWTH_RATIO 1.618
 
-void dynamic_array_init(dynamic_array* array, u32 capacity)
+void dynamic_array_init(dynamic_array* array, u32 elementCount, u32 elementSize)
 {
     assert(array);
 
-    array->capacity = capacity;
+    array->elementSize = elementSize;
+    array->capacity = elementSize * elementCount;
     array->current = 0;
 
-    array->buffer = malloc(capacity);
+    array->buffer = malloc(array->capacity);
     assert(array->buffer);
-    memset(array->buffer, 0, capacity);
+    memset(array->buffer, 0, array->capacity);
 }
 
-void* dynamic_array_get(dynamic_array* array, u32 index, u32 elementSize)
+void* dynamic_array_get(dynamic_array* array, u32 index)
 {
-    u32 offset = index * elementSize;
+    u32 offset = index * array->elementSize;
     assert(array && array->buffer);
     assert(offset >= 0);
-    assert(offset + elementSize <= array->current);
+    assert(offset + array->elementSize <= array->current);
 
     return (u8*)array->buffer + offset;
 }
 
-void dynamic_array_resize(dynamic_array* array, u32 newSize)
+void dynamic_array_resize(dynamic_array* array, u32 newElementCount)
 {
     assert(array);
-    assert(newSize > 0);
+    assert(newElementCount > 0);
 
+    u32 newSize = newElementCount * array->elementSize;
     if (newSize == array->capacity)
         return;
 
@@ -55,11 +57,20 @@ void dynamic_array_resize(dynamic_array* array, u32 newSize)
     array->buffer = tempBuffer;
     array->capacity = usedSize;
 }
-
-void dynamic_array_push(dynamic_array* array, void* data, u32 bytes)
+u32 dynamic_array_size(dynamic_array* array)
 {
-    assert(array && data && bytes > 0);
+    return array->current / array->elementSize;
+}
+bool dynamic_array_empty(dynamic_array* array)
+{
+    return dynamic_array_size(array) == 0;
+}
 
+void dynamic_array_push(dynamic_array* array, void* data, u32 count)
+{
+    assert(array && data && count > 0);
+    
+    u32 bytes = count * array->elementSize;
     if (array->current + bytes > array->capacity)
         dynamic_array_resize(array, (array->capacity + 1) * SCA_DA_GROWTH_RATIO);
 
@@ -67,9 +78,11 @@ void dynamic_array_push(dynamic_array* array, void* data, u32 bytes)
     array->current += bytes;
 }
 
-void dynamic_array_pop(dynamic_array* array, u32 bytes)
+void dynamic_array_pop(dynamic_array* array, u32 count)
 {
+    u32 bytes = count * array->elementSize;
     assert(array->current >= bytes);
+
     array->current -= bytes;
 }
 

@@ -5,8 +5,9 @@
 #include "fixed_array.h"
 #include "memory/stack.h"
 #include "physics/aabb.h"
-#include "scarce.h"
 #include "text_renderer.h"
+
+#include "scarce.h"
 
 static float* get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint)
 {
@@ -64,8 +65,8 @@ void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer)
     state->pool = pool;
     state->renderer = renderer;
 
-    state->alignment = ALIGN_CENTER;
-    state->positioning = POS_NONE;
+    state->alignment = UI_ALIGN_CENTER;
+    state->positioning = UI_POS_NONE;
 
     state->color.color = SY_COLOR_NONE;
     state->color.colorIntense = false;
@@ -91,8 +92,8 @@ ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer)
     state->pool = pool;
     state->renderer = renderer;
 
-    state->alignment = ALIGN_CENTER;
-    state->positioning = POS_NONE;
+    state->alignment = UI_ALIGN_CENTER;
+    state->positioning = UI_POS_NONE;
 
     state->color.color = SY_COLOR_NONE;
     state->color.colorIntense = false;
@@ -131,25 +132,25 @@ void ui_text(ui_state* state, const char* content, u32 length)
     
     switch (state->alignment)
     {
-        case ALIGN_CENTER:
+        case UI_ALIGN_CENTER:
             state->x += render_get_center(text_renderer_width(state->renderer), length);
         break;
 
-        case ALIGN_LEFT:
+        case UI_ALIGN_LEFT:
             break;
 
-        case ALIGN_RIGHT:
+        case UI_ALIGN_RIGHT:
             state->x = text_renderer_width(state->renderer) - state->x - length;
             break;
     }
 
     switch (state->positioning)
     {
-        case POS_TOP:
-        case POS_NONE:
+        case UI_POS_TOP:
+        case UI_POS_NONE:
             break;
         
-        case POS_BOTTOM:
+        case UI_POS_BOTTOM:
             state->y = text_renderer_height(state->renderer) - 1 - state->y;
             break;
     }
@@ -256,6 +257,7 @@ void ui_set_align(ui_state* state, text_align align, u16 xOffset)
 {
     state->alignment = align;
     state->x = xOffset;
+    state->alignOffset = xOffset;
 }
 void ui_set_position(ui_state* state, text_position position, u16 yOffset)
 {
@@ -273,7 +275,7 @@ void ui_sameline(ui_state* state, bool sameLine)
 }
 void ui_feed(ui_state* state)
 {
-    state->x = 0;
+    state->x = state->alignOffset;
 }
 void ui_nudge(ui_state* state, u32 xOffset)
 {

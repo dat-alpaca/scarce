@@ -197,8 +197,7 @@ static char get_character_token(file_descriptor descriptor)
 
 static void get_text_token(file_descriptor descriptor, dynamic_array* buffer)
 {
-    const u32 initialCapacity = 16 * sizeof(char);
-    dynamic_array_init(buffer, initialCapacity);
+    dynamic_array_init(buffer, 16, sizeof(char));
 
     bool possiblyValid = false;
     while(true)
@@ -230,7 +229,7 @@ static void get_text_token(file_descriptor descriptor, dynamic_array* buffer)
         log_critical_s("Invalid HSML file: Include might not have closing ;", 52);
 }
 
-static hsml_color_token get_color_token(fixed_array* buffer)
+static hsml_color_token_type get_color_token(fixed_array* buffer)
 {
     if (strcmp(buffer->buffer, "default") == 0)
         return HSML_COLOR_DEFAULT;
@@ -272,7 +271,7 @@ static hsml_color_token get_color_token(fixed_array* buffer)
     return HSML_COLOR_INVALID;
 }
 
-static void handle_color_token(hsml_color_token token, text_color* color)
+static void handle_color_token(hsml_color_token_type token, text_color* color)
 {
     switch(token)
     {
@@ -302,7 +301,7 @@ static void handle_color_token(hsml_color_token token, text_color* color)
     }
 }
 
-static void handle_bg_color_token(hsml_color_token token, text_color* color)
+static void handle_bg_color_token(hsml_color_token_type token, text_color* color)
 {
     switch(token)
     {
@@ -372,7 +371,7 @@ static void get_text_color_token(ui_state* state, file_descriptor descriptor, bo
 
     for (u8 i = 0; i < SCA_HSML_MAX_COLOR_KEYWORDS; ++i)
     {
-        hsml_color_token colorToken = get_color_token(&buffer[i]);
+        hsml_color_token_type colorToken = get_color_token(&buffer[i]);
         if (colorToken == HSML_COLOR_INVALID)
             continue;
 
@@ -583,33 +582,33 @@ static void handle_token(ui_state* state, file_descriptor descriptor, enum hsml_
         case HSML_TOKEN_ALIGN_CENTER:
         {
             u32 xOffset = get_numeric_token(descriptor);
-            ui_set_align(state, ALIGN_CENTER, xOffset);
+            ui_set_align(state, UI_ALIGN_CENTER, xOffset);
         } break;
         case HSML_TOKEN_ALIGN_LEFT:
         {
             u32 xOffset = get_numeric_token(descriptor);
-            ui_set_align(state, ALIGN_LEFT, xOffset);
+            ui_set_align(state, UI_ALIGN_LEFT, xOffset);
         } break;
         case HSML_TOKEN_ALIGN_RIGHT:
         {
             u32 xOffset = get_numeric_token(descriptor);
-            ui_set_align(state, ALIGN_RIGHT, xOffset);
+            ui_set_align(state, UI_ALIGN_RIGHT, xOffset);
         } break;
 
         case HSML_TOKEN_POS_NONE:
         {
             u32 yOffset = get_numeric_token(descriptor);
-            ui_set_position(state, POS_NONE, yOffset);
+            ui_set_position(state, UI_POS_NONE, yOffset);
         } break;
         case HSML_TOKEN_POS_BOTTOM:
         {
             u32 yOffset = get_numeric_token(descriptor);
-            ui_set_position(state, POS_BOTTOM, yOffset);
+            ui_set_position(state, UI_POS_BOTTOM, yOffset);
         } break;
         case HSML_TOKEN_POS_TOP:
         {
             u32 yOffset = get_numeric_token(descriptor);
-            ui_set_position(state, POS_TOP, yOffset);
+            ui_set_position(state, UI_POS_TOP, yOffset);
         } break;
 
         case HSML_TOKEN_HLINE:
@@ -671,7 +670,7 @@ static void handle_text(ui_state* state, file_descriptor descriptor, enum hsml_m
 
     // Check for placeholders:
     dynamic_array finalText = { 0 };
-    dynamic_array_init(&finalText, buffer.capacity);
+    dynamic_array_init(&finalText, buffer.capacity, sizeof(char));
     {
         char* data = (char*)buffer.buffer;
         for (u32 i = 0; i < buffer.current; ++i)

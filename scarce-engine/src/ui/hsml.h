@@ -50,6 +50,6 @@ typedef enum
     HSML_COLOR_NOT_INTENSE,
     HSML_COLOR_FAINT,
     HSML_COLOR_NOT_FAINT,
-} hsml_color_token;
+} hsml_color_token_type;
 
 void ui_hsml(ui_state* state, const char* filepath);

@@ -24,16 +24,16 @@ enum : u8
 // Text rendering:
 typedef enum : u8
 {
-    ALIGN_LEFT = 0,
-    ALIGN_CENTER,
-    ALIGN_RIGHT,
+    UI_ALIGN_LEFT = 0,
+    UI_ALIGN_CENTER,
+    UI_ALIGN_RIGHT,
 } text_align;
 
 typedef enum : u8
 {
-    POS_NONE = 0,
-    POS_TOP,
-    POS_BOTTOM
+    UI_POS_NONE = 0,
+    UI_POS_TOP,
+    UI_POS_BOTTOM
 } text_position;
 
 typedef struct
@@ -57,11 +57,12 @@ typedef struct
     u16 y;
     u16 prevX;
     u16 prevY;
+    u16 alignOffset;
     
     text_align alignment;
     text_position positioning;
 
-    text_color color;   
+    text_color color;
     bool sameLine; 
 } ui_state;
 

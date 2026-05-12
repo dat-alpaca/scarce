@@ -28,7 +28,7 @@ void on_update_view(engine* e, memory_pool* pool)
     return;
 
     //e->ui_set_position(state, POS_BOTTOM, 0);
-    e->ui_set_align(state, ALIGN_LEFT, 0);
+    e->ui_set_align(state, UI_ALIGN_LEFT, 0);
 
     ui_button* button = (ui_button*)&pool[700];
     e->ui_button_render(button, state, "press");
