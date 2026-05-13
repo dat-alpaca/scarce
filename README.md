@@ -15,7 +15,7 @@ But, with RAM prices through the roof, I have decided to challenge myself by mak
 
 That's the sole purpose of this game engine.
 
-At the time of writing, the game application size is sitting at aroung 8KiB, and the total resident memory used is around 20MiB (Wayland, Fedora 43), with a few extra megabytes when using the GLFW windowing system. The entire game runs on a 1KiB memory chunk.
+At the time of writing, the game application size is sitting at aroung 8KiB, and the total resident memory used is around 20MiB (Fedora 43 Plasma), or around 40MiB (Fedora 43 Plasma X11), with a few extra megabytes when using the GLFW windowing system. The entire game runs on a 1KiB memory chunk.
 
 Although the game application is restricted to a predetermined memory region, using the stack and other memory regions is allowed, though I am doing my best to keep that usage to a minimum whenever possible.
 
