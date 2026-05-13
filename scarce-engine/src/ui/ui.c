@@ -163,6 +163,7 @@ void ui_text(ui_state* state, const char* content, u32 length)
         char symbol = content[i];
         if (symbol == '\0')
             break;
+
         if (symbol == '\n')
         {
             ++state->y;
@@ -174,6 +175,9 @@ void ui_text(ui_state* state, const char* content, u32 length)
             state->x = state->prevX;
             ++state->y;
         }
+
+        if (state->y >= (u16)text_renderer_height(state->renderer))
+            break;
 
         text_renderer_set_character_letter(state->renderer, state->x, state->y, content[i]);
         text_renderer_set_character_color(state->renderer, state->x, state->y, color[0], color[1], color[2]);

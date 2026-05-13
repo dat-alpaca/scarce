@@ -97,7 +97,7 @@ static void hsml_parse_text_token(ui_state* state, hsml_token* token)
     {
         case HSML_TOKEN_INCLUDE:
         {
-            ui_hsml_new(state, token->value.buffer);
+            ui_hsml(state, token->value.buffer);
         } break;
 
         default:
@@ -314,7 +314,7 @@ static void hsml_parse_text(ui_state* state, hsml_token* token, hsml_token* next
     dynamic_array_destroy(&finalText);
 }
 
-void ui_hsml_new(ui_state* state, const char* filepath)
+void ui_hsml(ui_state* state, const char* filepath)
 {
     dynamic_array tokens = { 0 };
     hsml_tokenize(filepath, &tokens, state->pool);
