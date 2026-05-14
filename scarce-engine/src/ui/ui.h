@@ -65,6 +65,7 @@ typedef struct
     text_color color;
     u8 sameLine : 1;
     u8 overflow : 1; 
+    u8 xOverflow : 1; 
 } ui_state;
 
 void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer);

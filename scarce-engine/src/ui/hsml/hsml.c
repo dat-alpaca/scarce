@@ -3,6 +3,8 @@
 #include "dynamic_array.h"
 #include "logging/logger.h"
 
+#include "memory/memory.h"
+#include "ui/button.h"
 #include "ui/ui.h"
 #include "token.h"
 #include "defines.h"
@@ -196,6 +198,8 @@ static void hsml_parse_color_tokens(ui_state* state, hsml_token* tokens)
 
 static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
 {
+    memory_pool* pool = state->pool;
+
     switch(token->type)
     {
         case HSML_TOKEN_HLINE:
@@ -203,6 +207,18 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
             char* character = (char*)(token->value.buffer);
             u32* yOffset = (u32*)(token->value.buffer + sizeof(u32));
             ui_hline(state, *yOffset, (char)*character);
+        } break;
+
+        case HSML_TOKEN_BUTTON:
+        {
+            u8 baseAddressIndex = *(u8*)(token->value.buffer);
+            u8 buttonIndex = *(u8*)(token->value.buffer + sizeof(u8));
+            char* contents = (char*)(token->value.buffer + sizeof(u8) * 2);
+
+            ui_button* buttons = (ui_button*)&pool[baseAddressIndex];
+            ui_button* button = &buttons[buttonIndex];
+            
+            ui_button_render(button, state, contents);
         } break;
     
         default:

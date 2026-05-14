@@ -1,59 +1,101 @@
+#include "memory/memory.h"
+#include "physics/aabb.h"
+#include "ui/button.h"
+#include "ui/text_box.h"
 #include "ui/ui.h"
 #include <scarce.h>
 
+static void quit_button_callback(engine* e, memory_pool* pool, ui_button* button)
+{
+    e->requestExit = true;
+}
+
 void on_load_view(engine* e, memory_pool* pool)
 {
-    e->log_error(e->logger, "hi", 2);
+    e->log_info(e->logger, "testbed on_load_view", 21);
+
+    text_color color = { 0 };
+    color.color = SY_COLOR_WHITE;
+    color.colorFaint = true;
+
+    text_color hovered = color;
+    hovered.colorFaint = false;
+
+    // Button:
+    ui_button* button = (ui_button*)&pool[200];
+    e->ui_button_init(button, quit_button_callback, &color, &hovered, 4);
+
+    // Textbox:
+    ui_text_box* textbox = (ui_text_box*)&pool[500];
+    e->ui_text_box_init(textbox, &pool[516], &color, &hovered, 6);
+}
+
+static void on_update(ui_state* state, engine* e)
+{
+    memory_pool* pool = state->pool;
+
+    ui_text_box* textbox = (ui_text_box*)&pool[500];
+    ui_button* button = (ui_button*)&pool[200];
+
+    e->ui_text_box_update(textbox, state, e);
+    e->ui_button_update(button, state, e);
+}
+
+static void on_render(ui_state* state, engine* e)
+{
+    memory_pool* pool = state->pool;
+    ui_text_box* textbox = (ui_text_box*)&pool[500];
+
+    e->ui_clear(e);
+
+    // Mouse collision:
+    bool hovered = false;
+    {
+        aabb* textboxAABB = (aabb*)e->scarce_push(pool, sizeof(aabb));
+        aabb* mouseAABB = (aabb*)e->scarce_push(pool, sizeof(aabb));
+        *textboxAABB = e->ui_text_box_aabb(textbox);
+        *mouseAABB = e->ui_mouse_aabb(e);
+
+        hovered = e->aabb_check_collision(*textboxAABB, *mouseAABB);
+        e->scarce_pop(pool, sizeof(aabb));
+        e->scarce_pop(pool, sizeof(aabb));
+    }
+    
+    // Main HSML:
+    {
+        const u8 stackCount = 5;
+        u8* value = e->scarce_push(pool, sizeof(u8) * stackCount);
+        value[0] = 10;
+        value[1] = 20;
+        value[2] = 30;
+        value[3] = 200;
+        value[4] = stackCount - 1;
+
+        e->ui_hsml(state, "assets/view.hsml");
+        e->ui_end(state);
+
+        e->scarce_pop(pool, sizeof(u8) * stackCount);
+    }
+
+    // Textbox not yet implemented in HSML:
+    e->ui_text_box_render(textbox, state);
+    e->ui_feed(state);
+    e->ui_space(state, 2);
+    if (hovered)
+    {
+        state->color.colorFaint = true;
+        e->ui_set_color(state, &state->color);
+        e->ui_text(state, "Press the textbox & type", 25);
+        e->ui_feed(state);
+
+        e->ui_text(state, "BACKSPACE to erase", 19);
+        e->ui_feed(state);
+    }
 }
 
 void on_update_view(engine* e, memory_pool* pool)
 {
     ui_state* state = e->ui_begin_stack(pool, e->renderer);
-    e->ui_clear(e);
-
-    {
-        u8* value = e->scarce_push(pool, 5);
-        value[0] = 1;
-        value[1] = 2;
-        value[2] = 3;
-        value[3] = 4;
-        value[4] = 4;
-
-        e->ui_hsml(state, "test.hsml");
-        e->ui_end(state);
-
-        e->scarce_pop(pool, 5);
-    }
-    
-    return;
-
-    //e->ui_set_position(state, POS_BOTTOM, 0);
-    e->ui_set_align(state, UI_ALIGN_LEFT, 0);
-
-    ui_button* button = (ui_button*)&pool[700];
-    e->ui_button_render(button, state, "press");
-    e->ui_button_update(button, state, e);
-
-    // txt:
-    e->ui_feed(state);
-    ui_text_box* textbox = (ui_text_box*)&pool[760];
-    e->ui_text_box_render(textbox, state);
-    e->ui_text_box_update(textbox, state, e);
-
-    
-
-    // Misc:
-    if(e->is_mouse_btn_pressed(e->window, SCA_MOUSE_LEFT))
-    {
-        e->log_warn(e->logger, "hello", 5);
-    }
-
-    e->renderer_set_character_background_color(e->renderer, 0, 0, 1.0f, 1.0f, 0.0f, true);
-    e->renderer_set_character_background_color(e->renderer, 1, 1, 0.0f, 1.0f, 0.0f, true);
-    e->renderer_set_character_background_color(e->renderer, 5, 5, 0.0f, 1.0f, 0.0f, true);
-
-    u32 mouseX, mouseY;
-    e->get_mouse_position(e->window, e->renderer, &mouseX, &mouseY);
-
-    e->renderer_set_character_background_color(e->renderer, mouseX, mouseY, 0.0f, 0.0f, 0.0f, true);
+    on_update(state, e);
+    on_render(state, e);
 }

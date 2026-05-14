@@ -168,6 +168,12 @@ void ui_text(ui_state* state, const char* content, u32 length)
             ++state->y;
         }
 
+        if (state->prevX >= (u16)text_renderer_width(state->renderer))
+        {
+            state->xOverflow = true;
+            break;
+        }
+
         if (state->y >= (u16)text_renderer_height(state->renderer))
         {
             state->overflow = true;

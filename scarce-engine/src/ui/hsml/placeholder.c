@@ -97,7 +97,9 @@ u32 hsml_fetch_placeholder_value(ui_state* state, file_descriptor descriptor)
         char next;
         if (!platform_read_file(descriptor, &next, 1) || next == '\n' || next == HSML_TOKEN_DELIMITER || isspace(next))
         {
-            platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+            if (next != HSML_TOKEN_DELIMITER)
+                platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);   
+            
             break;
         }
 
