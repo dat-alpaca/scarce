@@ -4,6 +4,7 @@
 
 typedef struct
 {
+    const char* windowTitle;
     const char* mainBinaryFilepath;
     const char* vertexFilepath;
     const char* fragmentFilepath;

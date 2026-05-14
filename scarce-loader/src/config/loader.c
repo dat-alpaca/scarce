@@ -14,6 +14,9 @@ static int handler(void* user, const char* section, const char* name, const char
 
     #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 
+    if (MATCH("general", "windowTitle")) 
+        pConfig->windowTitle = strdup(value);
+
     if (MATCH("general", "mainBinaryFilepath")) 
         pConfig->mainBinaryFilepath = strdup(value);
     
@@ -53,6 +56,7 @@ static config_result create_default_config(const char* configFilepath)
         return result;
 
     config config = {
+        .windowTitle = "Scarce",
         .mainBinaryFilepath = "main.bin",
         .fontFilepath = "assets/core/basis33/basis33.ttf",
         .vertexFilepath = "assets/core/shaders/text.vert",
@@ -66,6 +70,7 @@ static config_result create_default_config(const char* configFilepath)
     char buffer[1024];
     int length = snprintf(buffer, sizeof(buffer),
         "[general]\n"
+        "windowTitle = %s\n"
         "mainBinaryFilepath = %s\n"
         "fontFilepath = %s\n"
         "vertexFilepath = %s\n"
@@ -74,6 +79,7 @@ static config_result create_default_config(const char* configFilepath)
         "userSpaceBytes = %" PRIu64 "\n"
         "minWindowWidth = %" PRIu32 "\n"
         "minWindowHeight = %" PRIu32 "\n",
+        config.windowTitle,
         config.mainBinaryFilepath,
         config.fontFilepath,
         config.vertexFilepath,

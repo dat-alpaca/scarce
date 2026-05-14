@@ -226,7 +226,7 @@ int main()
     get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
 
     // Window:
-    gEngine.window = window_init("Scarce v0.1", config->minWindowWidth, config->minWindowHeight);
+    gEngine.window = window_init(config->windowTitle, config->minWindowWidth, config->minWindowHeight);
     if (!gEngine.window)
         return 1;
 
