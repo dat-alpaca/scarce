@@ -13,10 +13,10 @@ void on_update_view(engine* e, memory_pool* pool)
 
     {
         u8* value = e->scarce_push(pool, 5);
-        value[0] = 20;
-        value[1] = 10;
-        value[2] = 5;
-        value[3] = 3;
+        value[0] = 1;
+        value[1] = 2;
+        value[2] = 3;
+        value[3] = 4;
         value[4] = 4;
 
         e->ui_hsml(state, "test.hsml");

@@ -8,6 +8,26 @@ bool is_string_same(const char* lhs, const char* rhs, u32 size)
     return strncmp(lhs, rhs, size) == 0;
 }
 
+bool is_string_number(const char* string, u32 size)
+{
+    bool result = true;
+    for (u32 i = 0; i < size; ++i)
+        result &= (bool)isdigit(string[i]);
+
+    return result;
+}
+u32 partial_string_number(const char* string, u32 size)
+{
+    u32 validDigits = 0;
+    for (u32 i = 0; i < size; ++i)
+    {
+        if (isdigit(string[i]))
+            ++validDigits;
+    }
+
+    return validDigits;
+}
+
 void to_lower(char* string, u32 size)
 {
     for(u32 i = 0; i < size; ++i)
@@ -28,4 +48,35 @@ char* strdup(const char* string)
 
     strcpy(destination, string);
     return destination;
+}
+
+void number_to_buffer(u8 number, dynamic_array* buffer)
+{
+    char temp[SCA_MAX_U8_LENGTH];
+    u8 length = number_to_array(number, temp);
+
+    for (i8 i = length - 1; i >=0; --i)
+        dynamic_array_push(buffer, &temp[i], 1);
+}
+u8 number_to_array(u8 number, char array[SCA_MAX_U8_LENGTH])
+{
+    u32 length = 0;
+    while (number > 0)
+    {
+        array[length] = (number % 10) + '0';
+        number /= 10;
+        ++length;
+    }
+    return length;
+}
+
+void remove_trailing_space(dynamic_array* buffer)
+{
+    while (true)
+    {
+        char top = *(char*)&buffer->buffer[dynamic_array_size(buffer) - 1];
+        if (top != ' ')
+            break;
+        dynamic_array_pop(buffer, 1);
+    }
 }

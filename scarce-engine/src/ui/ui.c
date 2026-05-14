@@ -5,6 +5,7 @@
 #include "fixed_array.h"
 #include "memory/stack.h"
 #include "physics/aabb.h"
+#include "string_utils.h"
 #include "text_renderer.h"
 
 #include "scarce.h"
@@ -205,14 +206,7 @@ void ui_number(ui_state* state, u32 number)
     fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH);
 
     char temp[SCA_UI_MAX_NUMBER_LENGTH];
-    u32 length = 0;
-    while (number > 0)
-    {
-        temp[length] = (number % 10) + '0';
-        number /= 10;
-        ++length;
-    }
-
+    u8 length = number_to_array(number, temp);
     for (i32 i = length - 1; i >= 0; --i)
         fixed_array_push(&numberBuffer, &temp[i], 1);
 

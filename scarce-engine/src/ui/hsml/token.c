@@ -1,28 +1,21 @@
 #include "token.h"
 
-#include "memory/memory.h"
 #include "platform/platform.h"
 #include "dynamic_array.h"
 #include "logging/logger.h"
+#include "string_utils.h"
 #include "ui/hsml/conditional.h"
-#include <ctype.h>
+
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
+#include <ctype.h>
 
-static void remove_trailing_space(dynamic_array* buffer)
-{
-    while (true)
-    {
-        char top = *(char*)&buffer->buffer[dynamic_array_size(buffer) - 1];
-        if (top != ' ')
-            break;
-        dynamic_array_pop(buffer, 1);
-    }
-}
+#include "defines.h"
+#include "ui/hsml/placeholder.h"
+#include "ui/ui.h"
 
 // Fetching:
-static void hsml_fetch_text(file_descriptor descriptor, dynamic_array* buffer, char delimiter, bool ignoreSpace, bool allLower)
+static void hsml_fetch_text(ui_state* state, file_descriptor descriptor, dynamic_array* buffer, char delimiter, bool ignoreSpace, bool allLower)
 {
     dynamic_array_init(buffer, 32, sizeof(char));
 
@@ -33,6 +26,13 @@ static void hsml_fetch_text(file_descriptor descriptor, dynamic_array* buffer, c
         {
             remove_trailing_space(buffer);
             break;
+        }
+
+        if (next == HSML_TOKEN_PLACEHOLDER)
+        {
+            u8 placeholderValue = (u8)hsml_fetch_placeholder_value(state, descriptor);
+            number_to_buffer(placeholderValue, buffer);
+            continue;
         }
 
         if (delimiter && next == delimiter)
@@ -50,13 +50,11 @@ static void hsml_fetch_text(file_descriptor descriptor, dynamic_array* buffer, c
         dynamic_array_push(buffer, &next, 1);
     }
 
-    
-
     char null = '\0';
     dynamic_array_push(buffer, &null, 1);
 }
 
-static u32 hsml_fetch_number(file_descriptor descriptor)
+static u32 hsml_fetch_number(ui_state* state, file_descriptor descriptor)
 {
     dynamic_array buffer = { 0 };
     dynamic_array_init(&buffer, 16, sizeof(char));
@@ -66,6 +64,13 @@ static u32 hsml_fetch_number(file_descriptor descriptor)
         char next;
         if (!platform_read_file(descriptor, &next, 1))
             return HSML_TOKEN_INVALID;
+
+        if (next == HSML_TOKEN_PLACEHOLDER)
+        {
+            u32 value = hsml_fetch_placeholder_value(state, descriptor);
+            dynamic_array_destroy(&buffer);
+            return value;
+        }
 
         if (next == ' ')
             continue;
@@ -135,6 +140,7 @@ static hsml_token_color_item s_colorLookupTable[] =
     { "nfaint", HSML_COLOR_NOT_FAINT },
     { "nf", HSML_COLOR_NOT_FAINT },
 };
+
 static hsml_color_token_type hsml_parse_color(dynamic_array* text)
 {
     hsml_color_token_type color = HSML_COLOR_INVALID;
@@ -188,9 +194,9 @@ static void hsml_fetch_colors(file_descriptor descriptor, dynamic_array* colors)
     dynamic_array_destroy(&text);
 }
 
-static bool hsml_fetch_condition(file_descriptor descriptor, memory_pool* pool)
+static bool hsml_fetch_condition(ui_state* state, file_descriptor descriptor)
 {
-    return hsml_get_conditional_result(descriptor, pool);
+    return hsml_get_conditional_result(state, descriptor);
 }
 
 // Token lookup:
@@ -232,10 +238,10 @@ static hsml_token_lookup_item s_tokenLookupTable[] =
     { "bg", HSML_TOKEN_BG },
 };
 
-static hsml_token_type hsml_get_token_type(file_descriptor descriptor)
+static hsml_token_type hsml_get_token_type(ui_state* state, file_descriptor descriptor)
 {
     dynamic_array buffer = { 0 };
-    hsml_fetch_text(descriptor, &buffer, HSML_TOKEN_DELIMITER, false, true);
+    hsml_fetch_text(state, descriptor, &buffer, HSML_TOKEN_DELIMITER, false, true);
 
     if (!buffer.current)
         return HSML_TOKEN_INVALID;
@@ -251,7 +257,7 @@ static hsml_token_type hsml_get_token_type(file_descriptor descriptor)
     return type;
 }
 
-static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descriptor, memory_pool* pool)
+static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_descriptor descriptor)
 {
     hsml_token token = { 0 };
     token.type = type;
@@ -261,7 +267,7 @@ static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descri
         // conditionals:
         case HSML_TOKEN_IF:
         {
-            u32 condition = (u32)hsml_fetch_condition(descriptor, pool);
+            u32 condition = (u32)hsml_fetch_condition(state, descriptor);
             dynamic_array_init(&token.value, 1, sizeof(u32));
             dynamic_array_push(&token.value, &condition, 1);
         } break;
@@ -283,11 +289,11 @@ static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descri
 
         // requires text argument
         case HSML_TOKEN_TEXT:
-            hsml_fetch_text(descriptor, &token.value, HSML_TOKEN_SYMBOL, false, false);
+            hsml_fetch_text(state, descriptor, &token.value, HSML_TOKEN_SYMBOL, false, false);
             break;
 
         case HSML_TOKEN_INCLUDE:
-            hsml_fetch_text(descriptor, &token.value, HSML_TOKEN_DELIMITER, true, false);
+            hsml_fetch_text(state, descriptor, &token.value, HSML_TOKEN_DELIMITER, true, false);
             break;
     
         // Requires numerical parameter:
@@ -306,7 +312,7 @@ static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descri
 
         case HSML_TOKEN_BG:
         {
-            u32 number = hsml_fetch_number(descriptor);
+            u32 number = hsml_fetch_number(state, descriptor);
             
             dynamic_array_init(&token.value, 1, sizeof(u32));
             dynamic_array_push(&token.value, &number, 1);
@@ -315,7 +321,7 @@ static hsml_token hsml_create_token(hsml_token_type type, file_descriptor descri
         // requires multiple arguments:
         case HSML_TOKEN_HLINE:
         {
-            u32 yOffset = hsml_fetch_number(descriptor);
+            u32 yOffset = hsml_fetch_number(state, descriptor);
             u32 character = (u32)hsml_fetch_character(descriptor);
             
             dynamic_array_init(&token.value, 2, sizeof(u32));
@@ -375,7 +381,7 @@ hsml_token_argument hsml_get_argument_type(hsml_token_type type)
     return HSML_TOKEN_ARG_INVALID;
 }
 
-void hsml_tokenize(const char* filepath, dynamic_array* tokens, memory_pool* pool)
+void hsml_tokenize(ui_state* state, const char* filepath, dynamic_array* tokens)
 {
     file_descriptor descriptor = platform_open_file(filepath, SCA_FILE_READ);
     if (descriptor == invalid_file_descriptor)
@@ -402,7 +408,7 @@ void hsml_tokenize(const char* filepath, dynamic_array* tokens, memory_pool* poo
                 }
 
                 platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
-                hsml_token token = hsml_create_token(HSML_TOKEN_TEXT, descriptor, pool);
+                hsml_token token = hsml_create_token(state, HSML_TOKEN_TEXT, descriptor);
                 dynamic_array_push(tokens, &token, 1);
                 
                 mode = HSML_MODE_NORMAL;
@@ -419,11 +425,11 @@ void hsml_tokenize(const char* filepath, dynamic_array* tokens, memory_pool* poo
 
                 else if (symbol == HSML_TOKEN_SYMBOL)
                 {
-                    hsml_token_type type = hsml_get_token_type(descriptor);
+                    hsml_token_type type = hsml_get_token_type(state, descriptor);
                     if (type == HSML_TOKEN_INVALID)
                         log_critical_s("Invalid HSML: invalid token type tokenized.", 44);
 
-                    hsml_token token = hsml_create_token(type, descriptor, pool);
+                    hsml_token token = hsml_create_token(state, type, descriptor);
                     dynamic_array_push(tokens, &token, 1);
                 }
 

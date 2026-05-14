@@ -20,6 +20,7 @@ sources = files(
     'src/ui/hsml/hsml.c',
     'src/ui/hsml/token.c',
     'src/ui/hsml/conditional.c',
+    'src/ui/hsml/placeholder.c',
 )
 
 # Dependencies:

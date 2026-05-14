@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "platform/platform.h"
 
@@ -30,6 +31,23 @@ bool platform_read_file(file_descriptor fileDescriptor, void* buffer, u32 length
 
     u32 count = read(fileDescriptor, buffer, length);
     return count == length;
+}
+
+u32 platform_read_file_number(file_descriptor fileDescriptor, void* buffer, u32 length)
+{
+    u32 value;
+    while(true)
+    {   
+        char next;
+        if (!platform_read_file(fileDescriptor, &next, 1) || !isdigit(next))
+        {
+            platform_file_seek(fileDescriptor, SEEK_MODE_CURRENT, -1);
+            break;
+        }
+
+        value = (value * 10) + (next - '0');
+    }
+    return value;
 }
 
 void platform_write_file(file_descriptor fileDescriptor, void* buffer, u32 length)

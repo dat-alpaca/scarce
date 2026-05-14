@@ -1,9 +1,6 @@
 #pragma once
-#include "dynamic_array.h"
-#include "logging/logger.h"
-#include "memory/memory.h"
 #include "platform/platform.h"
-#include <ctype.h>
+#include "ui/ui.h"
 
 typedef enum : u8
 {
@@ -30,4 +27,4 @@ typedef struct
     u32 value;
 } hsml_conditional;
 
-bool hsml_get_conditional_result(file_descriptor descriptor, memory_pool* pool);
+bool hsml_get_conditional_result(ui_state* state, file_descriptor descriptor);
