@@ -65,6 +65,17 @@
     \feed;
 \endif;
 
-
 \space; 2;
+
+# It's also possible to use include statements:
 \include; body.hsml;
+
+# Constants can also be used:
+# %w -  width of the window in grid units
+# %h - height of the window in grid units
+
+# %overflow - flag that turns on if there's text overflowing in the y direction
+# %mouseX, %mouseY
+
+# %x, %y - the cursor's x and y position
+# %prevX, %prevY - the x and y positions before the current element's draw call
