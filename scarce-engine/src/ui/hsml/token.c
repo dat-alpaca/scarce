@@ -204,6 +204,7 @@ static hsml_token_lookup_item s_tokenLookupTable[] =
 {
     { "include", HSML_TOKEN_INCLUDE },
     { "button", HSML_TOKEN_BUTTON },
+    { "textbox", HSML_TOKEN_TEXTBOX },
 
     { "if", HSML_TOKEN_IF },
     { "endif", HSML_TOKEN_END_IF },
@@ -320,18 +321,28 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
         } break;
 
         // requires multiple arguments:
+        case HSML_TOKEN_TEXTBOX:
+        {
+            u8 baseAddress = hsml_fetch_number(state, descriptor);
+            u8 index = hsml_fetch_number(state, descriptor);
+            
+            dynamic_array_init(&token.value, 2, sizeof(u8));
+            dynamic_array_push(&token.value, &baseAddress, 1);
+            dynamic_array_push(&token.value, &index, 1);
+        } break;
+
         case HSML_TOKEN_BUTTON:
         {
-            u8 baseAddressIndex = hsml_fetch_number(state, descriptor);
-            u8 buttonAddress = hsml_fetch_number(state, descriptor);
+            u8 baseAddress = hsml_fetch_number(state, descriptor);
+            u8 index = hsml_fetch_number(state, descriptor);
             
             dynamic_array buffer;
             dynamic_array_init(&buffer, 16, sizeof(char));
             hsml_fetch_text(state, descriptor, &buffer, HSML_TOKEN_DELIMITER, true, false);
             
             dynamic_array_init(&token.value, 2 + buffer.current, sizeof(u8));
-            dynamic_array_push(&token.value, &baseAddressIndex, 1);
-            dynamic_array_push(&token.value, &buttonAddress, 1);
+            dynamic_array_push(&token.value, &baseAddress, 1);
+            dynamic_array_push(&token.value, &index, 1);
             dynamic_array_push(&token.value, buffer.buffer, buffer.current);
 
             dynamic_array_destroy(&buffer);
@@ -389,6 +400,7 @@ hsml_token_argument hsml_get_argument_type(hsml_token_type type)
         case HSML_TOKEN_BG:
             return HSML_TOKEN_ARG_NUMERIC;
 
+        case HSML_TOKEN_TEXTBOX:
         case HSML_TOKEN_BUTTON:
         case HSML_TOKEN_HLINE:
             return HSML_TOKEN_ARG_MULTIPLE;

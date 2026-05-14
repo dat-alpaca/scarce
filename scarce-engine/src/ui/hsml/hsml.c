@@ -5,6 +5,7 @@
 
 #include "memory/memory.h"
 #include "ui/button.h"
+#include "ui/text_box.h"
 #include "ui/ui.h"
 #include "token.h"
 #include "defines.h"
@@ -219,6 +220,17 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
             ui_button* button = &buttons[buttonIndex];
             
             ui_button_render(button, state, contents);
+        } break;
+
+        case HSML_TOKEN_TEXTBOX:
+        {
+            u8 baseAddressIndex = *(u8*)(token->value.buffer);
+            u8 textboxIndex = *(u8*)(token->value.buffer + sizeof(u8));
+
+            ui_text_box* textboxes = (ui_text_box*)&pool[baseAddressIndex];
+            ui_text_box* textbox = &textboxes[textboxIndex];
+            
+            ui_text_box_render(textbox, state);
         } break;
     
         default:

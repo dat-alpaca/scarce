@@ -26,15 +26,15 @@ void on_load_view(engine* e, memory_pool* pool)
     e->ui_button_init(button, quit_button_callback, &color, &hovered, 4);
 
     // Textbox:
-    ui_text_box* textbox = (ui_text_box*)&pool[500];
-    e->ui_text_box_init(textbox, &pool[516], &color, &hovered, 6);
+    ui_text_box* textbox = (ui_text_box*)&pool[100];
+    e->ui_text_box_init(textbox, &pool[116], &color, &hovered, 6);
 }
 
 static void on_update(ui_state* state, engine* e)
 {
     memory_pool* pool = state->pool;
 
-    ui_text_box* textbox = (ui_text_box*)&pool[500];
+    ui_text_box* textbox = (ui_text_box*)&pool[100];
     ui_button* button = (ui_button*)&pool[200];
 
     e->ui_text_box_update(textbox, state, e);
@@ -44,7 +44,7 @@ static void on_update(ui_state* state, engine* e)
 static void on_render(ui_state* state, engine* e)
 {
     memory_pool* pool = state->pool;
-    ui_text_box* textbox = (ui_text_box*)&pool[500];
+    ui_text_box* textbox = (ui_text_box*)&pool[100];
 
     e->ui_clear(e);
 
@@ -63,13 +63,11 @@ static void on_render(ui_state* state, engine* e)
     
     // Main HSML:
     {
-        const u8 stackCount = 5;
+        const u8 stackCount = 3;
         u8* value = e->scarce_push(pool, sizeof(u8) * stackCount);
-        value[0] = 10;
-        value[1] = 20;
-        value[2] = 30;
-        value[3] = 200;
-        value[4] = stackCount - 1;
+        value[0] = 100;
+        value[1] = 200;
+        value[2] = stackCount - 1;
 
         e->ui_hsml(state, "assets/view.hsml");
         e->ui_end(state);
@@ -77,12 +75,11 @@ static void on_render(ui_state* state, engine* e)
         e->scarce_pop(pool, sizeof(u8) * stackCount);
     }
 
-    // Textbox not yet implemented in HSML:
-    e->ui_text_box_render(textbox, state);
-    e->ui_feed(state);
-    e->ui_space(state, 2);
     if (hovered)
     {
+        e->ui_space(state, 2);
+        e->ui_feed(state);
+
         state->color.colorFaint = true;
         e->ui_set_color(state, &state->color);
         e->ui_text(state, "Press the textbox & type", 25);
