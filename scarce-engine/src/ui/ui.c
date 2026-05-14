@@ -56,15 +56,8 @@ static u32 render_get_center(u32 screenWidth, u32 length)
     return screenWidth / 2 - length / 2;
 }
 
-void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer)
+static void ui_reset(ui_state* state)
 {
-    assert(state);
-    assert(pool);
-    assert(renderer);
-
-    state->pool = pool;
-    state->renderer = renderer;
-
     state->alignment = UI_ALIGN_CENTER;
     state->positioning = UI_POS_NONE;
 
@@ -82,6 +75,20 @@ void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer)
     state->y = 0;
     state->prevX = 0;
     state->prevY = 0;
+    state->overflow = false;
+    state->sameLine = false;
+}
+
+void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer)
+{
+    assert(state);
+    assert(pool);
+    assert(renderer);
+
+    state->pool = pool;
+    state->renderer = renderer;
+
+    ui_reset(state);
 }
 ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer)
 {
@@ -92,24 +99,7 @@ ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer)
     state->pool = pool;
     state->renderer = renderer;
 
-    state->alignment = UI_ALIGN_CENTER;
-    state->positioning = UI_POS_NONE;
-
-    state->color.color = SY_COLOR_NONE;
-    state->color.colorIntense = false;
-    state->color.colorFaint = false;
-
-    state->color.background = SY_COLOR_NONE;
-    state->color.backgroundIntense = false;
-    state->color.backgroundFaint = false;
-
-    state->color.renderBackground = false;
-
-    state->x = 0;
-    state->y = 0;
-    state->prevX = 0;
-    state->prevY = 0;
-
+    ui_reset(state);
     return state;
 }
 void ui_end(ui_state* state)
@@ -124,6 +114,7 @@ void ui_clear(engine* e)
 void ui_text(ui_state* state, const char* content, u32 length)
 {
     memory_pool* pool = state->pool;
+    state->overflow = false;
 
     float* color = (float*)scarce_push(pool, sizeof(float) * 3);
     float* background = (float*)scarce_push(pool, sizeof(float) * 3);
@@ -177,7 +168,10 @@ void ui_text(ui_state* state, const char* content, u32 length)
         }
 
         if (state->y >= (u16)text_renderer_height(state->renderer))
+        {
+            state->overflow = true;
             break;
+        }
 
         text_renderer_set_character_letter(state->renderer, state->x, state->y, content[i]);
         text_renderer_set_character_color(state->renderer, state->x, state->y, color[0], color[1], color[2]);

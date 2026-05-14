@@ -63,7 +63,8 @@ typedef struct
     text_position positioning;
 
     text_color color;
-    bool sameLine; 
+    u8 sameLine : 1;
+    u8 overflow : 1; 
 } ui_state;
 
 void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer);
