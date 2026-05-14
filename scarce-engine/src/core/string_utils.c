@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "string_utils.h"
+#include "dynamic_array.h"
 
 bool is_string_same(const char* lhs, const char* rhs, u32 size)
 {
@@ -52,6 +53,13 @@ char* strdup(const char* string)
 
 void number_to_buffer(u8 number, dynamic_array* buffer)
 {
+    if (number == 0)
+    {
+        char zero = '0';   
+        dynamic_array_push(buffer, &zero, 1);
+        return;
+    }
+
     char temp[SCA_MAX_U8_LENGTH];
     u8 length = number_to_array(number, temp);
 

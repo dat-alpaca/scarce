@@ -82,11 +82,12 @@ static void reallocate_buffers(text_renderer* renderer)
     zero_buffer(renderer);
 }
 
-void text_renderer_init(text_renderer* renderer, font* font, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 characterSize)
+void text_renderer_init(text_renderer* renderer, window_handle* window, font* font, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 characterSize)
 {
     renderer->loadedFont = font;
     renderer->charactersSSBO = (gl_handle)-1;
     renderer->characters.buffer = NULL;
+    renderer->window = window;
 
     // Buffers:
     glm_mat4_identity(renderer->world.model);

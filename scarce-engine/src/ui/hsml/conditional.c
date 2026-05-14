@@ -1,7 +1,6 @@
 #include "conditional.h"
 #include "dynamic_array.h"
 #include "logging/logger.h"
-#include "memory/memory.h"
 #include "platform/platform.h"
 #include "ui/hsml/defines.h"
 #include "ui/hsml/placeholder.h"
@@ -94,8 +93,18 @@ static dynamic_array hsml_get_conditional_array(ui_state* state, file_descriptor
 
         if (isdigit(current))
         {
-            u32 value = current;
-            platform_read_file_number(descriptor, &current, 1);
+            platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+            u32 value = 0;
+            while(true)
+            {   
+                if (!platform_read_file(descriptor, &current, 1) || !isdigit(current))
+                {
+                    platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+                    break;
+                }
+
+                value = (value * 10) + (current - '0');
+            }
 
             hsml_conditional conditional = { .value = value, .type = HSML_COND_NUMBER };
             dynamic_array_push(&conditionalArray, &conditional, 1);

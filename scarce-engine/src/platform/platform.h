@@ -31,7 +31,6 @@ typedef u32 file_descriptor;
 
 file_descriptor platform_open_file(const char* filepath, file_mode modeFlags);
 bool platform_read_file(file_descriptor fileDescriptor, void* buffer, u32 length);
-u32 platform_read_file_number(file_descriptor fileDescriptor, void* buffer, u32 length);
 void platform_write_file(file_descriptor fileDescriptor, void* buffer, u32 length);
 bool platform_is_file_open(file_descriptor fileDescriptor);
 void platform_file_seek(file_descriptor fileDescriptor, seek_mode seekMode, i32 offset);

@@ -25,6 +25,8 @@ typedef struct
 typedef struct
 {
     font* loadedFont;
+    window_handle* window;
+
     fixed_array characters;
     
     text_renderer_world world;
@@ -50,7 +52,7 @@ typedef struct
     const char* fragmentFilepath;
 } shader_filepaths;
 
-void text_renderer_init(text_renderer* renderer, font* font, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 characterSize);
+void text_renderer_init(text_renderer* renderer, window_handle* window, font* font, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 characterSize);
 void text_renderer_on_resize(text_renderer* renderer, i32 windowWidth, i32 windowHeight);
 void text_renderer_set_texture(text_renderer* renderer, gl_handle texture);
 void text_renderer_set_world(text_renderer* renderer, mat4 projection);

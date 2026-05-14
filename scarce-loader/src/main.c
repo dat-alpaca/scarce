@@ -242,7 +242,7 @@ int main()
     u32 characterSize = 16;
 
     shader_filepaths shaders = { .vertexFilepath = config->vertexFilepath, .fragmentFilepath = config->fragmentFilepath };
-    text_renderer_init(&context.renderer, &monoFont, &shaders, config->minWindowWidth, config->minWindowHeight, characterSize);
+    text_renderer_init(&context.renderer, gEngine.window, &monoFont, &shaders, config->minWindowWidth, config->minWindowHeight, characterSize);
     text_renderer_set_texture(&context.renderer, fontTexture);
     gEngine.renderer = &context.renderer;
 

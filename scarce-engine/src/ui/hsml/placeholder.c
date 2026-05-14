@@ -5,6 +5,7 @@
 
 #include "defines.h"
 #include "platform/platform.h"
+#include "text_renderer.h"
 #include <ctype.h>
 
 typedef u32 (*placeholder_value_fetcher)(const ui_state* const state);
@@ -49,6 +50,19 @@ static u32 placeholder_prev_y_fetcher(const ui_state* const state)
     return state->prevY;
 }
 
+static u32 placeholder_mouse_x_fetcher(const ui_state* const state)
+{
+    u32 x, y;
+    text_renderer_get_mouse_grid_position(state->renderer->window, state->renderer, &x, &y);
+    return x;
+}
+static u32 placeholder_mouse_y_fetcher(const ui_state* const state)
+{
+    u32 x, y;
+    text_renderer_get_mouse_grid_position(state->renderer->window, state->renderer, &x, &y);
+    return y;
+}
+
 static placeholder_table_item gPlaceholderTable[] =
 {
     { "overflow", placeholder_overflow_fetcher },
@@ -62,6 +76,9 @@ static placeholder_table_item gPlaceholderTable[] =
     { "y", placeholder_y_fetcher },
     { "prevX", placeholder_prev_x_fetcher },
     { "prevY", placeholder_prev_y_fetcher },
+
+    { "mouseX", placeholder_mouse_x_fetcher },
+    { "mouseY", placeholder_mouse_y_fetcher },
 };
 
 u32 hsml_fetch_placeholder_value(ui_state* state, file_descriptor descriptor)

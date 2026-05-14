@@ -2,14 +2,11 @@
 
 #include "dynamic_array.h"
 #include "logging/logger.h"
-#include "memory/memory.h"
 
-#include "string_utils.h"
 #include "ui/ui.h"
 #include "token.h"
 #include "defines.h"
 
-#include <ctype.h>
 #include <string.h>
 
 #define SCA_HSML_MAX_TEXT_VALUE_LENGTH 3
