@@ -51,7 +51,7 @@ char* strdup(const char* string)
     return destination;
 }
 
-void number_to_buffer(u8 number, dynamic_array* buffer)
+void number_to_buffer(u64 number, dynamic_array* buffer)
 {
     if (number == 0)
     {
@@ -60,13 +60,13 @@ void number_to_buffer(u8 number, dynamic_array* buffer)
         return;
     }
 
-    char temp[SCA_MAX_U8_LENGTH];
-    u8 length = number_to_array(number, temp);
+    char temp[SCA_MAX_U64_LENGTH];
+    u64 length = number_to_array(number, temp);
 
     for (i8 i = length - 1; i >=0; --i)
         dynamic_array_push(buffer, &temp[i], 1);
 }
-u8 number_to_array(u8 number, char array[SCA_MAX_U8_LENGTH])
+u64 number_to_array(u64 number, char array[SCA_MAX_U64_LENGTH])
 {
     u32 length = 0;
     while (number > 0)

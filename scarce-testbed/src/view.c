@@ -63,16 +63,34 @@ static void on_render(ui_state* state, engine* e)
     
     // Main HSML:
     {
-        const u8 stackCount = 3;
-        u8* value = e->scarce_push(pool, sizeof(u8) * stackCount);
-        value[0] = 100;
-        value[1] = 200;
-        value[2] = stackCount - 1;
+        u8* value = e->scarce_push(pool, sizeof(u8) * 2);
+        value[0] = 100; // %0
+        value[1] = 200; // %1
+
+        u64* data = e->scarce_push(pool, sizeof(u64));
+        *data = 1203111; //%-2
+
+        {
+            // string
+            u8* charCount = e->scarce_push(pool, sizeof(u8));
+            *charCount = 5; //%^10
+
+            char* string = e->scarce_push(pool, sizeof(char) * *charCount);
+            string[0] = 'p';
+            string[1] = 'e';
+            string[2] = 'l';
+            string[3] = 'l';
+            string[4] = 'o';
+        }
+        
+        u8* count = e->scarce_push(pool, sizeof(u8));
+        *count = 2 * sizeof(u8) + sizeof(u64) + sizeof(u8) + 5 * sizeof(char);
 
         e->ui_hsml(state, "assets/view.hsml");
         e->ui_end(state);
 
-        e->scarce_pop(pool, sizeof(u8) * stackCount);
+        e->scarce_pop(pool, 2 * sizeof(u8) + sizeof(u64) + sizeof(u8) + 5 * sizeof(char));
+        e->scarce_pop(pool, sizeof(u8) * 1);
     }
 
     if (hovered)

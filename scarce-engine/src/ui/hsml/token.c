@@ -30,8 +30,24 @@ static void hsml_fetch_text(ui_state* state, file_descriptor descriptor, dynamic
 
         if (next == HSML_TOKEN_PLACEHOLDER)
         {
-            u8 placeholderValue = (u8)hsml_fetch_placeholder_value(state, descriptor);
-            number_to_buffer(placeholderValue, buffer);
+            hsml_token placeholder = hsml_fetch_placeholder_value(state, descriptor);
+            
+            if (placeholder.type == HSML_TOKEN_TEXT)
+            {
+                char* data = (char*)placeholder.value.buffer;
+                for (u32 i = 0; i < placeholder.value.current; ++i)
+                {
+                    char current = data[i];
+                    dynamic_array_push(buffer, &current, 1);
+                }
+            }
+            else
+            {
+                u64 value = hsml_fetch_number_from_placeholder(&placeholder);
+                number_to_buffer(value, buffer);
+            }
+
+            dynamic_array_destroy(&placeholder.value);
             continue;
         }
 
@@ -67,7 +83,13 @@ static u32 hsml_fetch_number(ui_state* state, file_descriptor descriptor)
 
         if (next == HSML_TOKEN_PLACEHOLDER)
         {
-            u32 value = hsml_fetch_placeholder_value(state, descriptor);
+            hsml_token placeholder = hsml_fetch_placeholder_value(state, descriptor);
+            if (placeholder.type == HSML_TOKEN_TEXT)
+                log_critical_s("Invalid HSML: expected value", 29);
+            
+            u64 value = hsml_fetch_number_from_placeholder(&placeholder);
+            
+            dynamic_array_destroy(&placeholder.value);
             dynamic_array_destroy(&buffer);
             return value;
         }

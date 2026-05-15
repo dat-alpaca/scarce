@@ -6,6 +6,7 @@
 #include "defines.h"
 #include "platform/platform.h"
 #include "text_renderer.h"
+#include "ui/hsml/token.h"
 #include <ctype.h>
 
 typedef u32 (*placeholder_value_fetcher)(const ui_state* const state);
@@ -81,8 +82,9 @@ static placeholder_table_item gPlaceholderTable[] =
     { "mouseY", placeholder_mouse_y_fetcher },
 };
 
-u32 hsml_fetch_placeholder_value(ui_state* state, file_descriptor descriptor)
+hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descriptor)
 {
+    hsml_token result;
     memory_pool* pool = state->pool;
     
     u8 userPlaceholderAmount = pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - 1];
@@ -91,34 +93,60 @@ u32 hsml_fetch_placeholder_value(ui_state* state, file_descriptor descriptor)
     dynamic_array buffer = { 0 };
     dynamic_array_init(&buffer, 1, sizeof(char));
 
+    hsml_placeholder_read_mode mode = HSML_PLACEHOLDER_READ_U8;
     bool valueFound = false;
     while (true)
     {
-        char next;
-        if (!platform_read_file(descriptor, &next, 1) || next == '\n' || next == HSML_TOKEN_DELIMITER || isspace(next))
+        char current;
+        if (!platform_read_file(descriptor, &current, 1) || current == '\n' || current == HSML_TOKEN_DELIMITER || isspace(current))
         {
-            if (next != HSML_TOKEN_DELIMITER)
+            if (current != HSML_TOKEN_DELIMITER)
                 platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);   
-            
             break;
         }
 
+        if (current == HSML_TOKEN_PLACEHOLDER_U16)
+        {
+            mode = HSML_PLACEHOLDER_READ_U16;
+            continue;
+        }
+        if (current == HSML_TOKEN_PLACEHOLDER_U32)
+        {
+            mode = HSML_PLACEHOLDER_READ_U32;
+            continue;
+        }
+        if (current == HSML_TOKEN_PLACEHOLDER_U64)
+        {
+            mode = HSML_PLACEHOLDER_READ_U64;
+            continue;
+        }
+        if (current == HSML_TOKEN_PLACEHOLDER_STR)
+        {
+            mode = HSML_PLACEHOLDER_READ_STRING;
+            continue;
+        }
+
         valueFound = true;
-        dynamic_array_push(&buffer, &next, 1);
+        dynamic_array_push(&buffer, &current, 1);
     }
 
     if (!valueFound)
         log_critical_s("Invalid HSML file: invalid placeholder", 39);
 
-    u32 placeholderValue = invalid_handle;
+    u64 placeholderValue = invalid_handle;
     u32 itemCount = sizeof(gPlaceholderTable) / sizeof(placeholder_table_item);
     for (u32 i = 0; i < itemCount; ++i)
     {
         placeholder_table_item* current = &gPlaceholderTable[i];
         if (is_string_same(current->placeholderName, buffer.buffer, buffer.current))
         {
+            result.type = HSML_TOKEN_U64;
             placeholderValue = current->fetcher(state);
             placeholderValueFound = true;
+
+            dynamic_array_init(&result.value, 1, sizeof(u64));
+            dynamic_array_push(&result.value, &placeholderValue, 1);
+            
             break;
         }
     }
@@ -136,8 +164,61 @@ u32 hsml_fetch_placeholder_value(ui_state* state, file_descriptor descriptor)
             index = (index * 10) + (symbol - '0');
         }
 
-        placeholderValue = (u32)(pool[SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - userPlaceholderAmount + index - 1]);
-        placeholderValueFound = true;
+        u64 address = SCA_STACK_ADDRESS + pool[SCA_STACK_SIZE_ADDRESS] - userPlaceholderAmount + index - 1;
+        switch(mode)
+        {
+            case HSML_PLACEHOLDER_READ_U8:
+            {
+                placeholderValue = pool[address];
+                dynamic_array_init(&result.value, 1, sizeof(u8));
+                dynamic_array_push(&result.value, &placeholderValue, 1);
+                
+                result.type = HSML_TOKEN_U8; 
+                placeholderValueFound = true;
+            } break;
+            case HSML_PLACEHOLDER_READ_U16:
+            {
+                placeholderValue = *(u16*)(&pool[address]);
+                dynamic_array_init(&result.value, 1, sizeof(u16));
+                dynamic_array_push(&result.value, &placeholderValue, 1);
+                
+                result.type = HSML_TOKEN_U16; 
+                placeholderValueFound = true;
+            } break;
+            case HSML_PLACEHOLDER_READ_U32:
+            {
+                result.type = HSML_TOKEN_U32;
+                placeholderValueFound = true;
+
+                placeholderValue = *(u32*)(&pool[address]);
+                dynamic_array_init(&result.value, 1, sizeof(u32));
+                dynamic_array_push(&result.value, &placeholderValue, 1);
+            } break;
+            case HSML_PLACEHOLDER_READ_U64:
+            {
+                result.type = HSML_TOKEN_U64;                
+                placeholderValueFound = true;
+
+                placeholderValue = *(u64*)(&pool[address]);
+                dynamic_array_init(&result.value, 1, sizeof(u64));
+                dynamic_array_push(&result.value, &placeholderValue, 1);
+            } break;
+            case HSML_PLACEHOLDER_READ_STRING:
+            {
+                result.type = HSML_TOKEN_TEXT;
+                placeholderValueFound = true;
+
+                char* data = (char*)(&pool[address]);
+                u8 length = data[0];
+                
+                dynamic_array_init(&result.value, length, sizeof(char));
+                for (u8 i = 1; i < length + 1; ++i)
+                    dynamic_array_push(&result.value, &data[i], 1);
+            } break;
+            
+            default:
+                break;
+        }
 
         platform_file_seek(descriptor, SEEK_MODE_CURRENT, -(buffer.current - validDigits));
     }
@@ -146,5 +227,46 @@ u32 hsml_fetch_placeholder_value(ui_state* state, file_descriptor descriptor)
         log_critical_s("Invalid HSML file: invalid placeholder", 39);
 
     dynamic_array_destroy(&buffer);
-    return placeholderValue;
+    return result;
+}
+
+u64 hsml_fetch_number_from_placeholder(hsml_token* token)
+{
+    void* data = token->value.buffer;
+
+    switch(token->type)
+    {
+        case HSML_TOKEN_U8:
+        {
+            u8 number;
+            memcpy(&number, data, sizeof(u8));
+            return (u64)number;
+        }
+
+        case HSML_TOKEN_U16:
+        {
+            u16 number;
+            memcpy(&number, data, sizeof(u16));
+            return (u64)number;
+        }
+    
+        case HSML_TOKEN_U32:
+        {
+            u32 number;
+            memcpy(&number, data, sizeof(u32));
+            return (u64)number;
+        }
+        
+        case HSML_TOKEN_U64:
+        {
+            u64 number;
+            memcpy(&number, data, sizeof(u64));
+            return number;
+        }
+        
+        default:
+            log_critical_s("Invalid HSML: invalid placeholder type", 39);
+    }
+    
+    return 0;
 }

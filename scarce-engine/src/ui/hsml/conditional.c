@@ -2,8 +2,10 @@
 #include "dynamic_array.h"
 #include "logging/logger.h"
 #include "platform/platform.h"
+#include "string_utils.h"
 #include "ui/hsml/defines.h"
 #include "ui/hsml/placeholder.h"
+#include "ui/hsml/token.h"
 #include <ctype.h>
 
 static hsml_conditional_type hsml_parse_conditional_symbol(file_descriptor descriptor, char current, char next)
@@ -113,8 +115,15 @@ static dynamic_array hsml_get_conditional_array(ui_state* state, file_descriptor
 
         if (current == HSML_TOKEN_PLACEHOLDER)
         {
-            u8 placeholderValue = (u8)hsml_fetch_placeholder_value(state, descriptor);
-            hsml_conditional conditional = { .value = placeholderValue, .type = HSML_COND_NUMBER };
+            hsml_token placeholder = hsml_fetch_placeholder_value(state, descriptor);
+            if (placeholder.type == HSML_TOKEN_TEXT)
+                log_critical_s("Invalid HSML: expected value", 29);
+
+            
+            u64 value = hsml_fetch_number_from_placeholder(&placeholder);
+            dynamic_array_destroy(&placeholder.value);
+
+            hsml_conditional conditional = { .value = value, .type = HSML_COND_NUMBER };
             dynamic_array_push(&conditionalArray, &conditional, 1);
             continue;
         }
