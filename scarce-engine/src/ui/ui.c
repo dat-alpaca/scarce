@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "core/memory/memory.h"
+#include <ctype.h>
 #include <stdbool.h>
 #include "engine.h"
 #include "fixed_array.h"
@@ -8,7 +9,7 @@
 #include "string_utils.h"
 #include "text_renderer.h"
 
-#include "scarce.h"
+#include "ui/container.h"
 
 static float* get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint)
 {
@@ -52,15 +53,12 @@ static float* get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint
     return selected;
 }
 
-static u32 render_get_center(u32 screenWidth, u32 length)
-{
-    return screenWidth / 2 - length / 2;
-}
-
 static void ui_reset(ui_state* state)
 {
-    state->alignment = UI_ALIGN_CENTER;
-    state->positioning = UI_POS_NONE;
+    state->container = malloc(sizeof(container));
+    state->defaultContainer = true;
+    
+    container_init_default(state->container, state->renderer);
 
     state->color.color = SY_COLOR_NONE;
     state->color.colorIntense = false;
@@ -71,13 +69,6 @@ static void ui_reset(ui_state* state)
     state->color.backgroundFaint = false;
 
     state->color.renderBackground = false;
-
-    state->x = 0;
-    state->y = 0;
-    state->prevX = 0;
-    state->prevY = 0;
-    state->overflow = false;
-    state->sameLine = false;
 }
 
 void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer)
@@ -99,13 +90,21 @@ ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer)
     ui_state* state = scarce_push(pool, sizeof(ui_state));
     state->pool = pool;
     state->renderer = renderer;
+    state->stackState = true;
 
     ui_reset(state);
     return state;
 }
 void ui_end(ui_state* state)
 {
-    scarce_pop(state->pool, sizeof(ui_state));
+    if (state->stackState)
+        scarce_pop(state->pool, sizeof(ui_state));
+
+    if (state->defaultContainer)
+    {
+        free(state->container);
+        state->container = NULL;
+    }
 }
 void ui_clear(engine* e)
 {
@@ -114,93 +113,46 @@ void ui_clear(engine* e)
 
 void ui_text(ui_state* state, const char* content, u32 length)
 {
-    memory_pool* pool = state->pool;
-    state->overflow = false;
+    float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
+    float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
 
-    float* color = (float*)scarce_push(pool, sizeof(float) * 3);
-    float* background = (float*)scarce_push(pool, sizeof(float) * 3);
-    color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
-    background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
+    container* container = state->container;
     
-    switch (state->alignment)
+    container_determine_x_from_align(container, length);
+    for (u32 i = 0; i < length; ++i)
     {
-        case UI_ALIGN_CENTER:
-            state->x += render_get_center(text_renderer_width(state->renderer), length);
-        break;
+        u16* x = &container->x; 
+        u16* y = &container->y; 
 
-        case UI_ALIGN_LEFT:
+        if (content[i] == '\0')
             break;
 
-        case UI_ALIGN_RIGHT:
-            state->x = text_renderer_width(state->renderer) - state->x - length;
-            break;
-    }
-
-    switch (state->positioning)
-    {
-        case UI_POS_TOP:
-        case UI_POS_NONE:
-            break;
-        
-        case UI_POS_BOTTOM:
-            state->y = text_renderer_height(state->renderer) - 1 - state->y;
-            break;
-    }
-
-    state->prevX = state->x;
-    state->prevY = state->y;
-
-    for(u16 i = 0; i < length; ++i)
-    {
-        char symbol = content[i];
-        if (symbol == '\0')
-            break;
-
-        if (symbol == '\n')
+        if (content[i] == '\n')
         {
-            ++state->y;
+            container_space(state->container, 1);
             continue;
         }
 
-        if (state->x >= (u16)text_renderer_width(state->renderer))
-        {
-            state->x = state->prevX;
-            ++state->y;
-        }
+        container_handle_x_overflow(container, content);
 
-        if (state->prevX >= (u16)text_renderer_width(state->renderer))
-        {
-            state->xOverflow = true;
+        if (container_handle_y_overflow(container))
             break;
-        }
 
-        if (state->y >= (u16)text_renderer_height(state->renderer))
-        {
-            state->overflow = true;
-            break;
-        }
+        // Renders text
+        text_renderer_set_character_letter(state->renderer, *x, *y, content[i]);
+        text_renderer_set_character_color(state->renderer, *x, *y, color[0], color[1], color[2]);
+        text_renderer_set_character_background_color(state->renderer, *x, *y, background[0], background[1], background[2], state->color.renderBackground);
 
-        text_renderer_set_character_letter(state->renderer, state->x, state->y, content[i]);
-        text_renderer_set_character_color(state->renderer, state->x, state->y, color[0], color[1], color[2]);
-        
-        text_renderer_set_character_background_color
-        (
-            state->renderer, state->x, state->y, 
-            background[0], background[1], background[2], 
-            state->color.renderBackground
-        );
-    
-        state->x++;
+        (*x)++;
     }
-    
-    if(!state->sameLine)
-        state->y += 1;
 
-    scarce_pop(pool, sizeof(float) * 3);
-    scarce_pop(pool, sizeof(float) * 3);
+    if (!container->sameline)
+        container->y++;
 }
 void ui_number(ui_state* state, u32 number)
 {
+    return;
+    /*
     if (number == 0)
     {
         ui_text(state, "0", 1);
@@ -219,6 +171,7 @@ void ui_number(ui_state* state, u32 number)
     // Render:
     ui_text(state, numberBuffer.buffer, numberBuffer.current);
     fixed_array_destroy(&numberBuffer);
+    */
 }
 void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 length)
 {
@@ -253,14 +206,12 @@ void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 le
 
 void ui_set_align(ui_state* state, text_align align, u16 xOffset)
 {
-    state->alignment = align;
-    state->x = xOffset;
-    state->alignOffset = xOffset;
+    container_set_align(state->container, align, xOffset);
 }
 void ui_set_position(ui_state* state, text_position position, u16 yOffset)
 {
-    state->positioning = position;
-    state->y = yOffset;
+    //state->positioning = position;
+    //state->y = yOffset;
 }
 void ui_set_color(ui_state* state, text_color* color)
 {
@@ -269,22 +220,25 @@ void ui_set_color(ui_state* state, text_color* color)
 
 void ui_sameline(ui_state* state, bool sameLine)
 {
-    state->sameLine = sameLine;
+    // state->sameLine = sameLine;
 }
 void ui_feed(ui_state* state)
 {
-    state->x = state->alignOffset;
+    //state->x = state->alignOffset;
 }
 void ui_nudge(ui_state* state, u32 xOffset)
 {
-    state->x += xOffset;
+    //state->x += xOffset;
 }
 void ui_space(ui_state* state, u32 yOffset)
 {
-    state->y += yOffset;
+    container_space(state->container, yOffset);
 }
 void ui_hline(ui_state* state, u32 y, char lineChar)
 {
+    // TODO: reimplement
+    return;
+    /*
     memory_pool* pool = state->pool;
 
     float* color = (float*)scarce_push(pool, sizeof(float) * 3);
@@ -309,6 +263,7 @@ void ui_hline(ui_state* state, u32 y, char lineChar)
 
     scarce_pop(pool, sizeof(float) * 3);
     scarce_pop(pool, sizeof(float) * 3);
+    */
 }
 
 aabb ui_mouse_aabb(engine* e)

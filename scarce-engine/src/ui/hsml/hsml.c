@@ -53,7 +53,8 @@ static void hsml_parse_numeric_token(ui_state* state, hsml_token_type type, u32 
             break;
 
         case HSML_TOKEN_SAMELINE:
-            state->sameLine = (number > 0);
+            // TODO:
+            state->container->sameline = (number > 0);
             break;
         
         case HSML_TOKEN_ALIGN_CENTER:

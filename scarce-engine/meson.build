@@ -16,6 +16,7 @@ sources = files(
 
     'src/ui/ui.c',
     'src/ui/button.c',
+    'src/ui/container.c',
     'src/ui/text_box.c',
     'src/ui/hsml/hsml.c',
     'src/ui/hsml/token.c',

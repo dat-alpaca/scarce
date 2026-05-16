@@ -1,0 +1,106 @@
+\color; white faint;
+\hline; 0; -;
+
+\color; red nf;
+\top; 2;
+\center; 0;
+    \start;
+    Scarce Showcase
+    Nice
+    \end;
+
+\space; 3;
+
+# Mouse position:
+\color; purple;
+\sameline; 1;
+    \left; 1;
+        \start;
+            Mouse Coords: (
+        \end;
+
+    \color; default faint;
+        \start;
+        %mouseX , %mouseY
+        \end;
+
+    \color; purple nf;
+        \start; ) \end;
+\sameline; 0;
+
+\feed;
+\space; 2;
+
+# Window dimensions:
+\sameline; 1;
+    \left; 1;
+        \start;
+        Dimensions: (
+        \end;
+
+    \color; default faint;
+        \start;
+        %w , %h
+        \end;
+
+    \color; purple nf;
+        \start; 
+        ) 
+        \end;
+
+    # Conditional:
+    \if; %w > 30;
+        \color; red nf;
+        \start;
+        !
+        \end;
+    \endif;
+\sameline; 0;
+\feed;
+\space; 2;
+
+# Stack:
+\color; purple;
+\sameline; 1;
+    \left; 1;
+        \start;
+        Stack:
+        \end;
+
+    \color; white faint;
+    \nudge; 1;
+        \start;
+        %0 %1 %4
+        \end;
+\sameline; 0;
+\feed;
+\space; 2;
+
+\color; purple nf;
+\sameline; 1;
+    \start;
+    text:
+    \end;
+\nudge; 1;
+
+\textbox; %0; 0;
+\if; %4 == 1;
+    \feedline;
+    \color; white faint;
+
+    \start;
+    Press the textbox and start typing.
+    \end;
+\endif;
+
+# Buttons:
+\left; 1;
+\bottom; 1;
+    \button; %2; 0; lang;
+    
+\bottom; 1;
+\nudge; 1;
+    \button; %1; 0; quit;
+
+\feed;
+\space; 2;

@@ -3,6 +3,7 @@
 #include "core/memory/memory.h"
 #include "physics/aabb.h"
 #include "text_renderer.h"
+#include "ui/container.h"
 
 #define SCA_UI_MAX_NUMBER_LENGTH 10 // u32
 
@@ -21,21 +22,6 @@ enum : u8
     SY_COLOR_WHITE,
 } typedef symbol_color;
 
-// Text rendering:
-typedef enum : u8
-{
-    UI_ALIGN_LEFT = 0,
-    UI_ALIGN_CENTER,
-    UI_ALIGN_RIGHT,
-} text_align;
-
-typedef enum : u8
-{
-    UI_POS_NONE = 0,
-    UI_POS_TOP,
-    UI_POS_BOTTOM
-} text_position;
-
 typedef struct
 {
     symbol_color color : 3;
@@ -52,20 +38,11 @@ typedef struct
 {
     memory_pool* pool;
     text_renderer* renderer;
-
-    u16 x;
-    u16 y;
-    u16 prevX;
-    u16 prevY;
-    u16 alignOffset;
-    
-    text_align alignment;
-    text_position positioning;
-
+    container* container;
     text_color color;
-    u8 sameLine : 1;
-    u8 overflow : 1; 
-    u8 xOverflow : 1; 
+
+    u8 stackState : 1;
+    u8 defaultContainer : 1;
 } ui_state;
 
 void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer);

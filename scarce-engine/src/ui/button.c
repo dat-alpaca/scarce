@@ -22,11 +22,13 @@ void ui_button_render(ui_button* button, ui_state* state, const char* content)
     assert(button);
     assert(state);
     assert(content);
-    
+
+    // TODO:
+
     ui_set_color(state, button->isHovered ? &button->hoveredColor : &button->color);
     ui_text(state, content, button->width);
-    button->x = state->prevX;
-    button->y = state->prevY;
+    //button->x = state->prevX;
+    //button->y = state->prevY;
     button->isRendered = true;
 }
 
