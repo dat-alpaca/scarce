@@ -90,6 +90,7 @@ typedef enum
     HSML_TOKEN_ARG_TEXT,
     HSML_TOKEN_ARG_COLOR,
     HSML_TOKEN_ARG_MULTIPLE,
+    HSML_TOKEN_ARG_CHAR,
 } hsml_token_argument;
 
 typedef struct

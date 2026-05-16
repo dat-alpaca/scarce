@@ -62,6 +62,6 @@ void ui_sameline(ui_state* state, bool sameLine);
 void ui_feed(ui_state* state);
 void ui_nudge(ui_state* state, u32 xOffset);
 void ui_space(ui_state* state, u32 yOffset);
-void ui_hline(ui_state* state, u32 y, char lineChar);
+void ui_hline(ui_state* state, char lineChar);
 
 aabb ui_mouse_aabb(struct engine* e);

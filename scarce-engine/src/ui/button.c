@@ -1,6 +1,8 @@
 #include <assert.h>
+#include <string.h>
 #include "button.h"
 
+#include "fixed_array.h"
 #include "scarce.h"
 #include "ui.h"
 #include "memory/memory.h"
@@ -9,12 +11,11 @@
 void ui_button_init(ui_button* button, ui_button_callback callback, text_color* color, text_color* hoveredColor, u8 width)
 {
     assert(button);
-    assert(width > 0);
 
+    button->width = width;
     button->callback = callback;
     button->color = *color;
     button->hoveredColor = *hoveredColor;
-    button->width = width;
 }
 
 void ui_button_render(ui_button* button, ui_state* state, const char* content)
@@ -23,12 +24,60 @@ void ui_button_render(ui_button* button, ui_state* state, const char* content)
     assert(state);
     assert(content);
 
-    // TODO:
-
+    u32 contentLength = strlen(content);
     ui_set_color(state, button->isHovered ? &button->hoveredColor : &button->color);
-    ui_text(state, content, button->width);
-    //button->x = state->prevX;
-    //button->y = state->prevY;
+    {
+        fixed_array buffer = { 0 };
+        fixed_array_init(&buffer, button->width);
+
+        if (button->alignMiddle)
+        {
+            u32 spaceCount = (button->width - contentLength) / 2;
+
+            for (u32 i = 0; i < spaceCount; ++i)
+            {
+                char space = ' ';
+                fixed_array_push(&buffer, &space, 1); 
+            }
+
+            for (u32 i = 0; i < contentLength; ++i)
+            {
+                char current = content[i];
+                fixed_array_push(&buffer, &current, 1); 
+            }
+
+            for (u32 i = 0; i < spaceCount; ++i)
+            {
+                char space = ' ';
+                fixed_array_push(&buffer, &space, 1); 
+            }
+        }
+        else if (button->alignRight)
+        {
+
+        }
+        else
+        {
+            for (u32 i = 0; i < contentLength; ++i)
+            {
+                char current = content[i];
+                fixed_array_push(&buffer, &current, 1); 
+            }
+            for (u32 i = contentLength; i < button->width; ++i)
+            {
+                char space = ' ';
+                fixed_array_push(&buffer, &space, 1); 
+            }
+        }
+
+        ui_text(state, buffer.buffer, buffer.current);
+        fixed_array_destroy(&buffer);
+    }
+
+
+    
+    button->x = state->container->prevX;
+    button->y = state->container->prevY;
     button->isRendered = true;
 }
 

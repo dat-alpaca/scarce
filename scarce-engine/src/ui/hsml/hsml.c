@@ -53,7 +53,6 @@ static void hsml_parse_numeric_token(ui_state* state, hsml_token_type type, u32 
             break;
 
         case HSML_TOKEN_SAMELINE:
-            // TODO:
             state->container->sameline = (number > 0);
             break;
         
@@ -204,13 +203,6 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
 
     switch(token->type)
     {
-        case HSML_TOKEN_HLINE:
-        {
-            char* character = (char*)(token->value.buffer);
-            u32* yOffset = (u32*)(token->value.buffer + sizeof(u32));
-            ui_hline(state, *yOffset, (char)*character);
-        } break;
-
         case HSML_TOKEN_BUTTON:
         {
             u8 baseAddressIndex = *(u8*)(token->value.buffer);
@@ -236,6 +228,21 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
     
         default:
             log_critical_s("Invalid HSML: invalid multiple token parsed", 45);
+    }
+}
+
+static void hsml_parse_character_tokens(ui_state* state, hsml_token* token)
+{
+    switch(token->type)
+    {
+        case HSML_TOKEN_HLINE:
+        {
+            char* character = (char*)(token->value.buffer);
+            ui_hline(state, (char)*character);
+        } break;
+
+        default:
+            log_critical_s("Invalid HSML: invalid character token parsed", 45);
     }
 }
 
@@ -266,6 +273,9 @@ static void hsml_parse_tokens(ui_state* state, hsml_token* token, hsml_mode* mod
         case HSML_TOKEN_ARG_MULTIPLE:
             hsml_parse_multiple_token(state, token);
             break;
+
+        case HSML_TOKEN_ARG_CHAR:
+            hsml_parse_character_tokens(state, token);
 
         default:
             tokenProcessed = false;

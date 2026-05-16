@@ -47,7 +47,7 @@ void on_load(memory_pool* pool, engine* engine)
     {
         mainMenu->id = 0;
         mainMenu->load = on_load_view;
-        mainMenu->render = NULL;
+        mainMenu->render = on_render_view;
         mainMenu->update = on_update_view;
         
         _e->view_holder_register(_e->viewHolder, mainMenu);
@@ -60,6 +60,7 @@ void on_load(memory_pool* pool, engine* engine)
 bool on_update(memory_pool* pool)
 {
     _e->view_holder_update(_e->viewHolder, _e, pool);
+    _e->view_holder_render(_e->viewHolder, _e, pool);
     return true;
 }
 

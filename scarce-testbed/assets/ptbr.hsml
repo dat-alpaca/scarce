@@ -1,21 +1,24 @@
 \color; white faint;
-\hline; 0; -;
+\hline; -;
+\space; 1;
 
 \color; red nf;
 \top; 2;
 \center; 0;
     \start;
-    Demonstracao do Scarce
+    Demonstracao Scarce
     \end;
 
 \space; 3;
+\feed;
 
 # Mouse position:
 \color; purple;
 \sameline; 1;
-    \left; 1;
+    \left; 0;
+    \nudge; 1;
         \start;
-            Posicao Mouse: (
+            Mouse: (
         \end;
 
     \color; default faint;
@@ -32,7 +35,8 @@
 
 # Window dimensions:
 \sameline; 1;
-    \left; 1;
+    \left; 0;
+    \nudge; 1;
         \start;
         Dimensoes: (
         \end;
@@ -61,7 +65,8 @@
 # Stack:
 \color; purple;
 \sameline; 1;
-    \left; 1;
+    \left; 0;
+    \nudge; 1;
         \start;
         Stack:
         \end;
@@ -69,7 +74,7 @@
     \color; white faint;
     \nudge; 1;
         \start;
-        %0 %1 %2
+        %0 %1 %4
         \end;
 \sameline; 0;
 \feed;
@@ -77,29 +82,31 @@
 
 \color; purple nf;
 \sameline; 1;
+    \nudge; 1;
     \start;
-    texto:
+        texto:
     \end;
 \nudge; 1;
 
 \textbox; %0; 0;
+
 \if; %4 == 1;
     \feedline;
+    \left; 1;
     \color; white faint;
 
     \start;
-    Aperte o campo de texto e digite algo.
+    Aperte a caixa de texto e digite alguma coisa
     \end;
+    \left; 0;
 \endif;
 
 # Buttons:
-\left; 1;
-\bottom; 1;
-    \button; %2; 0; ling;
-    
-\bottom; 1;
-\nudge; 1;
-    \button; %1; 0; sair;
-
 \feed;
-\space; 2;
+\nudge; 1;
+
+\bottom; 1;
+\button; %2; 0; lingua;
+    
+\nudge; 1;
+\button; %1; 0; sair;

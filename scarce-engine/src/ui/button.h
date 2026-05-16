@@ -15,6 +15,8 @@ typedef struct ui_button
     u8 isHovered  : 1;
     u8 isPressed  : 1;
     u8 isRendered : 1;
+    u8 alignMiddle : 1;
+    u8 alignRight : 1;
 } ui_button;
 
 typedef void (*ui_button_callback)(struct engine* e, memory_pool* pool, struct ui_button* button);

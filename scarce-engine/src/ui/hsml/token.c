@@ -372,12 +372,10 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
 
         case HSML_TOKEN_HLINE:
         {
-            u32 yOffset = hsml_fetch_number(state, descriptor);
             u32 character = (u32)hsml_fetch_character(descriptor);
             
             dynamic_array_init(&token.value, 2, sizeof(u32));
             dynamic_array_push(&token.value, &character, 1);
-            dynamic_array_push(&token.value, &yOffset, 1);
         } break;
 
         default:
@@ -424,8 +422,10 @@ hsml_token_argument hsml_get_argument_type(hsml_token_type type)
 
         case HSML_TOKEN_TEXTBOX:
         case HSML_TOKEN_BUTTON:
-        case HSML_TOKEN_HLINE:
             return HSML_TOKEN_ARG_MULTIPLE;
+
+        case HSML_TOKEN_HLINE:
+            return HSML_TOKEN_ARG_CHAR;
 
         default:
             return HSML_TOKEN_ARG_INVALID;

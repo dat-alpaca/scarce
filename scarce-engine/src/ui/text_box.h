@@ -4,7 +4,7 @@
 
 struct engine;
 
-typedef struct
+typedef struct ui_text_box
 {
     char* contents;
     text_color color;

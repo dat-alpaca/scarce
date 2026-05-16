@@ -33,10 +33,11 @@ void on_load_view(engine* e, memory_pool* pool)
     // Quit Button:
     ui_button* button = (ui_button*)&pool[200];
     e->ui_button_init(button, quit_button_callback, &color, &hovered, 4);
-
+    
     // Language:
     ui_button* langButton = (ui_button*)&pool[132];
-    e->ui_button_init(langButton, language_button_callback, &color, &hovered, 8);
+    langButton->alignMiddle = true;
+    e->ui_button_init(langButton, language_button_callback, &color, &hovered, 6);
     pool[300] = 0;
 
     // Textbox:
@@ -44,9 +45,10 @@ void on_load_view(engine* e, memory_pool* pool)
     e->ui_text_box_init(textbox, &pool[116], &color, &hovered, 6);
 }
 
-static void on_update(ui_state* state, engine* e)
+void on_update_view(engine* e, memory_pool* pool)
 {
-    memory_pool* pool = state->pool;
+    ui_state* state = (ui_state*)&pool[1000];
+    e->ui_begin(state, pool, e->renderer);
 
     ui_text_box* textbox = (ui_text_box*)&pool[100];
     ui_button* button = (ui_button*)&pool[200];
@@ -57,9 +59,9 @@ static void on_update(ui_state* state, engine* e)
     e->ui_button_update(langButton, state, e);
 }
 
-static void on_render(ui_state* state, engine* e)
+void on_render_view(engine* e, memory_pool* pool)
 {
-    memory_pool* pool = state->pool;
+    ui_state* state = (ui_state*)&pool[1000];
     ui_text_box* textbox = (ui_text_box*)&pool[100];
 
     e->ui_clear(e);
@@ -105,11 +107,4 @@ static void on_render(ui_state* state, engine* e)
     }
     
     e->ui_end(state);
-}
-
-void on_update_view(engine* e, memory_pool* pool)
-{
-    ui_state* state = e->ui_begin_stack(pool, e->renderer);
-    on_update(state, e);
-    on_render(state, e);
 }
