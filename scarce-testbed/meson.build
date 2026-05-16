@@ -28,3 +28,9 @@ meson.add_install_script(
     'main.bin',
     install_tag: 'application'
 )
+
+install_subdir('assets',
+    strip_directory: false,
+    install_dir: '.',
+    install_tag: 'application'
+)

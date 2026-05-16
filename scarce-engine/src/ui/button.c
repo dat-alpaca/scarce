@@ -27,12 +27,16 @@ void ui_button_render(ui_button* button, ui_state* state, const char* content)
     ui_text(state, content, button->width);
     button->x = state->prevX;
     button->y = state->prevY;
+    button->isRendered = true;
 }
 
 void ui_button_update(ui_button* button, ui_state* state, engine* e)
 {
     assert(button);
     assert(state);
+
+    if (!button->isRendered)
+        return;
 
     memory_pool* pool = state->pool;
 
@@ -57,6 +61,8 @@ void ui_button_update(ui_button* button, ui_state* state, engine* e)
                 button->isPressed = false;
         }
     }
+    
+    button->isRendered = false;
 }
 
 aabb ui_button_aabb(ui_button* button)

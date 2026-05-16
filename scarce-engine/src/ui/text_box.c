@@ -17,6 +17,7 @@ void ui_text_box_init(ui_text_box* textBox, char* contents, text_color* color, t
     textBox->width = width;
     textBox->current = 0;
     textBox->isKeyPressed = false;
+    textBox->isRendered = false;
 
     for(u32 i = 0; i < width; ++i)
         textBox->contents[i] = '_';
@@ -26,6 +27,7 @@ void ui_text_box_render(ui_text_box* textBox, ui_state* state)
 {
     assert(textBox);
     assert(state);
+    textBox->isRendered = true;
     
     // Color:
     if (textBox->isHovered || textBox->isSelected)
@@ -47,6 +49,9 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
 {
     assert(textBox);
     assert(state);
+
+    if (!textBox->isRendered)
+        return;
 
     aabb mouseAABB = ui_mouse_aabb(e);
     {
@@ -140,6 +145,8 @@ void ui_text_box_update(ui_text_box* textBox, ui_state* state, struct engine* e)
             }
         }
     }
+
+    textBox->isRendered = false;
 }
 
 aabb ui_text_box_aabb(ui_text_box* textBox)

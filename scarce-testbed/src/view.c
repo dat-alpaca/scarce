@@ -10,6 +10,15 @@ static void quit_button_callback(engine* e, memory_pool* pool, ui_button* button
     e->requestExit = true;
 }
 
+static void language_button_callback(engine* e, memory_pool* pool, ui_button* button)
+{
+    u8 value = pool[300];
+    if (value == 0)
+        pool[300] = 1;
+    if (value == 1)
+        pool[300] = 0;
+}
+
 void on_load_view(engine* e, memory_pool* pool)
 {
     e->log_info(e->logger, "testbed on_load_view", 21);
@@ -21,9 +30,14 @@ void on_load_view(engine* e, memory_pool* pool)
     text_color hovered = color;
     hovered.colorFaint = false;
 
-    // Button:
+    // Quit Button:
     ui_button* button = (ui_button*)&pool[200];
     e->ui_button_init(button, quit_button_callback, &color, &hovered, 4);
+
+    // Language:
+    ui_button* langButton = (ui_button*)&pool[132];
+    e->ui_button_init(langButton, language_button_callback, &color, &hovered, 8);
+    pool[300] = 0;
 
     // Textbox:
     ui_text_box* textbox = (ui_text_box*)&pool[100];
@@ -36,9 +50,11 @@ static void on_update(ui_state* state, engine* e)
 
     ui_text_box* textbox = (ui_text_box*)&pool[100];
     ui_button* button = (ui_button*)&pool[200];
+    ui_button* langButton = (ui_button*)&pool[132];
 
     e->ui_text_box_update(textbox, state, e);
     e->ui_button_update(button, state, e);
+    e->ui_button_update(langButton, state, e);
 }
 
 static void on_render(ui_state* state, engine* e)
@@ -63,49 +79,32 @@ static void on_render(ui_state* state, engine* e)
     
     // Main HSML:
     {
-        u8* value = e->scarce_push(pool, sizeof(u8) * 2);
-        value[0] = 100; // %0
-        value[1] = 200; // %1
-
-        u64* data = e->scarce_push(pool, sizeof(u64));
-        *data = 1203111; //%-2
+        u8* value = e->scarce_push(pool, sizeof(u8) * 5);
+        value[0] = 100;         // %0
+        value[1] = 200;         // %1
+        value[2] = 132;         // %2
+        value[3] = pool[300];   // %3
+        value[4] = hovered;     // %4
 
         {
             // string
             u8* charCount = e->scarce_push(pool, sizeof(u8));
-            *charCount = 5; //%^10
+            *charCount = 2; // %5
 
             char* string = e->scarce_push(pool, sizeof(char) * *charCount);
-            string[0] = 'p';
-            string[1] = 'e';
-            string[2] = 'l';
-            string[3] = 'l';
-            string[4] = 'o';
+            string[0] = 'e'; // %^6
+            string[1] = 'n';
         }
         
         u8* count = e->scarce_push(pool, sizeof(u8));
-        *count = 2 * sizeof(u8) + sizeof(u64) + sizeof(u8) + 5 * sizeof(char);
+        *count = 8 * sizeof(u8);
 
         e->ui_hsml(state, "assets/view.hsml");
-        e->ui_end(state);
 
-        e->scarce_pop(pool, 2 * sizeof(u8) + sizeof(u64) + sizeof(u8) + 5 * sizeof(char));
-        e->scarce_pop(pool, sizeof(u8) * 1);
+        e->scarce_pop(pool, 8 * sizeof(u8) + 1);
     }
-
-    if (hovered)
-    {
-        e->ui_space(state, 2);
-        e->ui_feed(state);
-
-        state->color.colorFaint = true;
-        e->ui_set_color(state, &state->color);
-        e->ui_text(state, "Press the textbox & type", 25);
-        e->ui_feed(state);
-
-        e->ui_text(state, "BACKSPACE to erase", 19);
-        e->ui_feed(state);
-    }
+    
+    e->ui_end(state);
 }
 
 void on_update_view(engine* e, memory_pool* pool)

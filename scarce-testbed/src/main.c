@@ -1,9 +1,6 @@
 #include "defines.h"
 #include "memory/memory.h"
-#include "platform/mouse.h"
 #include "ui/button.h"
-#include "ui/text_box.h"
-#include "ui/ui.h"
 #include <scarce.h>
 
 #include "view.h"
@@ -44,22 +41,6 @@ void on_load(memory_pool* pool, engine* engine)
 
     // stack:
     pool[SCA_STACK_SIZE_ADDRESS] = 0;
-
-    ui_button* button = (ui_button*)&pool[700];
-    text_color color = { 0 };
-    color.color = SY_COLOR_WHITE;
-    color.colorFaint = true;
-
-    text_color hovered = { 0 };
-    hovered.colorFaint = false;
-    hovered.color = SY_COLOR_BLUE;
-
-    _e->ui_button_init(button, button_callback, &color, &hovered, 5);
-
-    // textbox:
-    ui_text_box* textbox = (ui_text_box*)&pool[760];
-    char* textboxContents = (char*)&pool[900];
-    _e->ui_text_box_init(textbox, textboxContents, &color, &hovered,  10);
 
     // view test:
     view_data* mainMenu = _e->scarce_push(pool, sizeof(view_data)); 
