@@ -16,24 +16,28 @@ typedef enum : u8
     UI_POS_BOTTOM
 } text_position;
 
-struct
+struct container
 {
     u16 prevX;
     u16 prevY;
 
-    u16 x;
-    i32 y;
-    u16 width;
+    u16 _x;
+    u16 _y;
     u16 height;
+    u16 width;
+
+    u16 currentX;
+    i16 currentY;
+    
+    u8 positionOffset;
+    u8 alignOffset;
     
     text_position position;
-    u16 positionOffset;
-
     text_align align;
-    u16 alignOffset;
 
     u8 sameline : 1;
     u8 overflow : 1;
+    u8 xOverflow : 1;
 } typedef container;
 
 struct
@@ -43,15 +47,18 @@ struct
 } typedef container_overflow;
 
 void container_init_default(container* container, text_renderer* renderer);
+void container_reset(container* container);
+void container_fix_offset_bounds(container* container, u32 gridWidth, u32 gridHeight);
 
 bool container_handle_y_overflow(container* container);
 void container_handle_x_overflow(container* container, const char* content);
 
-void container_determine_x_from_align(container* container, u32 length);
+void container_determine_x_from_align(container* container, u32 length, u32 gridWidth);
 void container_set_align(container* container, text_align align, u16 offset);
 
-void container_determine_y_from_position(container* container);
+void container_determine_y_from_position(container* container, u32 gridHeight);
 void container_set_position(container* container, text_position position, u16 yOffset);
 
+void container_feed(container* container);
 void container_nudge(container* container, u32 amount);
 void container_space(container* container, u32 amount);

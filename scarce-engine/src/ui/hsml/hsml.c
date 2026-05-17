@@ -4,7 +4,9 @@
 #include "logging/logger.h"
 
 #include "memory/memory.h"
+#include "text_renderer.h"
 #include "ui/button.h"
+#include "ui/container.h"
 #include "ui/text_box.h"
 #include "ui/ui.h"
 #include "token.h"
@@ -39,6 +41,11 @@ static void hsml_parse_argless_token(ui_state* state, hsml_token_type type, hsml
             ui_space(state, 1);
         } break;
 
+        case HSML_TOKEN_CONTAINER_END:
+        {
+            ui_restore_container(state);
+        } break;
+
         default:
             log_critical_s("Invalid HSML: invalid argless token parsed", 45);
     }
@@ -53,7 +60,7 @@ static void hsml_parse_numeric_token(ui_state* state, hsml_token_type type, u32 
             break;
 
         case HSML_TOKEN_SAMELINE:
-            state->container->sameline = (number > 0);
+            state->container.sameline = (number > 0);
             break;
         
         case HSML_TOKEN_ALIGN_CENTER:
@@ -224,6 +231,28 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
             ui_text_box* textbox = &textboxes[textboxIndex];
             
             ui_text_box_render(textbox, state);
+        } break;
+
+        case HSML_TOKEN_CONTAINER:
+        {
+            u8 x = *(u8*)(token->value.buffer + 0 * sizeof(u8));
+            u8 y = *(u8*)(token->value.buffer + 1 * sizeof(u8));
+            u8 w = *(u8*)(token->value.buffer + 2 * sizeof(u8));
+            u8 h = *(u8*)(token->value.buffer + 3 * sizeof(u8));
+            
+            container newContainer;
+            container_reset(&newContainer);
+            {
+                newContainer.currentX = x;
+                newContainer.currentY = y;
+                newContainer._x = x;
+                newContainer._y = y;
+                newContainer.width = w;
+                newContainer.height = h;
+            }
+            container_fix_offset_bounds(&newContainer, text_renderer_width(state->renderer), text_renderer_height(state->renderer));
+
+            ui_switch_container(state, &newContainer);
         } break;
     
         default:

@@ -34,13 +34,14 @@ typedef struct
     u8 renderBackground : 1;
 } text_color;
 
-typedef struct
+typedef struct ui_state
 {
     memory_pool* pool;
     text_renderer* renderer;
-    container* container;
-    text_color color;
+    container container;
+    container prevContainer;
 
+    text_color color;
     u8 stackState : 1;
     u8 defaultContainer : 1;
 } ui_state;
@@ -63,5 +64,8 @@ void ui_feed(ui_state* state);
 void ui_nudge(ui_state* state, u32 xOffset);
 void ui_space(ui_state* state, u32 yOffset);
 void ui_hline(ui_state* state, char lineChar);
+
+void ui_switch_container(ui_state* state, container* newContainer);
+void ui_restore_container(ui_state* state);
 
 aabb ui_mouse_aabb(struct engine* e);

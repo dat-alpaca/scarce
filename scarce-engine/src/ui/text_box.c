@@ -39,8 +39,8 @@ void ui_text_box_render(ui_text_box* textBox, ui_state* state)
     ui_sameline(state, true);
     ui_text(state, textBox->contents, textBox->width);
 
-    textBox->x = state->container->prevX;
-    textBox->y = state->container->prevY;
+    textBox->x = state->container.prevX;
+    textBox->y = state->container.prevY;
 
     ui_sameline(state, false);
 }

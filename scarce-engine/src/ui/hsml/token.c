@@ -227,6 +227,9 @@ static hsml_token_lookup_item s_tokenLookupTable[] =
     { "include", HSML_TOKEN_INCLUDE },
     { "button", HSML_TOKEN_BUTTON },
     { "textbox", HSML_TOKEN_TEXTBOX },
+    
+    { "container", HSML_TOKEN_CONTAINER },
+    { "endcontainer", HSML_TOKEN_CONTAINER_END },
 
     { "if", HSML_TOKEN_IF },
     { "endif", HSML_TOKEN_END_IF },
@@ -353,6 +356,22 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
             dynamic_array_push(&token.value, &index, 1);
         } break;
 
+        case HSML_TOKEN_CONTAINER:
+        {
+            u8 x = hsml_fetch_number(state, descriptor);
+            u8 y = hsml_fetch_number(state, descriptor);
+            u8 w = hsml_fetch_number(state, descriptor);
+            u8 h = hsml_fetch_number(state, descriptor);
+            
+            dynamic_array_init(&token.value, 4, sizeof(u8));
+            dynamic_array_push(&token.value, &x, 1);
+            dynamic_array_push(&token.value, &y, 1);
+            dynamic_array_push(&token.value, &w, 1);
+            dynamic_array_push(&token.value, &h, 1);
+        } break;
+        case HSML_TOKEN_CONTAINER_END: 
+            break;
+
         case HSML_TOKEN_BUTTON:
         {
             u8 baseAddress = hsml_fetch_number(state, descriptor);
@@ -406,6 +425,12 @@ hsml_token_argument hsml_get_argument_type(hsml_token_type type)
         case HSML_TOKEN_IF:
             return HSML_TOKEN_ARG_NUMERIC;
         case HSML_TOKEN_END_IF:
+            return HSML_TOKEN_ARG_NONE;
+
+        // container
+        case HSML_TOKEN_CONTAINER:
+            return HSML_TOKEN_ARG_MULTIPLE;
+        case HSML_TOKEN_CONTAINER_END:
             return HSML_TOKEN_ARG_NONE;
 
         case HSML_TOKEN_SAMELINE:   

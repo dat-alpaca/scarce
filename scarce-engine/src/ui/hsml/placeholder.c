@@ -18,7 +18,7 @@ struct
 
 static u32 placeholder_overflow_fetcher(const ui_state* const state)
 {
-    return state->container->overflow;
+    return state->container.overflow;
 }
 
 static u32 placeholder_width_fetcher(const ui_state* const state)
@@ -33,22 +33,22 @@ static u32 placeholder_height_fetcher(const ui_state* const state)
 
 static u32 placeholder_x_fetcher(const ui_state* const state)
 {
-    return state->container->x;
+    return state->container.currentX;
 }
 
 static u32 placeholder_y_fetcher(const ui_state* const state)
 {
-    return state->container->y;
+    return state->container.currentY;
 }
 
 static u32 placeholder_prev_x_fetcher(const ui_state* const state)
 {
-    return state->container->prevX;
+    return state->container.prevX;
 }
 
 static u32 placeholder_prev_y_fetcher(const ui_state* const state)
 {
-    return state->container->prevY;
+    return state->container.prevY;
 }
 
 static u32 placeholder_mouse_x_fetcher(const ui_state* const state)

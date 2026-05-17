@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "core/memory/memory.h"
+#include <ctype.h>
 #include <stdbool.h>
 #include "engine.h"
 #include "memory/stack.h"
@@ -52,11 +53,9 @@ static float* get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint
 
 static void ui_reset(ui_state* state)
 {
-    state->container = malloc(sizeof(container));
+    container_init_default(&state->container, state->renderer);
     state->defaultContainer = true;
     
-    container_init_default(state->container, state->renderer);
-
     state->color.color = SY_COLOR_NONE;
     state->color.colorIntense = false;
     state->color.colorFaint = false;
@@ -94,48 +93,54 @@ ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer)
 }
 void ui_end(ui_state* state)
 {
+    assert(state);
+
     if (state->stackState)
         scarce_pop(state->pool, sizeof(ui_state));
-
-    if (state->defaultContainer)
-    {
-        free(state->container);
-        state->container = NULL;
-    }
 }
 void ui_clear(engine* e)
 {
+    assert(e);
     text_renderer_zero_buffer(e->renderer);
 }
 
 void ui_text(ui_state* state, const char* content, u32 length)
 {
+    assert(state);
+    assert(content);
+    assert(length >= 0);
+
     float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
     float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
 
-    container* container = state->container;
+    container* container = &state->container;
     
-    container_determine_x_from_align(container, length);
-    container_determine_y_from_position(container);
+    container_determine_x_from_align(container, length, text_renderer_width(state->renderer));
+    container_determine_y_from_position(container, text_renderer_height(state->renderer));
 
-    container->prevX = container->x;
-    container->prevY = container->y;
+    container->prevX = container->currentX;
+    container->prevY = container->currentY;
 
+    for (u32 x = container->_x; x < container->_x + container->width; ++x)
+    {
+        for (u32 y = container->_y; y < container->_y + container->height; ++y)
+            text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
+    }
+    
     for (u32 i = 0; i < length; ++i)
     {
-        u16* x = &container->x; 
-        i32* y = &container->y; 
+        u16* x = &container->currentX; 
+        i16* y = &container->currentY; 
 
-        if (content[i] == '\0')
+        if (content[i] == '\0' || content[i] == '\n')
             break;
 
-        if (content[i] == '\n')
-        {
-            container_space(state->container, 1);
-            continue;
-        }
-
         container_handle_x_overflow(container, content);
+        if (container->xOverflow)
+        {
+            while (isspace(content[i]))
+                ++i;
+        }
 
         if (container_handle_y_overflow(container))
             break;
@@ -145,7 +150,7 @@ void ui_text(ui_state* state, const char* content, u32 length)
         text_renderer_set_character_color(state->renderer, *x, *y, color[0], color[1], color[2]);
         text_renderer_set_character_background_color(state->renderer, *x, *y, background[0], background[1], background[2], state->color.renderBackground);
 
-        (*x)++;
+        ++container->currentX;
     }
 
     if (!container->sameline)
@@ -208,46 +213,55 @@ void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 le
 
 void ui_set_align(ui_state* state, text_align align, u16 xOffset)
 {
-    container_set_align(state->container, align, xOffset);
+    assert(state);
+    container_set_align(&state->container, align, xOffset);
 }
 void ui_set_position(ui_state* state, text_position position, u16 yOffset)
 {
-    container_set_position(state->container, position, yOffset);
+    assert(state);
+    container_set_position(&state->container, position, yOffset);
 }
 void ui_set_color(ui_state* state, text_color* color)
 {
+    assert(state);
     state->color = *color;
 }
 
 void ui_sameline(ui_state* state, bool sameLine)
 {
-    state->container->sameline = sameLine;
+    assert(state);
+    state->container.sameline = sameLine;
 }
 void ui_feed(ui_state* state)
 {
-    state->container->x = state->container->alignOffset;
+    assert(state);
+    container_feed(&state->container);
 }
 void ui_nudge(ui_state* state, u32 xOffset)
 {
-    container_nudge(state->container, xOffset);
+    assert(state);
+    container_nudge(&state->container, xOffset);
 }
 void ui_space(ui_state* state, u32 yOffset)
 {
-    container_space(state->container, yOffset);
+    assert(state);
+    container_space(&state->container, yOffset);
 }
 void ui_hline(ui_state* state, char lineChar)
 {
+    assert(state);
+
     float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
     float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
 
-    container* container = state->container;
+    container* container = &state->container;
 
-    container_determine_y_from_position(container);
-    container->prevY = container->y;
+    container_determine_y_from_position(container, text_renderer_height(state->renderer));
+    container->prevY = container->currentY;
 
     for (u32 x = 0; x < text_renderer_width(state->renderer); ++x)
     {
-        i32 y = state->container->y; 
+        i32 y = state->container.currentY; 
 
         if (container_handle_y_overflow(container))
             break;
@@ -257,11 +271,30 @@ void ui_hline(ui_state* state, char lineChar)
         text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
     }
 
-    container_space(state->container, 1);
+    container_space(&state->container, 1);
+}
+
+void ui_switch_container(ui_state* state, container* newContainer)
+{
+    assert(state);
+    assert(newContainer);
+
+    state->defaultContainer = false;
+    state->prevContainer = state->container;
+    state->container = *newContainer;
+}
+void ui_restore_container(ui_state* state)
+{
+    assert(state);
+
+    state->container = state->prevContainer;
+    container_reset(&state->prevContainer);
 }
 
 aabb ui_mouse_aabb(engine* e)
 {
+    assert(e);
+
     aabb mouseAABB = { 0 };
     {
         u32 mouseX;

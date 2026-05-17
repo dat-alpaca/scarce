@@ -74,10 +74,8 @@ void ui_button_render(ui_button* button, ui_state* state, const char* content)
         fixed_array_destroy(&buffer);
     }
 
-
-    
-    button->x = state->container->prevX;
-    button->y = state->container->prevY;
+    button->x = state->container.prevX;
+    button->y = state->container.prevY;
     button->isRendered = true;
 }
 
