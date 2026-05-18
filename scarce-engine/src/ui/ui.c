@@ -4,6 +4,7 @@
 #include "engine.h"
 #include "memory/stack.h"
 #include "physics/aabb.h"
+#include "string_utils.h"
 #include "text_renderer.h"
 
 #include "ui/color.h"
@@ -72,8 +73,6 @@ void ui_text(ui_state* state, const char* content, u32 length)
 }
 void ui_number(ui_state* state, u32 number)
 {
-    return;
-    /*
     if (number == 0)
     {
         ui_text(state, "0", 1);
@@ -85,46 +84,13 @@ void ui_number(ui_state* state, u32 number)
     fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH);
 
     char temp[SCA_UI_MAX_NUMBER_LENGTH];
-    u8 length = number_to_array(number, temp);
+    u64 length = number_to_array(number, temp);
     for (i32 i = length - 1; i >= 0; --i)
         fixed_array_push(&numberBuffer, &temp[i], 1);
 
     // Render:
     ui_text(state, numberBuffer.buffer, numberBuffer.current);
     fixed_array_destroy(&numberBuffer);
-    */
-}
-void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 length)
-{
-    memory_pool* pool = state->pool;
-
-    /*
-    float* color = (float*)scarce_push(pool, sizeof(float) * 3);
-    float* background = (float*)scarce_push(pool, sizeof(float) * 3);
-    color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
-    background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
-
-    for(u32 i = 0; i < length; ++i)
-    {
-        if(content[i] == '\0')
-            break;
-
-        if (x + i > text_renderer_width(state->renderer))
-            break;
-
-        text_renderer_set_character_letter(state->renderer, x + i, y, content[i]);
-        text_renderer_set_character_color(state->renderer, x + i, y, color[0], color[1], color[2]);
-        
-        text_renderer_set_character_background_color
-        (
-            state->renderer, x + i, y, 
-            background[0], background[1], background[2], 
-            state->color.renderBackground
-        );
-    }
-    
-    scarce_pop(pool, sizeof(float) * 6);
-    */
 }
 
 void ui_set_align(ui_state* state, text_align align, u16 xOffset)
