@@ -208,8 +208,7 @@ void container_text(ui_state* state, container* container, const char* content, 
             text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
     }
     
-    container->prevX = container->currentX;
-
+    bool isPreviousSet = false;
     i32 i = container_determine_starting_index(container, length - 1);
     while (true)
     {
@@ -221,8 +220,12 @@ void container_text(ui_state* state, container* container, const char* content, 
 
         u16* x = container_determine_x_from_align(container, length, text_renderer_width(state->renderer)); 
         i16* y = container_determine_y_from_position(container, text_renderer_height(state->renderer)); 
-
-        container->prevY = container->currentY;
+        if (!isPreviousSet)
+        {
+            container->prevY = container->currentY;
+            container->prevX = container->currentX;
+            isPreviousSet = true;
+        }
         
         container_handle_x_overflow(container);
         if (container->xOverflow)
