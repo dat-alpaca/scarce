@@ -243,14 +243,11 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
             container newContainer;
             container_reset(&newContainer);
             {
-                newContainer.currentX = x;
-                newContainer.currentY = y;
                 newContainer._x = x;
                 newContainer._y = y;
                 newContainer.width = w;
                 newContainer.height = h;
             }
-            container_fix_offset_bounds(&newContainer, text_renderer_width(state->renderer), text_renderer_height(state->renderer));
 
             ui_switch_container(state, &newContainer);
         } break;
@@ -318,9 +315,6 @@ static void hsml_parse_tokens(ui_state* state, hsml_token* token, hsml_mode* mod
 static void hsml_parse_text(ui_state* state, hsml_token* token, hsml_token* next)
 {
     ui_text(state, token->value.buffer, token->value.current);
-    
-    if (next->type == HSML_TOKEN_TEXT)
-        ui_feed(state);
 
     if (token->value.buffer)
         dynamic_array_destroy(&token->value);

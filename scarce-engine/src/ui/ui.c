@@ -1,6 +1,5 @@
 #include "ui.h"
 #include "core/memory/memory.h"
-#include <ctype.h>
 #include <stdbool.h>
 #include "engine.h"
 #include "memory/stack.h"
@@ -8,48 +7,6 @@
 #include "text_renderer.h"
 
 #include "ui/container.h"
-
-static float* get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint)
-{
-    static float colors[][3] = 
-    {
-        { 0.141f, 0.161f, 0.180f }, // Black
-        { 0.933f, 0.275f, 0.282f }, // Red
-        { 0.165f, 0.631f, 0.596f }, // Green
-        { 0.961f, 0.686f, 0.208f }, // Yellow
-        { 0.231f, 0.447f, 0.702f }, // Blue
-        { 0.612f, 0.404f, 0.631f }, // Magenta
-        { 0.106f, 0.588f, 0.725f }, // Cyan
-        { 0.937f, 0.941f, 0.945f }  // White
-    };
-
-    static float colors_intense[][3] = 
-    {
-        { 0.306f, 0.341f, 0.384f }, // Bright Black
-        { 0.996f, 0.380f, 0.380f }, // Bright Red
-        { 0.110f, 0.925f, 0.612f }, // Bright Green
-        { 0.996f, 0.816f, 0.298f }, // Bright Yellow
-        { 0.365f, 0.592f, 0.847f }, // Bright Blue
-        { 0.757f, 0.525f, 0.773f }, // Bright Magenta
-        { 0.106f, 0.796f, 0.933f }, // Bright Cyan
-        { 0.992f, 0.996f, 0.996f }  // Bright White
-    };
-
-    static float faint_result[3];
-
-    u32 index = (symbolColor > SY_COLOR_WHITE) ? SY_COLOR_WHITE : symbolColor;
-
-    float* selected = (isIntense) ? colors_intense[index] : colors[index];
-    if (isFaint) 
-    {
-        faint_result[0] = selected[0] * 0.5f;
-        faint_result[1] = selected[1] * 0.5f;
-        faint_result[2] = selected[2] * 0.5f;
-        return faint_result;
-    }
-
-    return selected;
-}
 
 static void ui_reset(ui_state* state)
 {
@@ -110,51 +67,7 @@ void ui_text(ui_state* state, const char* content, u32 length)
     assert(content);
     assert(length >= 0);
 
-    float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
-    float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
-
-    container* container = &state->container;
-    
-    container_determine_x_from_align(container, length, text_renderer_width(state->renderer));
-    container_determine_y_from_position(container, text_renderer_height(state->renderer));
-
-    container->prevX = container->currentX;
-    container->prevY = container->currentY;
-
-    for (u32 x = container->_x; x < container->_x + container->width; ++x)
-    {
-        for (u32 y = container->_y; y < container->_y + container->height; ++y)
-            text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
-    }
-    
-    for (u32 i = 0; i < length; ++i)
-    {
-        u16* x = &container->currentX; 
-        i16* y = &container->currentY; 
-
-        if (content[i] == '\0' || content[i] == '\n')
-            break;
-
-        container_handle_x_overflow(container, content);
-        if (container->xOverflow)
-        {
-            while (isspace(content[i]))
-                ++i;
-        }
-
-        if (container_handle_y_overflow(container))
-            break;
-
-        // Renders text
-        text_renderer_set_character_letter(state->renderer, *x, *y, content[i]);
-        text_renderer_set_character_color(state->renderer, *x, *y, color[0], color[1], color[2]);
-        text_renderer_set_character_background_color(state->renderer, *x, *y, background[0], background[1], background[2], state->color.renderBackground);
-
-        ++container->currentX;
-    }
-
-    if (!container->sameline)
-        container_space(container, 1);
+    container_text(state, &state->container, content, length);
 }
 void ui_number(ui_state* state, u32 number)
 {
@@ -184,6 +97,7 @@ void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 le
 {
     memory_pool* pool = state->pool;
 
+    /*
     float* color = (float*)scarce_push(pool, sizeof(float) * 3);
     float* background = (float*)scarce_push(pool, sizeof(float) * 3);
     color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
@@ -209,6 +123,7 @@ void ui_text_absolute(ui_state* state, u32 x, u32 y, const char* content, u32 le
     }
     
     scarce_pop(pool, sizeof(float) * 6);
+    */
 }
 
 void ui_set_align(ui_state* state, text_align align, u16 xOffset)
@@ -251,6 +166,7 @@ void ui_hline(ui_state* state, char lineChar)
 {
     assert(state);
 
+    /*
     float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
     float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
 
@@ -272,15 +188,18 @@ void ui_hline(ui_state* state, char lineChar)
     }
 
     container_space(&state->container, 1);
+    */
 }
 
 void ui_switch_container(ui_state* state, container* newContainer)
 {
     assert(state);
     assert(newContainer);
-
+    
     state->defaultContainer = false;
     state->prevContainer = state->container;
+    
+    container_fix_offset_bounds(newContainer, text_renderer_width(state->renderer), text_renderer_height(state->renderer));
     state->container = *newContainer;
 }
 void ui_restore_container(ui_state* state)
