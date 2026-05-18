@@ -91,7 +91,6 @@ static engine gEngine =
 
     .ui_text = ui_text,
     .ui_number = ui_number,
-    .ui_text_absolute = ui_text_absolute,
 
     .ui_set_align = ui_set_align,
     .ui_set_position = ui_set_position,
