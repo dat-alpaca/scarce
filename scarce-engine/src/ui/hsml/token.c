@@ -351,10 +351,10 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
         // requires multiple arguments:
         case HSML_TOKEN_TEXTBOX:
         {
-            u8 baseAddress = hsml_fetch_number(state, descriptor);
-            u8 index = hsml_fetch_number(state, descriptor);
+            u64 baseAddress = hsml_fetch_number(state, descriptor);
+            u64 index = hsml_fetch_number(state, descriptor);
             
-            dynamic_array_init(&token.value, 2, sizeof(u8));
+            dynamic_array_init(&token.value, 2, sizeof(u64));
             dynamic_array_push(&token.value, &baseAddress, 1);
             dynamic_array_push(&token.value, &index, 1);
         } break;
@@ -377,14 +377,14 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
 
         case HSML_TOKEN_BUTTON:
         {
-            u8 baseAddress = hsml_fetch_number(state, descriptor);
-            u8 index = hsml_fetch_number(state, descriptor);
+            u64 baseAddress = hsml_fetch_number(state, descriptor);
+            u64 index = hsml_fetch_number(state, descriptor);
             
             dynamic_array buffer;
             dynamic_array_init(&buffer, 16, sizeof(char));
             hsml_fetch_text(state, descriptor, &buffer, HSML_TOKEN_DELIMITER, true, false);
             
-            dynamic_array_init(&token.value, 2 + buffer.current, sizeof(u8));
+            dynamic_array_init(&token.value, sizeof(u64) * 2 + buffer.current, sizeof(u64));
             dynamic_array_push(&token.value, &baseAddress, 1);
             dynamic_array_push(&token.value, &index, 1);
             dynamic_array_push(&token.value, buffer.buffer, buffer.current);

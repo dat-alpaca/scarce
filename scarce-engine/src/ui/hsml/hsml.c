@@ -212,9 +212,9 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
     {
         case HSML_TOKEN_BUTTON:
         {
-            u8 baseAddressIndex = *(u8*)(token->value.buffer);
-            u8 buttonIndex = *(u8*)(token->value.buffer + sizeof(u8));
-            char* contents = (char*)(token->value.buffer + sizeof(u8) * 2);
+            u64 baseAddressIndex = *(u64*)(token->value.buffer);
+            u64 buttonIndex = *(u64*)(token->value.buffer + sizeof(u64));
+            char* contents = (char*)(token->value.buffer + sizeof(u64) * 2);
 
             ui_button* buttons = (ui_button*)&pool[baseAddressIndex];
             ui_button* button = &buttons[buttonIndex];
@@ -224,8 +224,8 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
 
         case HSML_TOKEN_TEXTBOX:
         {
-            u8 baseAddressIndex = *(u8*)(token->value.buffer);
-            u8 textboxIndex = *(u8*)(token->value.buffer + sizeof(u8));
+            u64 baseAddressIndex = *(u64*)(token->value.buffer);
+            u64 textboxIndex = *(u64*)(token->value.buffer + sizeof(u64));
 
             ui_text_box* textboxes = (ui_text_box*)&pool[baseAddressIndex];
             ui_text_box* textbox = &textboxes[textboxIndex];
