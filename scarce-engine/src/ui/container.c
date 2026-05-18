@@ -84,17 +84,6 @@ u16* container_determine_x_from_align(container* container, u32 length, u32 grid
     
     switch (container->align)
     {
-        case UI_ALIGN_RIGHT:
-        {
-            if (!container->firstLetter)
-                break;
-
-            if (length < container->width)
-                break;
-
-            container->currentX = container->_x;
-        } break;
-
         case UI_ALIGN_CENTER:
         {
             if (!container->firstLetter)
