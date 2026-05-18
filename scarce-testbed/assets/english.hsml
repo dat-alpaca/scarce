@@ -1,17 +1,120 @@
-\container; %mouseX; %mouseY; 14; 5;
-    \top; 0;
-    \center; 0;
+\color; white faint;
+\top; 0;
+\hline; -;
+\space; 1;
 
-    \color; default;
-    \bg; 1;
-    \bgcolor; cyan faint;
-    
-    \sl; 0;
+\color; red nf;
+\top; 2;
+\center; 0;
+    \start;
+    Scarce Showcase
+    \end;
+
+\space; 3;
+\feed;
+
+# Mouse position:
+\color; purple;
+\sameline; 1;
+    \left; 0;
+    \nudge; 1;
         \start;
-        hello overflow wowww
+            Mouse: (
         \end;
 
+    \color; default faint;
         \start;
-        hi
+        %mouseX , %mouseY
         \end;
-    
+
+    \color; purple nf;
+        \start; ) \end;
+\sameline; 0;
+
+\feed;
+\space; 2;
+
+# Window dimensions:
+\sameline; 1;
+    \left; 0;
+    \nudge; 1;
+        \start;
+        Window Size: (
+        \end;
+
+    \color; default faint;
+        \start;
+        %w , %h
+        \end;
+
+    \color; purple nf;
+        \start; 
+        ) 
+        \end;
+
+    # Conditional:
+    \if; %w > 30;
+        \color; red nf;
+        \start;
+        !
+        \end;
+    \endif;
+\sameline; 0;
+\feed;
+\space; 2;
+
+# Stack:
+\color; purple;
+\sameline; 1;
+    \left; 0;
+    \nudge; 1;
+        \start;
+        Stack:
+        \end;
+
+    \color; white faint;
+    \nudge; 1;
+        \start;
+        %0 %1 %4
+        \end;
+\sameline; 0;
+\feed;
+\space; 2;
+
+\color; purple nf;
+\sameline; 1;
+    \nudge; 1;
+    \start;
+        texto:
+    \end;
+\nudge; 1;
+
+\textbox; %0; 0;
+
+\if; %4 == 1;
+    \feedline;
+    \left; 1;
+    \color; white faint;
+
+    \start;
+    Press the textbox and type something
+    \end;
+    \left; 0;
+\endif;
+
+# Buttons:
+\bottom; 0;
+\color; white faint;
+\hline; -;
+
+\sl; 1;
+    \feed;
+    \nudge; 1;
+
+    \button; %2; 0; lang;
+    \nudge; 1;
+    \button; %1; 0; quit;
+\sl; 0;
+
+
+

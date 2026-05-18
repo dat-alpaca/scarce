@@ -102,11 +102,15 @@
 \endif;
 
 # Buttons:
-\feed;
-\nudge; 1;
+\bottom; 0;
+\color; white faint;
+\hline; -;
 
-\bottom; 1;
-\button; %2; 0; lingua;
-    
-\nudge; 1;
-\button; %1; 0; sair;
+\sl; 1;
+    \feed;
+    \nudge; 1;
+
+    \button; %2; 0; lingua;
+    \nudge; 1;
+    \button; %1; 0; sair;
+\sl; 0;

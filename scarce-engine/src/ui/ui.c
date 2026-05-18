@@ -6,6 +6,7 @@
 #include "physics/aabb.h"
 #include "text_renderer.h"
 
+#include "ui/color.h"
 #include "ui/container.h"
 
 static void ui_reset(ui_state* state)
@@ -166,18 +167,18 @@ void ui_hline(ui_state* state, char lineChar)
 {
     assert(state);
 
-    /*
     float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
     float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
 
     container* container = &state->container;
+    if (container->currentY > container->height)
+        return;
 
-    container_determine_y_from_position(container, text_renderer_height(state->renderer));
     container->prevY = container->currentY;
 
     for (u32 x = 0; x < text_renderer_width(state->renderer); ++x)
     {
-        i32 y = state->container.currentY; 
+        i16 y = *container_determine_y_from_position(container, text_renderer_height(state->renderer)); 
 
         if (container_handle_y_overflow(container))
             break;
@@ -188,7 +189,6 @@ void ui_hline(ui_state* state, char lineChar)
     }
 
     container_space(&state->container, 1);
-    */
 }
 
 void ui_switch_container(ui_state* state, container* newContainer)

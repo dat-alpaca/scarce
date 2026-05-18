@@ -59,7 +59,7 @@ void container_handle_x_overflow(container* container);
 u16* container_determine_x_from_align(container* container, u32 length, u32 gridWidth);
 void container_set_align(container* container, text_align align, u16 offset);
 
-void container_determine_y_from_position(container* container, u32 gridHeight);
+i16* container_determine_y_from_position(container* container, u32 gridHeight);
 void container_set_position(container* container, text_position position, u16 yOffset);
 
 void container_feed(container* container);

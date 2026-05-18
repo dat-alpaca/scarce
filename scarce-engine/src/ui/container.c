@@ -1,6 +1,7 @@
 #include "container.h"
 #include "defines.h"
 #include "color.h"
+#include "text_renderer.h"
 #include "ui.h"
 
 #include <ctype.h>
@@ -111,15 +112,18 @@ void container_set_align(container* container, text_align align, u16 offset)
     container_feed(container);
 }
 
-void container_determine_y_from_position(container* container, u32 gridHeight)
+i16* container_determine_y_from_position(container* container, u32 gridHeight)
 {
     if (container->position == UI_POS_BOTTOM)
         container->currentY = container->height - container->positionOffset - 1;
+    
+    return &container->currentY;
 }
 void container_set_position(container* container, text_position position, u16 yOffset)
 {
     container->position = position;
     container->positionOffset = yOffset;
+    container->currentY = container->positionOffset;
 }
 
 void container_feed(container* container)
@@ -150,7 +154,7 @@ void container_space(container* container, u32 amount)
     {
         case UI_POS_BOTTOM:
         {
-            container->currentY -= amount;
+            container->positionOffset += amount;
             break;
         } 
 
@@ -198,15 +202,14 @@ void container_text(ui_state* state, container* container, const char* content, 
     float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
     float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
 
-    container->prevX = container->currentX;
-    container->prevY = container->currentY;
-
     for (u32 x = container->_x; x < container->_x + container->width; ++x)
     {
         for (u32 y = container->_y; y < container->_y + container->height; ++y)
             text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
     }
     
+    container->prevX = container->currentX;
+
     i32 i = container_determine_starting_index(container, length - 1);
     while (true)
     {
@@ -217,8 +220,10 @@ void container_text(ui_state* state, container* container, const char* content, 
             break;
 
         u16* x = container_determine_x_from_align(container, length, text_renderer_width(state->renderer)); 
-        i16* y = &container->currentY; 
+        i16* y = container_determine_y_from_position(container, text_renderer_height(state->renderer)); 
 
+        container->prevY = container->currentY;
+        
         container_handle_x_overflow(container);
         if (container->xOverflow)
         {
