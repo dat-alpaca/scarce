@@ -102,6 +102,7 @@ static engine gEngine =
     .ui_nudge = ui_nudge,
     .ui_space = ui_space,
     .ui_hline = ui_hline,
+    .ui_vline = ui_vline,
 
     .ui_mouse_aabb = ui_mouse_aabb,
     
