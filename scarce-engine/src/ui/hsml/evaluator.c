@@ -1,67 +1,103 @@
-#include "conditional.h"
+#include "evaluator.h"
 #include "dynamic_array.h"
 #include "logging/logger.h"
 #include "platform/platform.h"
 #include "ui/hsml/defines.h"
 #include "ui/hsml/placeholder.h"
 #include "ui/hsml/token.h"
+
 #include <ctype.h>
 
-static hsml_conditional_type hsml_parse_conditional_symbol(file_descriptor descriptor, char current, char next)
+static hsml_operator_type hsml_parse_operators(file_descriptor descriptor, char current, char next)
 {
+    if (current == '*')
+    {
+        platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+        return HSML_OPERATOR_MUL;
+    }
+    if (current == '/')
+    {
+        platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+        return HSML_OPERATOR_DIV;
+    }
+    if (current == 'm')
+    {
+        platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+        return HSML_OPERATOR_MOD;
+    }
+    if (current == '+')
+    {
+        platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+        return HSML_OPERATOR_PLS;
+    }
+    if (current == '-')
+    {
+        platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
+        return HSML_OPERATOR_PLS;
+    }
+
     if (current == '(')
     {
         platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
-        return HSML_COND_OPEN;
+        return HSML_OPERATOR_OPEN;
     }
     if (current == ')')
     {
         platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
-        return HSML_COND_CLOSE;
+        return HSML_OPERATOR_CLOSE;
     }
     if (current == '>' && next != '=')
     {
         platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
-        return HSML_COND_GRT;
+        return HSML_OPERATOR_GRT;
     }
     if (current == '<' && next != '=')
     {
         platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);
-        return HSML_COND_LSS;
+        return HSML_OPERATOR_LSS;
     }
 
     if (current == '=' && next == '=')
-        return HSML_COND_EQU;
+        return HSML_OPERATOR_EQU;
     if (current == '!' && next == '=')
-        return HSML_COND_NEQ;
+        return HSML_OPERATOR_NEQ;
 
     if (current == '>' && next == '=')
-        return HSML_COND_GEQ;
+        return HSML_OPERATOR_GEQ;
     if (current == '<' && next == '=')
-        return HSML_COND_LEQ;
+        return HSML_OPERATOR_LEQ;
 
     if (current == '&' && next == '&')
-        return HSML_COND_AND;
+        return HSML_OPERATOR_AND;
     if (current == '|' && next == '|')
-        return HSML_COND_OR;
+        return HSML_OPERATOR_OR;
 
-    return HSML_COND_INVALID;    
+    return HSML_OPERATOR_INVALID;    
 }
 
-static u8 hsml_get_precedence(hsml_conditional_type type)
+static u8 hsml_get_precedence(hsml_operator_type type)
 {
     switch(type)
     {
-        case HSML_COND_NEQ:
-        case HSML_COND_EQU:
-        case HSML_COND_GRT:
-        case HSML_COND_LSS:
-        case HSML_COND_GEQ:
-        case HSML_COND_LEQ:
+        case HSML_OPERATOR_MUL:
+        case HSML_OPERATOR_DIV:
+        case HSML_OPERATOR_MOD:
+            return 4;
+
+        case HSML_OPERATOR_MNS:
+        case HSML_OPERATOR_PLS:
+            return 3;
+
+        case HSML_OPERATOR_NEQ:
+        case HSML_OPERATOR_EQU:
+        case HSML_OPERATOR_GRT:
+        case HSML_OPERATOR_LSS:
+        case HSML_OPERATOR_GEQ:
+        case HSML_OPERATOR_LEQ:
             return 2;
 
-        case HSML_COND_AND:
-        case HSML_COND_OR:
+        case HSML_OPERATOR_AND:
+        case HSML_OPERATOR_OR:
             return 1;
 
         default:
@@ -71,19 +107,19 @@ static u8 hsml_get_precedence(hsml_conditional_type type)
     return 0;
 }
 
-static dynamic_array hsml_get_conditional_array(ui_state* state, file_descriptor descriptor)
+static dynamic_array hsml_get_expression_array(ui_state* state, file_descriptor descriptor)
 {
     dynamic_array conditionalArray = { 0 };
-    dynamic_array_init(&conditionalArray, 16, sizeof(hsml_conditional));
+    dynamic_array_init(&conditionalArray, 16, sizeof(hsml_evaluation));
 
     bool possiblyValid = false;
     while (true)
     {
         char current;
-        if (!platform_read_file(descriptor, &current, 1))
+        if (!platform_read_file(descriptor, &current, 1) || current == '\n' || current == '\0')
             break;
 
-        if (current == ';')
+        if (current == HSML_TOKEN_DELIMITER)
         {
             possiblyValid = true;
             break;
@@ -107,7 +143,7 @@ static dynamic_array hsml_get_conditional_array(ui_state* state, file_descriptor
                 value = (value * 10) + (current - '0');
             }
 
-            hsml_conditional conditional = { .value = value, .type = HSML_COND_NUMBER };
+            hsml_evaluation conditional = { .value = value, .type = HSML_OPERATOR_NUMBER };
             dynamic_array_push(&conditionalArray, &conditional, 1);
             continue;
         }
@@ -118,22 +154,21 @@ static dynamic_array hsml_get_conditional_array(ui_state* state, file_descriptor
             if (placeholder.type == HSML_TOKEN_TEXT)
                 log_critical_s("Invalid HSML: expected value", 29);
 
-            
             u64 value = hsml_fetch_number_from_placeholder(&placeholder);
             dynamic_array_destroy(&placeholder.value);
 
-            hsml_conditional conditional = { .value = value, .type = HSML_COND_NUMBER };
+            hsml_evaluation conditional = { .value = value, .type = HSML_OPERATOR_NUMBER };
             dynamic_array_push(&conditionalArray, &conditional, 1);
             continue;
         }
         
         char next;
         platform_read_file(descriptor, &next, 1);
-        hsml_conditional_type type = hsml_parse_conditional_symbol(descriptor, current, next);
-        if (type == HSML_COND_INVALID)
+        hsml_operator_type type = hsml_parse_operators(descriptor, current, next);
+        if (type == HSML_OPERATOR_INVALID)
             log_critical_s("Invalid HSML: invalid conditional symbol", 41);
 
-        hsml_conditional conditional = { .type = type };
+        hsml_evaluation conditional = { .type = type };
         dynamic_array_push(&conditionalArray, &conditional, 1);
     }
 
@@ -143,31 +178,31 @@ static dynamic_array hsml_get_conditional_array(ui_state* state, file_descriptor
     return conditionalArray;
 }
 
-static dynamic_array shunt_conditional_expression(dynamic_array* expression)
+static dynamic_array shunt_expression(dynamic_array* expression)
 {
     dynamic_array output = { 0 };
     dynamic_array operators = { 0 };
-    dynamic_array_init(&output, 16, sizeof(hsml_conditional));
-    dynamic_array_init(&operators, 16, sizeof(hsml_conditional));
+    dynamic_array_init(&output, 16, sizeof(hsml_evaluation));
+    dynamic_array_init(&operators, 16, sizeof(hsml_evaluation));
 
-    hsml_conditional* data = (hsml_conditional*)expression->buffer;
-    hsml_conditional* operatorData = (hsml_conditional*)operators.buffer;
+    hsml_evaluation* data = (hsml_evaluation*)expression->buffer;
+    hsml_evaluation* operatorData = (hsml_evaluation*)operators.buffer;
 
     for (u32 i = 0; i < dynamic_array_size(expression); ++i)
     {
-        hsml_conditional* current = &data[i];
+        hsml_evaluation* current = &data[i];
         
-        if (current->type == HSML_COND_NUMBER)
+        if (current->type == HSML_OPERATOR_NUMBER)
         {
             dynamic_array_push(&output, current, 1);
             continue;
         }
-        if (current->type == HSML_COND_OPEN)
+        if (current->type == HSML_OPERATOR_OPEN)
         {
             dynamic_array_push(&operators, current, 1);
             continue;
         }
-        else if (current->type == HSML_COND_CLOSE)
+        else if (current->type == HSML_OPERATOR_CLOSE)
         {
             while(true)
             {
@@ -176,7 +211,7 @@ static dynamic_array shunt_conditional_expression(dynamic_array* expression)
 
                 current = &operatorData[dynamic_array_size(&operators) - 1];
 
-                if (current->type == HSML_COND_OPEN)
+                if (current->type == HSML_OPERATOR_OPEN)
                 {
                     dynamic_array_pop(&operators, 1);
                     break;
@@ -188,7 +223,7 @@ static dynamic_array shunt_conditional_expression(dynamic_array* expression)
             continue;
         }
 
-        if (dynamic_array_empty(&operators) || operatorData[0].type == HSML_COND_OPEN)
+        if (dynamic_array_empty(&operators) || operatorData[0].type == HSML_OPERATOR_OPEN)
         {
             dynamic_array_push(&operators, current, 1);
             continue;
@@ -197,9 +232,9 @@ static dynamic_array shunt_conditional_expression(dynamic_array* expression)
         u8 currentPrecedence = hsml_get_precedence(current->type);
         while (!dynamic_array_empty(&operators)) 
         {
-            hsml_conditional* top = &operatorData[dynamic_array_size(&operators) - 1];
+            hsml_evaluation* top = &operatorData[dynamic_array_size(&operators) - 1];
             
-            if (top->type == HSML_COND_OPEN)
+            if (top->type == HSML_OPERATOR_OPEN)
                 break;
 
             if (hsml_get_precedence(top->type) < currentPrecedence) 
@@ -214,7 +249,7 @@ static dynamic_array shunt_conditional_expression(dynamic_array* expression)
 
     for (u32 i = 0; i < dynamic_array_size(&operators); ++i)
     {
-        hsml_conditional* top = &operatorData[dynamic_array_size(&operators) - 1 - i];
+        hsml_evaluation* top = &operatorData[dynamic_array_size(&operators) - 1 - i];
         dynamic_array_push(&output, top, 1);
     }
 
@@ -222,18 +257,18 @@ static dynamic_array shunt_conditional_expression(dynamic_array* expression)
     return output;
 }
 
-static bool hsml_evaluate_postfix(dynamic_array* output)
+static i32 hsml_evaluate_postfix(dynamic_array* output)
 {
     dynamic_array stack = { 0 };
-    dynamic_array_init(&stack, 8, sizeof(u32));
+    dynamic_array_init(&stack, 8, sizeof(i32));
 
-    u32* stackData = (u32*)stack.buffer;
-    hsml_conditional* data = (hsml_conditional*)output->buffer;
+    i32* stackData = (i32*)stack.buffer;
+    hsml_evaluation* data = (hsml_evaluation*)output->buffer;
     for (u32 i = 0; i < dynamic_array_size(output); ++i)
     {
-        hsml_conditional* current = &data[i];
+        hsml_evaluation* current = &data[i];
 
-        if (current->type == HSML_COND_NUMBER)
+        if (current->type == HSML_OPERATOR_NUMBER)
         {
             dynamic_array_push(&stack, &current->value, 1);
             continue;
@@ -242,22 +277,28 @@ static bool hsml_evaluate_postfix(dynamic_array* output)
         if (dynamic_array_size(&stack) < 2)
             break;
 
-        u32 rhs = stackData[dynamic_array_size(&stack) - 1];
+        i32 rhs = stackData[dynamic_array_size(&stack) - 1];
         dynamic_array_pop(&stack, 1);
-        u32 lhs = stackData[dynamic_array_size(&stack) - 1];
+        i32 lhs = stackData[dynamic_array_size(&stack) - 1];
         dynamic_array_pop(&stack, 1);
 
-        u32 partial = 0;
+        i32 partial = 0;
         switch(current->type) 
         {
-            case HSML_COND_EQU: partial = (lhs == rhs); break;
-            case HSML_COND_NEQ: partial = (lhs != rhs); break;
-            case HSML_COND_GRT: partial = (lhs >  rhs); break;
-            case HSML_COND_LSS: partial = (lhs <  rhs); break;
-            case HSML_COND_GEQ: partial = (lhs >= rhs); break;
-            case HSML_COND_LEQ: partial = (lhs <= rhs); break;
-            case HSML_COND_AND: partial = (lhs && rhs); break;
-            case HSML_COND_OR:  partial = (lhs || rhs); break;
+            case HSML_OPERATOR_MUL: partial = (lhs * rhs); break;
+            case HSML_OPERATOR_DIV: partial = (lhs / rhs); break;
+            case HSML_OPERATOR_MOD: partial = (lhs % rhs); break;
+            case HSML_OPERATOR_PLS: partial = (lhs + rhs); break;
+            case HSML_OPERATOR_MNS: partial = (lhs - rhs); break;
+
+            case HSML_OPERATOR_EQU: partial = (lhs == rhs); break;
+            case HSML_OPERATOR_NEQ: partial = (lhs != rhs); break;
+            case HSML_OPERATOR_GRT: partial = (lhs >  rhs); break;
+            case HSML_OPERATOR_LSS: partial = (lhs <  rhs); break;
+            case HSML_OPERATOR_GEQ: partial = (lhs >= rhs); break;
+            case HSML_OPERATOR_LEQ: partial = (lhs <= rhs); break;
+            case HSML_OPERATOR_AND: partial = (lhs && rhs); break;
+            case HSML_OPERATOR_OR:  partial = (lhs || rhs); break;
             default:
                 break;
         }
@@ -265,18 +306,18 @@ static bool hsml_evaluate_postfix(dynamic_array* output)
         dynamic_array_push(&stack, &partial, 1);
     }
 
-    bool result = (!dynamic_array_empty(&stack)) ? stackData[0] : false;
+    i32 result = (!dynamic_array_empty(&stack)) ? stackData[0] : false;
     dynamic_array_destroy(&stack);
 
     return result;
 }
 
-bool hsml_get_conditional_result(ui_state* state, file_descriptor descriptor)
+i32 hsml_get_expression_evaluation(ui_state* state, file_descriptor descriptor)
 {
-    dynamic_array conditionalArray = hsml_get_conditional_array(state, descriptor);
-    dynamic_array output = shunt_conditional_expression(&conditionalArray);
+    dynamic_array conditionalArray = hsml_get_expression_array(state, descriptor);
+    dynamic_array output = shunt_expression(&conditionalArray);
     
-    bool result = hsml_evaluate_postfix(&output);
+    i32 result = hsml_evaluate_postfix(&output);
 
     dynamic_array_destroy(&conditionalArray);
     dynamic_array_destroy(&output);

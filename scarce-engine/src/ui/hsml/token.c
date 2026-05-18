@@ -4,7 +4,7 @@
 #include "dynamic_array.h"
 #include "logging/logger.h"
 #include "string_utils.h"
-#include "ui/hsml/conditional.h"
+#include "ui/hsml/evaluator.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -70,8 +70,10 @@ static void hsml_fetch_text(ui_state* state, file_descriptor descriptor, dynamic
     dynamic_array_push(buffer, &null, 1);
 }
 
-static u32 hsml_fetch_number(ui_state* state, file_descriptor descriptor)
+static i32 hsml_fetch_number(ui_state* state, file_descriptor descriptor)
 {
+    return hsml_get_expression_evaluation(state, descriptor);
+
     dynamic_array buffer = { 0 };
     dynamic_array_init(&buffer, 16, sizeof(char));
 
@@ -218,7 +220,7 @@ static void hsml_fetch_colors(file_descriptor descriptor, dynamic_array* colors)
 
 static bool hsml_fetch_condition(ui_state* state, file_descriptor descriptor)
 {
-    return hsml_get_conditional_result(state, descriptor);
+    return hsml_get_expression_evaluation(state, descriptor);
 }
 
 // Token lookup:
@@ -340,7 +342,7 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
 
         case HSML_TOKEN_BG:
         {
-            u32 number = hsml_fetch_number(state, descriptor);
+            i32 number = hsml_fetch_number(state, descriptor);
             
             dynamic_array_init(&token.value, 1, sizeof(u32));
             dynamic_array_push(&token.value, &number, 1);

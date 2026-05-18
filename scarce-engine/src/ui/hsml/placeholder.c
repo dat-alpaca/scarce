@@ -100,8 +100,7 @@ hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descrip
         char current;
         if (!platform_read_file(descriptor, &current, 1) || current == '\n' || current == HSML_TOKEN_DELIMITER || isspace(current))
         {
-            if (current != HSML_TOKEN_DELIMITER)
-                platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);   
+            platform_file_seek(descriptor, SEEK_MODE_CURRENT, -1);   
             break;
         }
 

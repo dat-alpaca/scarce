@@ -20,7 +20,7 @@ sources = files(
     'src/ui/text_box.c',
     'src/ui/hsml/hsml.c',
     'src/ui/hsml/token.c',
-    'src/ui/hsml/conditional.c',
+    'src/ui/hsml/evaluator.c',
     'src/ui/hsml/placeholder.c',
     'src/ui/color.c',
 )
