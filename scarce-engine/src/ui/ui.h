@@ -64,6 +64,7 @@ void ui_feed(ui_state* state);
 void ui_nudge(ui_state* state, u32 xOffset);
 void ui_space(ui_state* state, u32 yOffset);
 void ui_hline(ui_state* state, char lineChar);
+void ui_vline(ui_state* state, u32 x, char lineChar);
 
 void ui_switch_container(ui_state* state, container* newContainer);
 void ui_restore_container(ui_state* state);

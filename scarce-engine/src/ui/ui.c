@@ -176,7 +176,7 @@ void ui_hline(ui_state* state, char lineChar)
 
     container->prevY = container->currentY;
 
-    for (u32 x = 0; x < text_renderer_width(state->renderer); ++x)
+    for (u32 x = container->_x; x < container->_x + text_renderer_width(state->renderer); ++x)
     {
         i16 y = *container_determine_y_from_position(container, text_renderer_height(state->renderer)); 
 
@@ -189,6 +189,27 @@ void ui_hline(ui_state* state, char lineChar)
     }
 
     container_space(&state->container, 1);
+}
+
+void ui_vline(ui_state* state, u32 x, char lineChar)
+{
+    assert(state);
+
+    float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
+    float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
+
+    container* container = &state->container;
+    if (x >= container->width)
+        x = container->width - 1;
+
+    container->prevX = container->currentX;
+
+    for (u32 y = container->_y; y < container->_y + text_renderer_height(state->renderer); ++y)
+    {
+        text_renderer_set_character_letter(state->renderer, x, y, lineChar);
+        text_renderer_set_character_color(state->renderer, x, y, color[0], color[1], color[2]);
+        text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
+    }
 }
 
 void ui_switch_container(ui_state* state, container* newContainer)

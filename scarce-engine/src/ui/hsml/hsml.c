@@ -233,6 +233,13 @@ static void hsml_parse_multiple_token(ui_state* state, hsml_token* token)
             ui_text_box_render(textbox, state);
         } break;
 
+        case HSML_TOKEN_VLINE:
+        {
+            u8 x = *(u8*)(token->value.buffer + 0 * sizeof(u8));
+            char character = *(u8*)(token->value.buffer + 1 * sizeof(u8));
+            ui_vline(state, x, character);
+        } break;
+
         case HSML_TOKEN_CONTAINER:
         {
             u8 x = *(u8*)(token->value.buffer + 0 * sizeof(u8));

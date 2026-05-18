@@ -251,6 +251,7 @@ static hsml_token_lookup_item s_tokenLookupTable[] =
     { "bottom", HSML_TOKEN_POS_BOTTOM },
 
     { "hline", HSML_TOKEN_HLINE },
+    { "vline", HSML_TOKEN_VLINE },
     { "space", HSML_TOKEN_SPACE },
     { "nudge", HSML_TOKEN_NUDGE },
 
@@ -392,8 +393,17 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
         case HSML_TOKEN_HLINE:
         {
             u32 character = (u32)hsml_fetch_character(descriptor);
+            dynamic_array_init(&token.value, 1, sizeof(u32));
+            dynamic_array_push(&token.value, &character, 1);
+        } break;
+
+        case HSML_TOKEN_VLINE:
+        {
+            u8 x = (u8)hsml_fetch_number(state, descriptor);
+            char character = (char)hsml_fetch_character(descriptor);
             
-            dynamic_array_init(&token.value, 2, sizeof(u32));
+            dynamic_array_init(&token.value, 2, sizeof(u8));
+            dynamic_array_push(&token.value, &x, 1);
             dynamic_array_push(&token.value, &character, 1);
         } break;
 
@@ -445,6 +455,7 @@ hsml_token_argument hsml_get_argument_type(hsml_token_type type)
         case HSML_TOKEN_BG:
             return HSML_TOKEN_ARG_NUMERIC;
 
+        case HSML_TOKEN_VLINE:
         case HSML_TOKEN_TEXTBOX:
         case HSML_TOKEN_BUTTON:
             return HSML_TOKEN_ARG_MULTIPLE;

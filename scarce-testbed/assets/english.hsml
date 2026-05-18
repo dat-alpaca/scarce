@@ -3,6 +3,9 @@
 \hline; -;
 \space; 1;
 
+\vline; 0; |;
+\vline; %w; |;
+
 \color; red nf;
 \top; 2;
 \center; 0;
