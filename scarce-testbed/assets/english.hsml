@@ -3,9 +3,6 @@
 \hline; -;
 \space; 1;
 
-\vline; 0; |;
-\vline; %w; |;
-
 \color; red nf;
 \top; 2;
 \center; 0;
@@ -107,8 +104,6 @@
 
 # Buttons:
 \bottom; 0;
-\color; white faint;
-\hline; -;
 
 \sl; 1;
     \feed;

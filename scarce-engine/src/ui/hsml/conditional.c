@@ -2,7 +2,6 @@
 #include "dynamic_array.h"
 #include "logging/logger.h"
 #include "platform/platform.h"
-#include "string_utils.h"
 #include "ui/hsml/defines.h"
 #include "ui/hsml/placeholder.h"
 #include "ui/hsml/token.h"
