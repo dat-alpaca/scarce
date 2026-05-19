@@ -64,11 +64,7 @@ void view_holder_switch_view(view_holder* holder, engine* e, memory_pool* pool, 
     }
 
     holder->currentViewIndex = index;
-    if (!holder->data[index].load)
-        return;
-
-    on_view_load loadFunction = (on_view_load)((uintptr_t)holder->data[index].load + (uintptr_t)e->baseAddress);    
-    loadFunction(e, pool);
+    holder->requestSwitch = 1;
 }
 
 void view_holder_update(view_holder* holder, struct engine* e, memory_pool* pool)
@@ -76,6 +72,17 @@ void view_holder_update(view_holder* holder, struct engine* e, memory_pool* pool
     assert(holder);
     assert(pool);
     assert(e);
+
+    if (holder->requestSwitch)
+    {
+        if (holder->data[holder->currentViewIndex].load)
+        {
+            on_view_load loadFunction = (on_view_load)((uintptr_t)holder->data[holder->currentViewIndex].load + (uintptr_t)e->baseAddress);    
+            loadFunction(e, pool);
+        }
+
+        holder->requestSwitch = false;
+    }
 
     view_data* data = view_holder_current(holder);
     if (!data->update)
@@ -92,7 +99,7 @@ void view_holder_render(view_holder* holder, struct engine* e, memory_pool* pool
     assert(e);
 
     view_data* data = view_holder_current(holder);
-    if (!data->render)
+    if (!data->render || holder->requestSwitch)
         return;
 
     on_view_render renderFunction = (on_view_render)((uintptr_t)data->render + (uintptr_t)e->baseAddress);    

@@ -21,12 +21,13 @@ typedef struct
     on_view_load unload;
 } view_data;
 
-typedef struct
+typedef struct view_holder
 {
     view_data* data;
     u32 count;
     u32 capacity;
     u32 currentViewIndex;
+    bool requestSwitch : 1;
 } view_holder;
 
 void view_holder_init(view_holder* holder, u32 capacity);
