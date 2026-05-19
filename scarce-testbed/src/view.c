@@ -108,3 +108,8 @@ void on_render_view(engine* e, memory_pool* pool)
     
     e->ui_end(state);
 }
+
+void on_unload_view(engine* e, memory_pool* pool)
+{
+    e->log_info(e->logger, "View unloaded", 14);
+}

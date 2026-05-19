@@ -216,14 +216,13 @@ int main()
     // Application space:
     load_func onLoad;
     update_func onUpdate;
-    unload_func onUnload;
     void* applicationSpace = get_application_space(config->mainBinaryFilepath, config->memoryPageAmount);
     if (!applicationSpace)
         return 1;
 
     gEngine.baseAddress = applicationSpace;
 
-    get_exported_functions(applicationSpace, &onLoad, &onUpdate, &onUnload);
+    get_exported_functions(applicationSpace, &onLoad, &onUpdate);
 
     // Window:
     gEngine.window = window_init(config->windowTitle, config->minWindowWidth, config->minWindowHeight);
@@ -269,7 +268,6 @@ int main()
 
         window_swap_buffers(gEngine.window);
     }
-    onUnload(memoryPool);
     
     return 0;
 }

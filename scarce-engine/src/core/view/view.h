@@ -10,6 +10,7 @@ typedef u16 view_id;
 typedef void (*on_view_load)(struct engine* e, memory_pool* pool);
 typedef void (*on_view_update)(struct engine* e, memory_pool* pool);
 typedef void (*on_view_render)(struct engine* e, memory_pool* pool);
+typedef void (*on_view_unload)(struct engine* e, memory_pool* pool);
 
 typedef struct
 {
@@ -17,6 +18,7 @@ typedef struct
     on_view_load load;
     on_view_update update;
     on_view_render render;
+    on_view_load unload;
 } view_data;
 
 typedef struct

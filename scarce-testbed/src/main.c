@@ -49,6 +49,7 @@ void on_load(memory_pool* pool, engine* engine)
         mainMenu->load = on_load_view;
         mainMenu->render = on_render_view;
         mainMenu->update = on_update_view;
+        mainMenu->unload = on_unload_view;
         
         _e->view_holder_register(_e->viewHolder, mainMenu);
         _e->scarce_pop(pool, sizeof(view_data)); 
@@ -64,13 +65,7 @@ bool on_update(memory_pool* pool)
     return true;
 }
 
-void on_unload(memory_pool* pool)
-{
-    
-}  
-
 SECTION_ENTRY const exports _ = {
     .on_load   = on_load,
     .on_update = on_update,
-    .on_unload = on_unload
 };

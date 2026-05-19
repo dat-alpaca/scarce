@@ -57,12 +57,19 @@ void view_holder_switch_view(view_holder* holder, engine* e, memory_pool* pool, 
     if (index == SCA_VIEW_INVALID)
         log_critical(e->logger, "Invalid view_id", 16);
 
+    if (holder->currentViewIndex != SCA_VIEW_INVALID)
+    {
+        view_data* current = view_holder_current(holder);
+        if(current->unload)
+            current->unload(e, pool);
+    }
+
     holder->currentViewIndex = index;
     if (!holder->data[index].load)
         return;
 
     on_view_load loadFunction = (on_view_load)((uintptr_t)holder->data[index].load + (uintptr_t)e->baseAddress);    
-        loadFunction(e, pool);
+    loadFunction(e, pool);
 }
 
 void view_holder_update(view_holder* holder, struct engine* e, memory_pool* pool)
