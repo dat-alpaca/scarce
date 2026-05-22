@@ -6,6 +6,7 @@ typedef u32 gl_handle;
 
 void graphics_begin_frame(gl_handle vao);
 void graphics_end_frame();
+void graphics_set_viewport(i32 x, i32 y, i32 width, i32 height);
 
 // Buffers:
 typedef enum
@@ -22,7 +23,6 @@ void graphics_update_buffer(gl_handle bufferHandle, void* buffer, u32 size, u32 
 void graphics_bind_buffer(gl_handle vao, gl_handle bufferHandle, u32 binding, u32 stride); 
 void graphics_bind_element_buffer(gl_handle vao, gl_handle bufferHandle); 
 void graphics_destroy_buffer(gl_handle bufferHandle);
-
 
 // Textures:
 typedef struct

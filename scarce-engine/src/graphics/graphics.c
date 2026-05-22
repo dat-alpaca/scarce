@@ -14,6 +14,10 @@ void graphics_end_frame()
 {
 	/* Blank */
 }
+void graphics_set_viewport(i32 x, i32 y, i32 width, i32 height)
+{
+    glViewport(x, y, width, height);
+}
 
 // Buffers:
 gl_handle graphics_create_buffer(u32 size, buffer_usage usage)

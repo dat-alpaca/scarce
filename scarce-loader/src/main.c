@@ -194,7 +194,7 @@ void window_size_callback(window_handle* window, i32 width, i32 height)
     context* userContext = (context*)window_get_user_pointer(window);
     text_renderer* r = &userContext->renderer;
 
-    glViewport(0, 0, width, height);
+    graphics_set_viewport(0, 0, width, height);
     text_renderer_on_resize(r, width, height);
 }
 
