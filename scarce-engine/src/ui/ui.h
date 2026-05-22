@@ -4,28 +4,16 @@
 #include "physics/aabb.h"
 #include "text_renderer.h"
 #include "ui/container.h"
+#include "graphics/color.h"
 
 #define SCA_UI_MAX_NUMBER_LENGTH 10 // u32
 
 struct engine;
 
-// Symbol:
-enum : u8
-{
-    SY_COLOR_NONE = 0,
-    SY_COLOR_RED,
-    SY_COLOR_GREEN,
-    SY_COLOR_YELLOW,
-    SY_COLOR_BLUE,
-    SY_COLOR_PURPLE,
-    SY_COLOR_CYAN,
-    SY_COLOR_WHITE,
-} typedef symbol_color;
-
 typedef struct
 {
-    symbol_color color : 3;
-    symbol_color background : 3;
+    color color : 3;
+    color background : 3;
 
     u8 colorIntense : 1;
     u8 colorFaint : 1;

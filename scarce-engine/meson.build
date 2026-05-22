@@ -13,6 +13,7 @@ sources = files(
     'src/graphics/graphics.c',
     'src/graphics/pipeline.c',
     'src/graphics/text_renderer.c',
+    'src/graphics/color.c',
 
     'src/ui/ui.c',
     'src/ui/button.c',
@@ -22,7 +23,6 @@ sources = files(
     'src/ui/hsml/token.c',
     'src/ui/hsml/evaluator.c',
     'src/ui/hsml/placeholder.c',
-    'src/ui/color.c',
 )
 
 # Dependencies:

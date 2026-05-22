@@ -7,7 +7,7 @@
 #include "string_utils.h"
 #include "text_renderer.h"
 
-#include "ui/color.h"
+#include "graphics/color.h"
 #include "ui/container.h"
 
 static void ui_reset(ui_state* state)

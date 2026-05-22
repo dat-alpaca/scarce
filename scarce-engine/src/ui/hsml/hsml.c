@@ -115,7 +115,7 @@ static void hsml_parse_text_token(ui_state* state, hsml_token* token)
     }
 }
 
-static void hsml_parse_color_token(symbol_color* color, u8* intense, u8* faint, hsml_color_token_type colorToken)
+static void hsml_parse_color_token(color* color, u8* intense, u8* faint, hsml_color_token_type colorToken)
 {
     switch(colorToken)
     {
@@ -156,7 +156,7 @@ static void hsml_parse_color_tokens(ui_state* state, hsml_token* tokens)
             hsml_color_token_type* data = (hsml_color_token_type*)tokens->value.buffer; 
             for (u32 i = 0; i < dynamic_array_size(&tokens->value); ++i)
             {
-                symbol_color color = state->color.color;
+                color color = state->color.color;
                 u8 colorFaint = state->color.colorFaint;
                 u8 colorIntense = state->color.colorIntense;
 
@@ -180,7 +180,7 @@ static void hsml_parse_color_tokens(ui_state* state, hsml_token* tokens)
             hsml_color_token_type* data = (hsml_color_token_type*)tokens->value.buffer; 
             for (u32 i = 0; i < tokens->value.current; ++i)
             {
-                symbol_color color = state->color.background;
+                color color = state->color.background;
                 u8 colorFaint = state->color.backgroundFaint;
                 u8 colorIntense = state->color.backgroundIntense;
 
