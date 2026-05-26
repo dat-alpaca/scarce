@@ -3,6 +3,7 @@
 
 #include "logging/logger.h"
 #include "random.h"
+#include "rhi/rhi.h"
 #include "scarce.h"
 
 #include "graphics/batch_renderer.h"
@@ -10,6 +11,7 @@
 #include "loader.h"
 
 #include "platform/platform.h"
+#include "texture.h"
 #include "ui/hsml/hsml.h"
 #include "ui/ui.h"
 #include "view/view.h"
@@ -121,6 +123,7 @@ struct context
     asset_library assetLibrary;
     batch_renderer textRenderer;
     view_holder viewHolder;
+    rhi rhi;
 } typedef context;
 
 /* Window */
@@ -129,7 +132,7 @@ void window_size_callback(window_handle* window, i32 width, i32 height)
     context* userContext = (context*)window_get_user_pointer(window);
     batch_renderer* r = &userContext->textRenderer;
 
-    graphics_set_viewport(0, 0, width, height);
+    rhi_set_viewport(userContext->rhi, 0, 0, width, height);
     batch_renderer_on_resize(r, width, height);
 }
 
@@ -154,16 +157,20 @@ static bool initialize(context* context, config* config)
     window_set_user_pointer(gEngine.window, context);
     window_set_resize_callback(gEngine.window, window_size_callback);
 
+    // RHI:
+    context->rhi = rhi_init();
+    rhi_initialize_window(context->rhi, gEngine.window);
+
     // Assets:
     asset_library_init(&context->assetLibrary, 2);
-    //asset_handle mainFont = asset_library_load_font(&context->assetLibrary, config->fontFilepath, 64);
-    asset_handle mainFont = asset_library_load_spritesheet(&context->assetLibrary, "assets/core/items.png", 16);
-    spritesheet* fontSpritesheet = asset_library_get_spritesheet(&context->assetLibrary, mainFont);
-    gl_handle fontTexture = upload_font_spritesheets(fontSpritesheet);
+    asset_handle mainFont = asset_library_load_font(&context->assetLibrary, config->fontFilepath, 64);
+    asset_handle spriteHandle = asset_library_load_spritesheet(&context->assetLibrary, "assets/core/items.png", 16);
+    spritesheet* fontSpritesheet = asset_library_get_spritesheet(&context->assetLibrary, spriteHandle);
+    texture_handle fontTexture = upload_font_spritesheets(context->rhi, fontSpritesheet);
 
     // View:
     gEngine.viewHolder = &context->viewHolder;
-    view_holder_init(gEngine.viewHolder, 10);
+    view_holder_init(gEngine.viewHolder, 3);
 
     // Logger:
     logger mainLogger;
@@ -172,7 +179,7 @@ static bool initialize(context* context, config* config)
 
     // Font Renderer:
     shader_filepaths shaders = { .vertexFilepath = config->vertexFilepath, .fragmentFilepath = config->fragmentFilepath };
-    batch_renderer_init(&context->textRenderer, gEngine.window, &shaders, config->minWindowWidth, config->minWindowHeight, 24);
+    batch_renderer_init(&context->textRenderer, context->rhi, gEngine.window, &shaders, config->minWindowWidth, config->minWindowHeight, 24);
     batch_renderer_set_texture(&context->textRenderer, fontTexture);
     gEngine.renderer = &context->textRenderer;
 
@@ -205,7 +212,7 @@ int main()
 
         batch_renderer_render(&context.textRenderer);
 
-        window_swap_buffers(gEngine.window);
+        rhi_swap_buffers(context.rhi, gEngine.window);
     }
     
     return 0;

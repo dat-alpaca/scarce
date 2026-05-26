@@ -3,7 +3,7 @@
 #define GLEW_NO_GLU
 #include <GL/glew.h>
 
-gl_handle upload_font_spritesheets(spritesheet* spritesheet)
+texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet)
 {
     u32 spriteAmount = spritesheet->sprites.current / sizeof(sprite);
 
@@ -37,7 +37,7 @@ gl_handle upload_font_spritesheets(spritesheet* spritesheet)
 		information.magFilter = GL_NEAREST;
     }
 
-    gl_handle spritesheetTexture = graphics_create_texture(&information); 
+    texture_handle spritesheetTexture = rhi_create_texture(rhi, &information); 
 
     sprite* characters = (sprite*)spritesheet->sprites.buffer;
     for(u32 i = 0; i < spriteAmount; ++i)
@@ -63,8 +63,10 @@ gl_handle upload_font_spritesheets(spritesheet* spritesheet)
         if (spritesheet->channels == 4)
             format = GL_RGBA;    
 
-        graphics_update_texture_array_layer(
-            spritesheetTexture, &information, 
+        rhi_update_texture_array_layer(
+            rhi, 
+            spritesheetTexture, 
+            &information, 
             sprite.layer, 
             offset, 
             format, 

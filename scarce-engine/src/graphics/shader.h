@@ -1,10 +1,13 @@
 #pragma once
-#include "graphics/pipeline.h"
+#include "core/defines.h"
 
-typedef struct
+typedef struct shader_filepaths
 {
     const char* vertexFilepath;
     const char* fragmentFilepath;
 } shader_filepaths;
 
-gl_handle read_shader(const char* filepath, shader_type type);
+typedef enum : u32 
+{  
+    shader_invalid = 0xFFFFFFFF
+} shader_handle;

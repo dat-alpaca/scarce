@@ -50,8 +50,8 @@ typedef struct engine
     void (*platform_close_file)(file_descriptor);
 
     // Input:
-    bool (*is_key_pressed)(window_handle*, key key);
-    bool (*is_mouse_btn_pressed)(window_handle* handle, mouse_button button);
+    bool (*is_key_pressed)(window_handle, key key);
+    bool (*is_mouse_btn_pressed)(window_handle handle, mouse_button button);
 
     // View:
     view_holder* viewHolder;

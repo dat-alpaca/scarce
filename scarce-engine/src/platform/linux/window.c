@@ -1,34 +1,12 @@
 #include "logging/logger.h"
 #include "platform/platform.h"
-#include <stdio.h>
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
 #include <GL/glx.h>
 #include <stdlib.h>
 
-typedef struct x11_window
-{
-    window_resize_callback resizeCallback;
-
-    Atom wm_delete_window;
-    GLXContext context;
-    Display* display;
-    Window window;
-    void* userPointer;
-
-    bool keyPressed[SCA_KEY_COUNT + 1];
-
-    i32 width;
-    i32 height;
-    i32 mouseY;
-    i32 mouseX;
-
-    bool leftButtonPress;
-    bool rightButtonPress;
-    bool middleButtonPress;
-    bool isOpen;
-} x11_window;
+#include "window.h"
 
 window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 {
@@ -40,6 +18,45 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
     if (!window->display) 
         log_critical_s("Failed to open X11 display", 27);
 
+    i32 screen = DefaultScreen(window->display);
+
+    XVisualInfo vinfo;
+    XMatchVisualInfo(window->display, screen, 24, TrueColor, &vinfo);
+    window->visual = vinfo.visual;
+    window->depth = vinfo.depth;
+
+    XSetWindowAttributes windowAttributes = 
+    {
+        .colormap = XCreateColormap(window->display, RootWindow(window->display, screen), window->visual, AllocNone),
+        .event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | 
+                      ButtonReleaseMask | PointerMotionMask | StructureNotifyMask
+    };
+
+    window->window = XCreateWindow(window->display, RootWindow(window->display, screen), 
+                                   0, 0, minWidth, minHeight, 0, window->depth, InputOutput, 
+                                   window->visual, CWColormap | CWEventMask, &windowAttributes);
+
+    // Size:
+    XSizeHints* sizeHints = XAllocSizeHints();
+    sizeHints->flags = PMinSize;
+    sizeHints->min_width = minWidth;
+    sizeHints->min_height = minHeight;
+    XSetWMNormalHints(window->display, window->window, sizeHints);
+    XFree(sizeHints);
+
+    XMapWindow(window->display, window->window);
+
+    // Name:
+    XStoreName(window->display, window->window, title);
+    XSync(window->display, False);
+    window->isOpen = true;
+
+    window->wm_delete_window = XInternAtom(window->display, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols(window->display, window->window, &window->wm_delete_window, 1);
+
+    return window;
+
+    /*
     static int visualAttribs[] = 
     {
         GLX_X_RENDERABLE,  True,
@@ -74,17 +91,9 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
                                    0, 0, minWidth, minHeight, 0, vi->depth, InputOutput, 
                                    vi->visual, CWColormap | CWEventMask, &swa);
 
-    XSizeHints* sizeHints = XAllocSizeHints();
-    sizeHints->flags = PMinSize;
-    sizeHints->min_width = minWidth;
-    sizeHints->min_height = minHeight;
-    XSetWMNormalHints(window->display, window->window, sizeHints);
-    XFree(sizeHints);
+    
 
-    XMapWindow(window->display, window->window);
-    XStoreName(window->display, window->window, title);
-    XSync(window->display, False);
-    window->isOpen = true;
+    
 
     // Context
     int contextAttribs[] = 
@@ -105,18 +114,19 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
     glewExperimental = GL_TRUE;
     glewInit();
 
-    window->wm_delete_window = XInternAtom(window->display, "WM_DELETE_WINDOW", False);
-    XSetWMProtocols(window->display, window->window, &window->wm_delete_window, 1);
+    
+
 
     return window;
+*/
 }
 
-bool window_is_key_pressed(window_handle* handle, key key)
+bool window_is_key_pressed(window_handle handle, key key)
 {
     return ((x11_window*)handle)->keyPressed[(u32)key];
 }
 
-bool window_is_mouse_btn_pressed(window_handle* handle, mouse_button button)
+bool window_is_mouse_btn_pressed(window_handle handle, mouse_button button)
 {
     switch(button)
     {
@@ -133,12 +143,12 @@ bool window_is_mouse_btn_pressed(window_handle* handle, mouse_button button)
     return false;
 }
 
-bool window_is_open(window_handle* handle)
+bool window_is_open(window_handle handle)
 {
     return ((x11_window*)handle)->isOpen;
 }
 
-void window_poll_events(window_handle* handle)
+void window_poll_events(window_handle handle)
 {
     x11_window* window = (x11_window*)handle;
 
@@ -320,33 +330,33 @@ void window_poll_events(window_handle* handle)
     }
 }
 
-void window_swap_buffers(window_handle* handle)
+void window_swap_buffers(window_handle handle)
 {
     glXSwapBuffers(((x11_window*)handle)->display, ((x11_window*)handle)->window);
 }
 
-void window_get_mouse_position(window_handle* handle, double* x, double* y)
+void window_get_mouse_position(window_handle handle, double* x, double* y)
 {
     *x = (double)((x11_window*)handle)->mouseX;
     *y = (double)((x11_window*)handle)->mouseY;
 }
 
-void* window_get_user_pointer(window_handle* handle)
+void* window_get_user_pointer(window_handle handle)
 {
     return ((x11_window*)handle)->userPointer;
 }
 
-void  window_set_user_pointer(window_handle* handle, void* pointer)
+void  window_set_user_pointer(window_handle handle, void* pointer)
 {
     ((x11_window*)handle)->userPointer = pointer;
 }
 
-void window_set_resize_callback(window_handle* handle, window_resize_callback callback)
+void window_set_resize_callback(window_handle handle, window_resize_callback callback)
 {
     ((x11_window*)handle)->resizeCallback = callback;
 }
 
-u64 window_get_time(window_handle* _)
+u64 window_get_time(window_handle _)
 {
     /* Implement */
     return 0;

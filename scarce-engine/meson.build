@@ -5,6 +5,7 @@ sources = files(
     'src/core/memory/memory.c',
     'src/core/memory/stack.c',
     'src/core/string_utils.c',
+    'src/core/file_utils.c',
     'src/core/logging/logger.c',
     'src/core/view/view.c',
     'src/core/physics/aabb.c',
@@ -12,13 +13,10 @@ sources = files(
     'src/core/assets/asset_library.c',
     'src/core/assets/asset_upload.c',
     
-    'src/graphics/graphics.c',
-    'src/graphics/pipeline.c',
     'src/graphics/batch_renderer.c',
-    'src/graphics/color.c',
-    'src/graphics/shader.c',
 
     'src/ui/ui.c',
+    'src/ui/color.c',
     'src/ui/button.c',
     'src/ui/container.c',
     'src/ui/text_box.c',
@@ -53,6 +51,13 @@ elif host_machine.system() == 'linux'
         sources += files('src/platform/linux/window.c')
         dependencies += x11_dep
     endif
+
+    # GL:
+    if true
+        sources += files('src/rhi/opengl/opengl_rhi.c')
+        sources += files('src/rhi/opengl/opengl_x11.c')
+    endif
+
 endif
 
 if not get_option('use_native_windowing')

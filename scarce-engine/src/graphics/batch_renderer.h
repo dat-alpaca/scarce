@@ -1,11 +1,13 @@
 #pragma once
 #include <cglm/cglm.h>
-#include "graphics/graphics.h"
+#include "buffer.h"
 #include "core/fixed_array.h"
 #include "graphics/pipeline.h"
 #include "platform/platform.h"
 
 #include "graphics/shader.h"
+#include "rhi/rhi.h"
+#include "texture.h"
 
 typedef struct batch_renderer_cell
 {
@@ -27,15 +29,16 @@ typedef struct batch_renderer
     batch_renderer_world world;
     window_handle* window;
     fixed_array cells;
+    rhi rhi;
     
     pipeline pipeline;
     
-    gl_handle vao;
-    gl_handle VBO;
-    gl_handle worldUBO;
-    gl_handle charactersSSBO;
+    u32 vao;
+    buffer_handle VBO;
+    buffer_handle worldUBO;
+    buffer_handle charactersSSBO;
     
-    gl_handle spritesheetTexture;
+    texture_handle spritesheetTexture;
     
     u32 windowWidth;
     u32 windowHeight;
@@ -44,9 +47,9 @@ typedef struct batch_renderer
     u32 scale;
 } batch_renderer;
 
-void batch_renderer_init(batch_renderer* renderer, window_handle* window, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 scale);
+void batch_renderer_init(batch_renderer* renderer, rhi rhi, window_handle window, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 scale);
 void batch_renderer_on_resize(batch_renderer* renderer, i32 windowWidth, i32 windowHeight);
-void batch_renderer_set_texture(batch_renderer* renderer, gl_handle texture);
+void batch_renderer_set_texture(batch_renderer* renderer, texture_handle texture);
 void batch_renderer_set_world(batch_renderer* renderer, mat4 projection);
 void batch_renderer_set_scale(batch_renderer* renderer, u32 scale);
 

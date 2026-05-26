@@ -1,5 +1,6 @@
 #pragma once
-#include "graphics/graphics.h"
+#include "graphics/texture.h"
 #include "assets/spritesheet.h"
+#include "rhi/rhi.h"
 
-gl_handle upload_font_spritesheets(spritesheet* spritesheet);
+texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet);

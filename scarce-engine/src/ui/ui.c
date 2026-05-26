@@ -9,7 +9,6 @@
 #include "string_utils.h"
 
 #include "graphics/batch_renderer.h"
-#include "graphics/color.h"
 #include "ui/container.h"
 
 static void ui_reset(ui_state* state)

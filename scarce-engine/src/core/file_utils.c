@@ -1,16 +1,18 @@
-#include "shader.h"
+#include "file_utils.h"
+
 #include "fixed_array.h"
+#include "logging/logger.h"
 #include "platform/platform.h"
 
-gl_handle read_shader(const char* filepath, shader_type type)
+fixed_array file_read_contents(const char* filepath)
 {
     file_descriptor file = platform_open_file(filepath, SCA_FILE_READ | SCA_FILE_CREATE);
     if (file == invalid_file_descriptor)
-        return -1;
+        log_critical_s("Failed to read file", 20);
 
     u32 fileSize = platform_file_size(file);
     if (fileSize <= 0)
-        return -1;
+        log_critical_s("Failed to read file bytes", 26);
     
     fixed_array buffer = { 0 };
     fixed_array_init(&buffer, fileSize + 1);
@@ -21,9 +23,6 @@ gl_handle read_shader(const char* filepath, shader_type type)
     char null = '\0';
     fixed_array_push(&buffer, &null, 1);
 
-    gl_handle shader = graphics_create_shader(type, buffer.buffer);
     platform_close_file(file);
-    fixed_array_destroy(&buffer);
-
-    return shader;
+    return buffer;
 }

@@ -1,6 +1,8 @@
 #include "batch_renderer.h"
+#include "buffer.h"
 #include "cglm/vec4.h"
 #include "defines.h"
+#include "file_utils.h"
 #include <assert.h>
 
 #define GLEW_NO_GLU
@@ -10,9 +12,7 @@
 #include "cglm/mat4.h"
 #include "cglm/types.h"
 #include "fixed_array.h"
-#include "graphics/graphics.h"
 #include "platform/platform.h"
-#include "pipeline.h"
 #include "shader.h"
 
 static void zero_buffer(batch_renderer* renderer)
@@ -50,24 +50,25 @@ static void reallocate_buffers(batch_renderer* renderer)
     for (u32 i = 0; i < totalCells; ++i)
         fixed_array_push(&renderer->cells, &emptyCell, sizeof(batch_renderer_cell));
 
-    if (renderer->charactersSSBO != (gl_handle)-1)
-        graphics_destroy_buffer(renderer->charactersSSBO);
+    if (renderer->charactersSSBO != buffer_invalid)
+        rhi_destroy_buffer(renderer->rhi, renderer->charactersSSBO);
 
-    renderer->charactersSSBO = graphics_create_buffer(totalBytes, BUFFER_COHERENT);
+    renderer->charactersSSBO = rhi_create_buffer(renderer->rhi, totalBytes, BUFFER_COHERENT);
     zero_buffer(renderer);
 }
 
-void batch_renderer_init(batch_renderer* renderer, window_handle* window, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 scale)
+void batch_renderer_init(batch_renderer* renderer, rhi rhi, window_handle window, shader_filepaths* shaders, i32 windowWidth, i32 windowHeight, u32 scale)
 {
-    renderer->charactersSSBO = (gl_handle)-1;
+    renderer->charactersSSBO = buffer_invalid;
     renderer->cells.buffer = NULL;
     renderer->window = window;
+    renderer->rhi = rhi;
 
     // Buffers:
     glm_mat4_identity(renderer->world.model);
     vec3 scaleVec = { scale, scale, 1.0f};
     glm_scale(renderer->world.model, scaleVec);
-    graphics_update_buffer(renderer->worldUBO, &renderer->world, sizeof(batch_renderer_world), 0);
+    rhi_update_buffer(renderer->rhi, renderer->worldUBO, &renderer->world, sizeof(batch_renderer_world), 0);
 
     batch_renderer_set_scale(renderer, scale);
     batch_renderer_on_resize(renderer, windowWidth, windowHeight);
@@ -75,11 +76,21 @@ void batch_renderer_init(batch_renderer* renderer, window_handle* window, shader
     // Graphics:
     glCreateVertexArrays(1, &renderer->vao);
 
-    gl_handle vertexShader = read_shader(shaders->vertexFilepath, SHADER_VERTEX);
-    gl_handle fragmentShader = read_shader(shaders->fragmentFilepath, SHADER_FRAGMENT);
-    
-    renderer->pipeline = graphics_create_pipeline(vertexShader, fragmentShader);
-    renderer->worldUBO = graphics_create_buffer(sizeof(batch_renderer_world), BUFFER_DYNAMIC);
+    shader_handle vertexShader, fragmentShader;
+    {
+        // Vertex shader:
+        fixed_array contents = file_read_contents(shaders->vertexFilepath);
+        vertexShader = rhi_create_shader(renderer->rhi, SHADER_VERTEX, contents.buffer);
+        fixed_array_destroy(&contents);
+
+        // Fragment shader:
+        contents = file_read_contents(shaders->fragmentFilepath);
+        fragmentShader = rhi_create_shader(renderer->rhi, SHADER_FRAGMENT, contents.buffer);
+        fixed_array_destroy(&contents);
+    }
+        
+    renderer->pipeline = rhi_create_pipeline(renderer->rhi, vertexShader, fragmentShader);
+    renderer->worldUBO = rhi_create_buffer(renderer->rhi, sizeof(batch_renderer_world), BUFFER_DYNAMIC);
 }
 
 void batch_renderer_on_resize(batch_renderer* renderer, i32 windowWidth, i32 windowHeight)
@@ -96,7 +107,7 @@ void batch_renderer_on_resize(batch_renderer* renderer, i32 windowWidth, i32 win
     batch_renderer_set_world(renderer, project);
 }
 
-void batch_renderer_set_texture(batch_renderer* renderer, gl_handle texture)
+void batch_renderer_set_texture(batch_renderer* renderer, texture_handle texture)
 {
     renderer->spritesheetTexture = texture;
 }
@@ -104,7 +115,7 @@ void batch_renderer_set_texture(batch_renderer* renderer, gl_handle texture)
 void batch_renderer_set_world(batch_renderer* renderer, mat4 projection)
 {
     glm_mat4_copy(projection, renderer->world.projection);
-    graphics_update_buffer(renderer->worldUBO, &renderer->world, sizeof(batch_renderer_world), 0);
+    rhi_update_buffer(renderer->rhi, renderer->worldUBO, &renderer->world, sizeof(batch_renderer_world), 0);
 }
 
 void batch_renderer_set_scale(batch_renderer* renderer, u32 scale)
@@ -118,27 +129,27 @@ void batch_renderer_set_scale(batch_renderer* renderer, u32 scale)
     glm_mat4_identity(renderer->world.model);
     vec3 scaleVec = {scale, scale, 1.0f};
     glm_scale(renderer->world.model, scaleVec);
-    graphics_update_buffer(renderer->worldUBO, &renderer->world, sizeof(batch_renderer_world), 0);
+    rhi_update_buffer(renderer->rhi, renderer->worldUBO, &renderer->world, sizeof(batch_renderer_world), 0);
 }
 
 void batch_renderer_render(batch_renderer* renderer)
 {
-    graphics_update_buffer(renderer->charactersSSBO, renderer->cells.buffer, 
+    rhi_update_buffer(renderer->rhi, renderer->charactersSSBO, renderer->cells.buffer, 
         renderer->gridWidth * renderer->gridHeight * sizeof(batch_renderer_cell), 
         0
     );
 
-    graphics_begin_frame(renderer->vao);
+    rhi_begin_frame(renderer->rhi);
     
-    graphics_bind_pipeline(renderer->vao, renderer->pipeline);
-    graphics_bind_ssbo(renderer->charactersSSBO, 0);
-    graphics_bind_ubo(renderer->worldUBO, 1);
-    graphics_bind_texture(renderer->spritesheetTexture, 2);
+    rhi_bind_pipeline(renderer->rhi, renderer->pipeline);
+    rhi_bind_ssbo(renderer->rhi, renderer->charactersSSBO, 0);
+    rhi_bind_ubo(renderer->rhi, renderer->worldUBO, 1);
+    rhi_bind_texture(renderer->rhi, renderer->spritesheetTexture, 2);
 
     u32 cellAmount = renderer->cells.current / sizeof(batch_renderer_cell);
-    graphics_draw(cellAmount * 6);
+    rhi_draw(renderer->rhi, cellAmount * 6);
 
-    graphics_end_frame();
+    rhi_end_frame(renderer->rhi);
 }
 
 void batch_renderer_zero_buffer(batch_renderer* renderer)

@@ -5,7 +5,7 @@
 #include "physics/aabb.h"
 #include "batch_renderer.h"
 #include "ui/container.h"
-#include "graphics/color.h"
+#include "ui/color.h"
 
 #define SCA_UI_MAX_NUMBER_LENGTH 10 // u32
 
