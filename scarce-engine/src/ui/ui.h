@@ -1,8 +1,9 @@
 #pragma once
+#include "batch_renderer.h"
 #include "core/defines.h"
 #include "core/memory/memory.h"
 #include "physics/aabb.h"
-#include "text_renderer.h"
+#include "batch_renderer.h"
 #include "ui/container.h"
 #include "graphics/color.h"
 
@@ -25,7 +26,7 @@ typedef struct
 typedef struct ui_state
 {
     memory_pool* pool;
-    text_renderer* renderer;
+    batch_renderer* renderer;
     container container;
     container prevContainer;
 
@@ -34,8 +35,8 @@ typedef struct ui_state
     u8 defaultContainer : 1;
 } ui_state;
 
-void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer);
-ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer);
+void ui_begin(ui_state* state, memory_pool* pool, batch_renderer* renderer);
+ui_state* ui_begin_stack(memory_pool* pool, batch_renderer* renderer);
 void ui_end(ui_state* state);
 void ui_clear(struct engine* e);
 

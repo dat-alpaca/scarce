@@ -4,7 +4,6 @@
 #include "logging/logger.h"
 
 #include "memory/memory.h"
-#include "text_renderer.h"
 #include "ui/button.h"
 #include "ui/container.h"
 #include "ui/text_box.h"

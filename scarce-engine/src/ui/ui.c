@@ -1,12 +1,14 @@
 #include "ui.h"
+#include "batch_renderer.h"
+#include "cglm/vec4.h"
 #include "core/memory/memory.h"
 #include <stdbool.h>
 #include "engine.h"
 #include "memory/stack.h"
 #include "physics/aabb.h"
 #include "string_utils.h"
-#include "text_renderer.h"
 
+#include "graphics/batch_renderer.h"
 #include "graphics/color.h"
 #include "ui/container.h"
 
@@ -26,7 +28,7 @@ static void ui_reset(ui_state* state)
     state->color.renderBackground = false;
 }
 
-void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer)
+void ui_begin(ui_state* state, memory_pool* pool, batch_renderer* renderer)
 {
     assert(state);
     assert(pool);
@@ -37,7 +39,7 @@ void ui_begin(ui_state* state, memory_pool* pool, text_renderer* renderer)
 
     ui_reset(state);
 }
-ui_state* ui_begin_stack(memory_pool* pool, text_renderer* renderer)
+ui_state* ui_begin_stack(memory_pool* pool, batch_renderer* renderer)
 {
     assert(pool);
     assert(renderer);
@@ -60,7 +62,7 @@ void ui_end(ui_state* state)
 void ui_clear(engine* e)
 {
     assert(e);
-    text_renderer_zero_buffer(e->renderer);
+    batch_renderer_zero_buffer(e->renderer);
 }
 
 void ui_text(ui_state* state, const char* content, u32 length)
@@ -133,8 +135,9 @@ void ui_hline(ui_state* state, char lineChar)
 {
     assert(state);
 
-    float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
-    float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
+    vec4 color, background;
+    get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint, color);
+    get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint, background);
 
     container* container = &state->container;
     if (container->currentY > container->height)
@@ -142,16 +145,19 @@ void ui_hline(ui_state* state, char lineChar)
 
     container->prevY = container->currentY;
 
-    for (u32 x = container->_x; x < container->_x + text_renderer_width(state->renderer); ++x)
+    for (u32 x = container->_x; x < container->_x + state->renderer->gridWidth; ++x)
     {
-        i16 y = *container_determine_y_from_position(container, text_renderer_height(state->renderer)); 
+        i16 y = *container_determine_y_from_position(container, state->renderer->gridHeight); 
 
         if (container_handle_y_overflow(container))
             break;
 
-        text_renderer_set_character_letter(state->renderer, x, y, lineChar);
-        text_renderer_set_character_color(state->renderer, x, y, color[0], color[1], color[2]);
-        text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
+        batch_renderer_cell cell = { 0 };
+        glm_vec4_copy(background, cell.backgroundColor);
+        glm_vec4_copy(color, cell.color);
+        cell.layer = lineChar;
+
+        batch_renderer_set_cell(state->renderer, &cell, x, y);
     }
 
     container_space(&state->container, 1);
@@ -161,8 +167,9 @@ void ui_vline(ui_state* state, u32 x, char lineChar)
 {
     assert(state);
 
-    float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
-    float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
+    vec4 color, background;
+    get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint, color);
+    get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint, background);
 
     container* container = &state->container;
     if (x >= container->width)
@@ -170,11 +177,13 @@ void ui_vline(ui_state* state, u32 x, char lineChar)
 
     container->prevX = container->currentX;
 
-    for (u32 y = container->_y; y < container->_y + text_renderer_height(state->renderer); ++y)
+    for (u32 y = container->_y; y < container->_y + state->renderer->gridHeight; ++y)
     {
-        text_renderer_set_character_letter(state->renderer, x, y, lineChar);
-        text_renderer_set_character_color(state->renderer, x, y, color[0], color[1], color[2]);
-        text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
+        batch_renderer_cell cell = { 0 };
+        glm_vec4_copy(background, cell.backgroundColor);
+        glm_vec4_copy(color, cell.color);
+        cell.layer = lineChar;
+        batch_renderer_set_cell(state->renderer, &cell, x, y);
     }
 }
 
@@ -186,7 +195,7 @@ void ui_switch_container(ui_state* state, container* newContainer)
     state->defaultContainer = false;
     state->prevContainer = state->container;
     
-    container_fix_offset_bounds(newContainer, text_renderer_width(state->renderer), text_renderer_height(state->renderer));
+    container_fix_offset_bounds(newContainer, state->renderer->gridWidth, state->renderer->gridHeight);
     state->container = *newContainer;
 }
 void ui_restore_container(ui_state* state)
@@ -206,7 +215,7 @@ aabb ui_mouse_aabb(engine* e)
         u32 mouseX;
         u32 mouseY;
 
-        text_renderer_get_mouse_grid_position(e->window, e->renderer, &mouseX, &mouseY);
+        batch_renderer_get_mouse_grid_position(e->window, e->renderer, &mouseX, &mouseY);
         mouseAABB.x = mouseX;
         mouseAABB.y = mouseY;
         mouseAABB.width = 1;

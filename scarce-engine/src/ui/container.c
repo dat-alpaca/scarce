@@ -1,17 +1,18 @@
 #include "container.h"
+#include "cglm/vec4.h"
 #include "defines.h"
 #include "color.h"
-#include "text_renderer.h"
+#include "graphics/batch_renderer.h"
 #include "ui.h"
 
 #include <ctype.h>
 
-void container_init_default(container* container, text_renderer* renderer)
+void container_init_default(container* container, batch_renderer* renderer)
 {
     container_reset(container);
 
-    container->width = text_renderer_width(renderer);
-    container->height = text_renderer_height(renderer);
+    container->width = renderer->gridWidth;
+    container->height = renderer->gridHeight;
 }
 void container_reset(container* container)
 {
@@ -199,13 +200,18 @@ static void container_step(container* container, i32* i)
 
 void container_text(ui_state* state, container* container, const char* content, u32 length)
 {
-    float* color = get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint);
-    float* background = get_color_with_flags(state->color.background, state->color.backgroundIntense, state->color.backgroundFaint);
+    vec4 color, background;
+    get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint, color);
+    get_color_with_flags(state->color.color, state->color.colorIntense, state->color.colorFaint, background);
 
     for (u32 x = container->_x; x < container->_x + container->width; ++x)
     {
         for (u32 y = container->_y; y < container->_y + container->height; ++y)
-            text_renderer_set_character_background_color(state->renderer, x, y, background[0], background[1], background[2], state->color.renderBackground);
+        {
+            batch_renderer_cell cell = *batch_renderer_get_cell(state->renderer, x, y);
+            glm_vec4_copy(background, cell.backgroundColor);
+            batch_renderer_set_cell(state->renderer, &cell, x, y);
+        }
     }
     
     bool isPreviousSet = false;
@@ -218,8 +224,8 @@ void container_text(ui_state* state, container* container, const char* content, 
         if (content[i] == '\0')
             break;
 
-        u16* x = container_determine_x_from_align(container, length, text_renderer_width(state->renderer)); 
-        i16* y = container_determine_y_from_position(container, text_renderer_height(state->renderer)); 
+        u16* x = container_determine_x_from_align(container, length, state->renderer->gridWidth); 
+        i16* y = container_determine_y_from_position(container, state->renderer->gridHeight); 
         if (!isPreviousSet)
         {
             container->prevY = container->currentY;
@@ -237,10 +243,13 @@ void container_text(ui_state* state, container* container, const char* content, 
         if (container_handle_y_overflow(container))
             break;
 
-        text_renderer_set_character_letter(state->renderer, *x, *y, content[i]);
-        text_renderer_set_character_color(state->renderer, *x, *y, color[0], color[1], color[2]);
-        text_renderer_set_character_background_color(state->renderer, *x, *y, background[0], background[1], background[2], state->color.renderBackground);
-    
+        batch_renderer_cell cell = *batch_renderer_get_cell(state->renderer, *x, *y);
+        cell.layer = content[i];
+        glm_vec4_copy(color, cell.color);
+        glm_vec4_copy(background, cell.backgroundColor);
+
+        batch_renderer_set_cell(state->renderer, &cell, *x, *y);
+
         container_step(container, &i);        
     }
 

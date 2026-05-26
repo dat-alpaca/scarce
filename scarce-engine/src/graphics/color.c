@@ -1,6 +1,6 @@
 #include "color.h"
 
-float* get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint)
+void get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint, vec4 output)
 {
     static float colors[][3] = 
     {
@@ -26,18 +26,12 @@ float* get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint)
         { 0.992f, 0.996f, 0.996f }  // Bright White
     };
 
-    static float faint_result[3];
-
     u32 index = (symbolColor > SY_COLOR_WHITE) ? SY_COLOR_WHITE : symbolColor;
-
     float* selected = (isIntense) ? colors_intense[index] : colors[index];
-    if (isFaint) 
-    {
-        faint_result[0] = selected[0] * 0.5f;
-        faint_result[1] = selected[1] * 0.5f;
-        faint_result[2] = selected[2] * 0.5f;
-        return faint_result;
-    }
 
-    return selected;
+    float multiplier = isFaint ? 0.5f : 1.0f;
+    output[0] = selected[0] * multiplier;
+    output[1] = selected[1] * multiplier;
+    output[2] = selected[2] * multiplier;
+    output[3] = 1.0f;
 }

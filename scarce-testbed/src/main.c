@@ -8,25 +8,6 @@
 
 static engine* _e = 0;
 
-static void display_random_characters()
-{
-    for(u32 x = 0; x < _e->renderer_width(_e->renderer); ++x)
-    {
-        for(u32 y = 0; y < _e->renderer_height(_e->renderer); ++y)
-        {
-            _e->renderer_set_character_background_color(_e->renderer, x, y, 
-                _e->random_float(0.0f, 1.0f), _e->random_float(0.0f, 1.0f), _e->random_float(0.0f, 1.0f), true
-            );
-
-            _e->renderer_set_character_color(_e->renderer, x, y, 
-                _e->random_float(0.0f, 1.0f), _e->random_float(0.0f, 1.0f), _e->random_float(0.0f, 1.0f)
-            );
-
-            _e->renderer_set_character_letter(_e->renderer, x, y, _e->random_int('a', 'z'));
-        }
-    }
-}
-
 void button_callback(engine* e, memory_pool* pool, struct ui_button* button)
 {
     e->log_warn(_e->logger, "pressed the button", 19);
@@ -37,7 +18,6 @@ void on_load(memory_pool* pool, engine* engine)
 {
     _e = engine;
     _e->logger_set_header(_e->logger, false);
-    _e->renderer_set_character_size(_e->renderer, 24);
 
     // stack:
     pool[SCA_STACK_SIZE_ADDRESS] = 0;

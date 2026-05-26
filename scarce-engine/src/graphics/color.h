@@ -1,5 +1,6 @@
 #pragma once
 #include "core/defines.h"
+#include <cglm/cglm.h>
 
 enum : u8
 {
@@ -13,4 +14,4 @@ enum : u8
     SY_COLOR_WHITE,
 } typedef color;
 
-float* get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint);
+void get_color_with_flags(u32 symbolColor, bool isIntense, bool isFaint, vec4 output);

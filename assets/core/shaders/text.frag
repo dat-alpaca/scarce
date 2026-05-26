@@ -11,6 +11,8 @@ layout(binding = 2) uniform sampler2DArray u_texture;
 
 void main()
 {
+    out_color = v_color;
+
 	float alpha = texture(u_texture, vec3(v_uvs.xy, float(v_layer))).r;
 
     if (alpha < 0.5)

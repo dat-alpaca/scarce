@@ -1,21 +1,18 @@
-#include "core/font/font.h"
-#include "freetype/freetype.h"
-#include "graphics/graphics.h"
+#include "assets/asset_library.h"
+#include "assets/asset_upload.h"
+
 #include "logging/logger.h"
 #include "random.h"
 #include "scarce.h"
 
+#include "graphics/batch_renderer.h"
 #include "config/loader.h"
-#include "graphics/text_renderer.h"
 #include "loader.h"
 
 #include "platform/platform.h"
 #include "ui/hsml/hsml.h"
 #include "ui/ui.h"
 #include "view/view.h"
-
-#define GLEW_NO_GLU
-#include <GL/glew.h>
 
 static engine gEngine =
 {
@@ -63,18 +60,11 @@ static engine gEngine =
     .view_holder_current = view_holder_current,
 
     // Rendering:
-    .renderer_zero_buffer = text_renderer_zero_buffer,
-    .renderer_set_character_letter = text_renderer_set_character_letter,
-    .renderer_set_character_color = text_renderer_set_character_color,
-    .renderer_set_character_background_color = text_renderer_set_character_background_color,
-    .renderer_set_character_size = text_renderer_set_character_size,
-    .renderer_width = text_renderer_width,
-    .renderer_height = text_renderer_height,
-    .renderer_window_width = text_renderer_window_height,
-    .renderer_window_height = text_renderer_window_height,
-    .renderer_character_size = text_renderer_character_size,
-    
-    .get_mouse_position = text_renderer_get_mouse_grid_position,
+    .renderer_set_scale = batch_renderer_set_scale,
+    .renderer_zero_buffer = batch_renderer_zero_buffer,
+    .renderer_get_cell = batch_renderer_get_cell,
+    .renderer_set_cell = batch_renderer_set_cell,
+    .renderer_get_mouse_grid_position = batch_renderer_get_mouse_grid_position,
 
     // Logging:
     .log_info = log_info,
@@ -124,147 +114,96 @@ static engine gEngine =
     .ui_hsml = ui_hsml,
 };
 
-static void initialize_data(FT_Library* library, const char* fontFilepath, gl_handle* fontTexture, font* font)
+struct context
 {
-    // Font:
-    if(!load_font(library, font, fontFilepath))
-        return;
-
-    // Font texture:
-    texture_information information = { 0 };
-    {
-        information.width = font->maxWidth * font->characters.current / sizeof(font_character);
-		information.height = font->maxHeight;
-	    information.layerWidth = font->maxWidth;
-	    information.layerHeight = font->maxHeight;
-		information.depth = 1;
-		information.mipLevels = 1;
-		information.samples = 1;
-		information.arrayLayers = font->characters.current / sizeof(font_character);
-
-		information.format = GL_R8;
-		information.type = GL_TEXTURE_2D_ARRAY;
-
-		information.generateMipmaps = false;
-
-		information.wrapS = GL_REPEAT;
-		information.wrapT = GL_REPEAT;
-		information.minFilter = GL_NEAREST;
-		information.magFilter = GL_NEAREST;
-    }
-
-    *fontTexture = graphics_create_texture(&information);
-
-    font_character* characters = (font_character*)font->characters.buffer;
-    u32 count = font->characters.current / sizeof(font_character);
-    for(u32 i = 0; i < count; ++i)
-	{
-        font_character character = characters[i];
-
-		if(!character.data.buffer)
-			continue;
-
-        vec2 offset;
-        {
-            offset[0] = 0;
-            offset[1] = 0;
-        }
-        information.layerWidth = character.size[0];
-        information.layerHeight = character.size[1];
-        graphics_update_texture_array_layer(
-            *fontTexture, &information, 
-            character.layer, 
-            offset, 
-            GL_RED, 
-            GL_UNSIGNED_BYTE, 
-            character.data.buffer
-        );
-	}
-}
-
-struct
-{
-    text_renderer renderer;
-    FT_Library library;
+    void* applicationSpace;
+    u8* memoryPool;
+    asset_library assetLibrary;
+    batch_renderer textRenderer;
+    view_holder viewHolder;
 } typedef context;
 
 /* Window */
 void window_size_callback(window_handle* window, i32 width, i32 height)
 {
     context* userContext = (context*)window_get_user_pointer(window);
-    text_renderer* r = &userContext->renderer;
+    batch_renderer* r = &userContext->textRenderer;
 
     graphics_set_viewport(0, 0, width, height);
-    text_renderer_on_resize(r, width, height);
+    batch_renderer_on_resize(r, width, height);
 }
 
-int main()
-{   
-    config_result configResult = load_config("config.ini");
-    if (!configResult.sucess)
-        return 1;
-
-    config* config = &configResult.configuration;
-
-    context context = { 0 };
-    u8* memoryPool = (u8*)malloc(config->userSpaceBytes);
-    gEngine.memoryPoolSize = config->userSpaceBytes;
-
+static bool initialize(context* context, config* config)
+{
     random_init();
-    font_loader_init(&context.library);
 
-    // Application space:
-    load_func onLoad;
-    update_func onUpdate;
-    void* applicationSpace = get_application_space(config->mainBinaryFilepath, config->memoryPageAmount);
-    if (!applicationSpace)
-        return 1;
+    // User space:
+    context->applicationSpace = get_application_space(config->mainBinaryFilepath, config->memoryPageAmount);
+    if (!context->applicationSpace)
+        return false;
+    gEngine.baseAddress = context->applicationSpace;
 
-    gEngine.baseAddress = applicationSpace;
-
-    get_exported_functions(applicationSpace, &onLoad, &onUpdate);
+    context->memoryPool = (u8*)malloc(config->userSpaceBytes);
+    gEngine.memoryPoolSize = config->userSpaceBytes;
 
     // Window:
     gEngine.window = window_init(config->windowTitle, config->minWindowWidth, config->minWindowHeight);
     if (!gEngine.window)
-        return 1;
+        return false;
 
-    window_set_user_pointer(gEngine.window, &context);
+    window_set_user_pointer(gEngine.window, context);
     window_set_resize_callback(gEngine.window, window_size_callback);
 
-    // Application resources:
-    gl_handle fontTexture;
-    font monoFont;
-    initialize_data(&context.library, config->fontFilepath, &fontTexture, &monoFont);
-    
-    // Renderer:
-    u32 characterSize = 16;
+    // Assets:
+    asset_library_init(&context->assetLibrary, 2);
+    //asset_handle mainFont = asset_library_load_font(&context->assetLibrary, config->fontFilepath, 64);
+    asset_handle mainFont = asset_library_load_spritesheet(&context->assetLibrary, "assets/core/items.png", 16);
+    spritesheet* fontSpritesheet = asset_library_get_spritesheet(&context->assetLibrary, mainFont);
+    gl_handle fontTexture = upload_font_spritesheets(fontSpritesheet);
 
-    shader_filepaths shaders = { .vertexFilepath = config->vertexFilepath, .fragmentFilepath = config->fragmentFilepath };
-    text_renderer_init(&context.renderer, gEngine.window, &monoFont, &shaders, config->minWindowWidth, config->minWindowHeight, characterSize);
-    text_renderer_set_texture(&context.renderer, fontTexture);
-    gEngine.renderer = &context.renderer;
+    // View:
+    gEngine.viewHolder = &context->viewHolder;
+    view_holder_init(gEngine.viewHolder, 10);
 
     // Logger:
     logger mainLogger;
     logger_initialize(&mainLogger);
     gEngine.logger = &mainLogger;
 
-    // View:
-    view_holder viewHolder;
-    gEngine.viewHolder = &viewHolder;
-    view_holder_init(gEngine.viewHolder, 10);
+    // Font Renderer:
+    shader_filepaths shaders = { .vertexFilepath = config->vertexFilepath, .fragmentFilepath = config->fragmentFilepath };
+    batch_renderer_init(&context->textRenderer, gEngine.window, &shaders, config->minWindowWidth, config->minWindowHeight, 24);
+    batch_renderer_set_texture(&context->textRenderer, fontTexture);
+    gEngine.renderer = &context->textRenderer;
+
+    return true;
+} 
+
+int main()
+{   
+    context context = { 0 };
+    config_result configResult = load_config("config.ini");
+    if (!configResult.sucess)
+        return 1;
+
+    config* config = &configResult.configuration;
+    if(!initialize(&context, config))
+        return 1;
+        
+    load_func onLoad;
+    update_func onUpdate;
+    get_exported_functions(context.applicationSpace, &onLoad, &onUpdate);
 
     gEngine.requestExit = false;
-    onLoad(memoryPool, &gEngine);
+    onLoad(context.memoryPool, &gEngine);
     while(window_is_open(gEngine.window))
     {
         window_poll_events(gEngine.window);
 
-        if(!onUpdate(memoryPool) || gEngine.requestExit)
+        if(!onUpdate(context.memoryPool) || gEngine.requestExit)
             break;
 
-        text_renderer_render(&context.renderer);
+        batch_renderer_render(&context.textRenderer);
 
         window_swap_buffers(gEngine.window);
     }

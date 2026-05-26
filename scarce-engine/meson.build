@@ -1,7 +1,6 @@
 sources = files(
     'src/core/fixed_array.c',
     'src/core/dynamic_array.c',
-    'src/core/font/font.c',
     'src/core/random.c',
     'src/core/memory/memory.c',
     'src/core/memory/stack.c',
@@ -9,11 +8,15 @@ sources = files(
     'src/core/logging/logger.c',
     'src/core/view/view.c',
     'src/core/physics/aabb.c',
+
+    'src/core/assets/asset_library.c',
+    'src/core/assets/asset_upload.c',
     
     'src/graphics/graphics.c',
     'src/graphics/pipeline.c',
-    'src/graphics/text_renderer.c',
+    'src/graphics/batch_renderer.c',
     'src/graphics/color.c',
+    'src/graphics/shader.c',
 
     'src/ui/ui.c',
     'src/ui/button.c',
@@ -23,6 +26,8 @@ sources = files(
     'src/ui/hsml/token.c',
     'src/ui/hsml/evaluator.c',
     'src/ui/hsml/placeholder.c',
+
+    'src/implementation.c',
 )
 
 # Dependencies:

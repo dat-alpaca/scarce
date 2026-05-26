@@ -1,5 +1,4 @@
 sources = files(
-    'src/implementation.c',
     'src/loader.c',
     'src/main.c',
     'src/config/loader.c'

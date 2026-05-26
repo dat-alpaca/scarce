@@ -5,9 +5,11 @@
 
 #include "defines.h"
 #include "platform/platform.h"
-#include "text_renderer.h"
+#include "batch_renderer.h"
 #include "ui/hsml/token.h"
+
 #include <ctype.h>
+#include <string.h>
 
 typedef u32 (*placeholder_value_fetcher)(const ui_state* const state);
 struct
@@ -23,12 +25,12 @@ static u32 placeholder_overflow_fetcher(const ui_state* const state)
 
 static u32 placeholder_width_fetcher(const ui_state* const state)
 {
-    return text_renderer_width(state->renderer);
+    return state->renderer->gridWidth;
 }
 
 static u32 placeholder_height_fetcher(const ui_state* const state)
 {
-    return text_renderer_height(state->renderer);
+    return state->renderer->gridHeight;
 }
 
 static u32 placeholder_x_fetcher(const ui_state* const state)
@@ -54,13 +56,13 @@ static u32 placeholder_prev_y_fetcher(const ui_state* const state)
 static u32 placeholder_mouse_x_fetcher(const ui_state* const state)
 {
     u32 x, y;
-    text_renderer_get_mouse_grid_position(state->renderer->window, state->renderer, &x, &y);
+    batch_renderer_get_mouse_grid_position(state->renderer->window, state->renderer, &x, &y);
     return x;
 }
 static u32 placeholder_mouse_y_fetcher(const ui_state* const state)
 {
     u32 x, y;
-    text_renderer_get_mouse_grid_position(state->renderer->window, state->renderer, &x, &y);
+    batch_renderer_get_mouse_grid_position(state->renderer->window, state->renderer, &x, &y);
     return y;
 }
 

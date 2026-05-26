@@ -8,6 +8,9 @@ void graphics_begin_frame(gl_handle vao)
     glClearColor(35.f / 255.f, 39.f / 255.f, 38.f / 255.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+
     glBindVertexArray(vao);
 }
 void graphics_end_frame()

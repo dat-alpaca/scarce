@@ -8,7 +8,6 @@ layout(location = 4) out vec4 v_background_color;
 struct Character
 {
 	vec2 position;
-	vec2 uvSize;
 	uint layer;
 	uint paintBackground;
 	vec4 color;
@@ -47,7 +46,7 @@ void main()
 
 	gl_Position = u_world.projection * u_world.model * vec4(localPos, 0.0, 1.0);
 	v_layer = currentCharacter.layer;
-	v_uvs = c_quad_vertex[currentVertex] * currentCharacter.uvSize;
+	v_uvs = c_quad_vertex[currentVertex];
 	v_color = currentCharacter.color;
 	v_background_color = currentCharacter.backgroundColor;
 	v_paint_background = currentCharacter.paintBackground;

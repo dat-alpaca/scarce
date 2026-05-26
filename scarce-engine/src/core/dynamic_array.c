@@ -66,16 +66,21 @@ bool dynamic_array_empty(dynamic_array* array)
     return dynamic_array_size(array) == 0;
 }
 
-void dynamic_array_push(dynamic_array* array, void* data, u32 count)
+void* dynamic_array_push(dynamic_array* array, void* data, u32 count)
 {
-    assert(array && data && count > 0);
-    
+    assert(array && count > 0);
+
     u32 bytes = count * array->elementSize;
     if (array->current + bytes > array->capacity)
         dynamic_array_resize(array, (array->capacity + 1) * SCA_DA_GROWTH_RATIO);
 
-    memcpy((u8*)array->buffer + array->current, data, bytes);
+    if (data)
+        memcpy((u8*)array->buffer + array->current, data, bytes);
+
+    void* previous = array->buffer + array->current;
     array->current += bytes;
+
+    return previous;
 }
 
 void dynamic_array_pop(dynamic_array* array, u32 count)

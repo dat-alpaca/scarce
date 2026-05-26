@@ -1,4 +1,5 @@
 #pragma once
+#include "batch_renderer.h"
 #include "logging/logger.h"
 #include "platform/platform.h"
 #include "core/memory/memory.h"
@@ -11,13 +12,12 @@
 #include "core/physics/aabb.h"
 #include "core/view/view.h"
 
-#include "graphics/text_renderer.h"
+#include "graphics/batch_renderer.h"
 #include "ui/ui.h"
 
 typedef struct engine
 {
     window_handle* window;
-    text_renderer* renderer;
     void* baseAddress;
     u32 memoryPoolSize;
     bool requestExit;
@@ -66,18 +66,13 @@ typedef struct engine
     view_data* (*view_holder_current)(view_holder* holder);
 
     // Rendering:
-    void (*renderer_zero_buffer)(text_renderer* renderer);
-    void (*renderer_set_character_letter)(text_renderer* renderer, u32 x, u32 y, char letter);
-    void (*renderer_set_character_color)(text_renderer* renderer, u32 x, u32 y, float r, float g, float b);
-    void (*renderer_set_character_background_color)(text_renderer* renderer, u32 x, u32 y, float r, float g, float b, bool paint);
-    void (*renderer_set_character_size)(text_renderer* renderer, u32 characterSize);
-    u32  (*renderer_width)(text_renderer* renderer);
-    u32  (*renderer_height)(text_renderer* renderer);
-    u32  (*renderer_window_width)(text_renderer* renderer);
-    u32  (*renderer_window_height)(text_renderer* renderer);
-    u32  (*renderer_character_size)(text_renderer* renderer);
-
-    void (*get_mouse_position)(window_handle* windowHandle, text_renderer* renderer, u32* x, u32* y);
+    batch_renderer* renderer;
+    void (*renderer_set_scale)(batch_renderer* renderer, u32 scale);
+    void (*renderer_zero_buffer)(batch_renderer* renderer);
+    batch_renderer_cell* (*renderer_get_cell)(batch_renderer* renderer, u32 x, u32 y);
+    void (*renderer_set_cell)(batch_renderer* renderer, batch_renderer_cell* cell, u32 x, u32 y);
+    void (*renderer_get_mouse_grid_position)(window_handle* window, batch_renderer* renderer, u32* x, u32* y);
+    void (*renderer_get_mouse_position)(window_handle* windowHandle, batch_renderer* renderer, u32* x, u32* y);
 
     // Logging:
     logger* logger;
@@ -89,8 +84,8 @@ typedef struct engine
     void (*logger_set_header)(logger*, bool state);
 
     // UI:
-    void (*ui_begin)(ui_state* state, memory_pool* pool, text_renderer* renderer);
-    ui_state* (*ui_begin_stack)(memory_pool* pool, text_renderer* renderer);
+    void (*ui_begin)(ui_state* state, memory_pool* pool, batch_renderer* renderer);
+    ui_state* (*ui_begin_stack)(memory_pool* pool, batch_renderer* renderer);
     void (*ui_end)(ui_state* state);
     void (*ui_clear)(struct engine* e);
 

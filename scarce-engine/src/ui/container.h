@@ -1,6 +1,6 @@
 #pragma once
 #include "core/defines.h"
-#include "text_renderer.h"
+#include "batch_renderer.h"
 
 struct ui_state;
 
@@ -49,7 +49,7 @@ struct
     bool noSpace;
 } typedef container_overflow;
 
-void container_init_default(container* container, text_renderer* renderer);
+void container_init_default(container* container, batch_renderer* renderer);
 void container_reset(container* container);
 void container_fix_offset_bounds(container* container, u32 gridWidth, u32 gridHeight);
 
