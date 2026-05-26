@@ -62,3 +62,9 @@ typedef double  f64;
 
 #define SCA_CLEAR_LINE      "\x1b[2K"
 #define SCA_CLEAR_ALL       "\x1b[2J"
+
+// Types
+typedef enum : u8
+{
+    SCA_UNSIGNED_BYTE
+} type;

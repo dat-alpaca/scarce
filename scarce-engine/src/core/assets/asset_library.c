@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stb_image.h>
-#include <stdio.h>
 
 #include "asset_library.h"
 #include "defines.h"

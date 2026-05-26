@@ -25,8 +25,8 @@ void rhi_destroy_buffer(rhi rhi, buffer_handle bufferHandle);
 
 // Textures:
 texture_handle rhi_create_texture(rhi rhi, texture_information* information);
-void rhi_update_texture(rhi rhi, texture_handle texture, texture_information* information, void* data, u32 dataWidth, u32 dataHeight, u32 dataFormat, u32 dataFormatSize, u32 dataType);
-void rhi_update_texture_array_layer(rhi rhi, texture_handle texture, texture_information* information, u32 layer, vec2 offset, u32 dataFormat, u32 dataType, void* data);
+void rhi_update_texture(rhi _, texture_handle texture, texture_information* information, void* data, u32 dataWidth, u32 dataHeight, texture_pixel_format dataFormat, u32 dataFormatSize, type dataType);
+void rhi_update_texture_array_layer(rhi rhi, texture_handle texture, texture_information* information, u32 layer, vec2 offset, texture_pixel_format dataFormat, type dataType, void* data);
 void rhi_destroy_texture(rhi rhi, texture_handle texture);
 
 // Pipelines:

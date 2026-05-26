@@ -1,6 +1,8 @@
 #include "opengl_rhi.h"
+#include "defines.h"
 #include "logging/logger.h"
 #include "rhi/rhi.h"
+#include "texture.h"
 
 #define GLEW_NO_GLU
 #include <GL/glew.h>
@@ -86,10 +88,41 @@ void rhi_destroy_buffer(rhi _, buffer_handle bufferHandle)
 }
 
 // Textures:
+static gl_handle get_wrap_mode(texture_wrap wrap)
+{
+	switch (wrap)
+	{
+		case SCA_TEXTURE_REPEAT: return GL_REPEAT;
+		case SCA_TEXTURE_CLAMP_EDGE: return GL_CLAMP_TO_EDGE;
+		case SCA_TEXTURE_MIRRORED_REPEAT: return GL_MIRRORED_REPEAT;
+	}
+}
+
+static gl_handle get_filter(texture_filter filter)
+{
+	switch (filter)
+	{
+		case SCA_TEXTURE_NEAREST: return GL_NEAREST;
+		case SCA_TEXTURE_LINEAR: return GL_LINEAR;
+		case SCA_TEXTURE_NEAREST_MIPMAP_NEAREST: return GL_NEAREST_MIPMAP_NEAREST;
+		case SCA_TEXTURE_LINEAR_MIPMAP_NEAREST: return GL_LINEAR_MIPMAP_NEAREST;
+		case SCA_TEXTURE_NEAREST_MIPMAP_LINEAR: return GL_NEAREST_MIPMAP_LINEAR;
+		case SCA_TEXTURE_LINEAR_MIPMAP_LINEAR: return GL_LINEAR_MIPMAP_LINEAR;
+	}
+}
+
 texture_handle rhi_create_texture(rhi _, texture_information* information)
 {
     gl_handle textureID;
-	glCreateTextures(information->type, 1, &textureID);
+
+	u32 textureType;
+	switch (information->type)
+	{
+		case SCA_2D_TEXTURE: textureType = GL_TEXTURE_2D;
+		case SCA_2D_TEXTURE_ARRAY: textureType = GL_TEXTURE_2D_ARRAY;
+	}
+
+	glCreateTextures(textureType, 1, &textureID);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
@@ -97,45 +130,70 @@ texture_handle rhi_create_texture(rhi _, texture_information* information)
 		bool generateMipmaps = information->generateMipmaps;
 
 		glTextureParameteri(textureID, GL_TEXTURE_MAX_LEVEL, information->arrayLayers);
-		glTextureParameteri(textureID, GL_TEXTURE_WRAP_S, information->wrapS);
-		glTextureParameteri(textureID, GL_TEXTURE_WRAP_T, information->wrapT);
+		glTextureParameteri(textureID, GL_TEXTURE_WRAP_S, get_wrap_mode(information->wrapS));
+		glTextureParameteri(textureID, GL_TEXTURE_WRAP_T, get_wrap_mode(information->wrapT));
 
-		glTextureParameteri(textureID, GL_TEXTURE_MIN_FILTER, information->minFilter);
-		glTextureParameteri(textureID, GL_TEXTURE_MAG_FILTER, information->magFilter);
+		glTextureParameteri(textureID, GL_TEXTURE_MIN_FILTER, get_filter(information->minFilter));
+		glTextureParameteri(textureID, GL_TEXTURE_MAG_FILTER, get_filter(information->magFilter));
 
 		if (generateMipmaps)
 			glGenerateTextureMipmap(textureID);
 	}
 
+	u32 internalFormat;
+	switch (information->internalFormat)
+	{
+		case SCA_TEXTURE_R8: internalFormat = GL_R8; break;
+    	case SCA_TEXTURE_RG8: internalFormat = GL_RG8; break;
+    	case SCA_TEXTURE_RGB8: internalFormat = GL_RGB8; break;
+    	case SCA_TEXTURE_RGBA8: internalFormat = GL_RGBA8; break;	
+	}
+
 	switch (information->type)
 	{
-		case GL_TEXTURE_2D:
-			glTextureStorage2D(textureID, information->mipLevels, information->format, information->width, information->height);
+		case SCA_2D_TEXTURE:
+			glTextureStorage2D(textureID, information->mipLevels, internalFormat, information->width, information->height);
 			break;
 
-		case GL_TEXTURE_2D_ARRAY:
-			glTextureStorage3D(textureID, information->mipLevels, information->format, information->layerWidth, information->layerHeight, information->arrayLayers);
+		case SCA_2D_TEXTURE_ARRAY:
+			glTextureStorage3D(textureID, information->mipLevels, internalFormat, information->layerWidth, information->layerHeight, information->arrayLayers);
 			break;
 	}
 
 	return textureID;
 }
-void rhi_update_texture(rhi _, texture_handle texture, texture_information* information, void* data, u32 dataWidth, u32 dataHeight, u32 dataFormat, u32 dataFormatSize, u32 dataType)
+void rhi_update_texture(rhi _, texture_handle texture, texture_information* information, void* data, u32 dataWidth, u32 dataHeight, texture_pixel_format dataFormat, u32 dataFormatSize, type dataType)
 {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    switch (information->type)
+	
+	gl_handle pixelFormat;
+	switch(dataFormat)
+	{
+		case SCA_TEXTURE_RED: pixelFormat = GL_RED; break;
+		case SCA_TEXTURE_RG: pixelFormat = GL_RG; break;
+		case SCA_TEXTURE_RGB: pixelFormat = GL_RGB; break;
+		case SCA_TEXTURE_RGBA: pixelFormat = GL_RGBA;  break;
+	}
+
+	gl_handle type;
+	switch (dataType)
+	{
+		case SCA_UNSIGNED_BYTE: type = GL_UNSIGNED_BYTE; break;
+	}
+
+	switch (information->type)
     {
-    	case GL_TEXTURE_2D:
+    	case SCA_2D_TEXTURE:
         {
 			glTextureSubImage2D(
 				texture, 
                 0, 0, 0, 
-                dataWidth, dataHeight, dataFormat, dataType, data
+                dataWidth, dataHeight, pixelFormat, type, data
 			);
 
         } break;
 		
-		case GL_TEXTURE_2D_ARRAY:
+		case SCA_2D_TEXTURE_ARRAY:
 		{
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, dataWidth);
 			for(u32 i = 0; i < information->arrayLayers; ++i)
@@ -145,8 +203,8 @@ void rhi_update_texture(rhi _, texture_handle texture, texture_information* info
 					0,
 					0, 0, i,
 					information->layerWidth, information->layerHeight, 1,
-					dataFormat,
-					dataType,
+					pixelFormat,
+					type,
 					data + i * (information->layerWidth * dataFormatSize)
 				);
 			}
@@ -156,16 +214,31 @@ void rhi_update_texture(rhi _, texture_handle texture, texture_information* info
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
-void rhi_update_texture_array_layer(rhi _, texture_handle texture, texture_information* information, u32 layer, vec2 offset, u32 dataFormat, u32 dataType, void* data)
+void rhi_update_texture_array_layer(rhi _, texture_handle texture, texture_information* information, u32 layer, vec2 offset, texture_pixel_format dataFormat, type dataType, void* data)
 {
+	gl_handle pixelFormat;
+	switch(dataFormat)
+	{
+		case SCA_TEXTURE_RED: pixelFormat = GL_RED; break;
+		case SCA_TEXTURE_RG: pixelFormat = GL_RG; break;
+		case SCA_TEXTURE_RGB: pixelFormat = GL_RGB; break;
+		case SCA_TEXTURE_RGBA: pixelFormat = GL_RGBA;  break;
+	}
+
+	gl_handle type;
+	switch (dataType)
+	{
+		case SCA_UNSIGNED_BYTE: type = GL_UNSIGNED_BYTE; break;
+	}
+
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTextureSubImage3D(
 		texture,
 		0,
 		offset[0], offset[1], layer,
 		information->layerWidth, information->layerHeight, 1,
-		dataFormat,
-		dataType,
+		pixelFormat,
+		type,
 		data
 	);
 

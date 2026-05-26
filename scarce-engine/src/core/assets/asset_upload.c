@@ -1,7 +1,6 @@
 #include "asset_upload.h"
-
-#define GLEW_NO_GLU
-#include <GL/glew.h>
+#include "defines.h"
+#include "texture.h"
 
 texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet)
 {
@@ -19,22 +18,22 @@ texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet)
 		information.arrayLayers = spriteAmount;
 
         if (spritesheet->channels == 1)
-		    information.format = GL_R8;
+		    information.internalFormat = SCA_TEXTURE_R8;
         if (spritesheet->channels == 2)
-            information.format = GL_RG8;    
+            information.internalFormat = SCA_TEXTURE_RG8;    
         if (spritesheet->channels == 3)
-            information.format = GL_RGB8;    
+            information.internalFormat = SCA_TEXTURE_RGB8;    
         if (spritesheet->channels == 4)
-            information.format = GL_RGBA8;    
+            information.internalFormat = SCA_TEXTURE_RGBA8;
         
-        information.type = GL_TEXTURE_2D_ARRAY;
+        information.type = SCA_2D_TEXTURE_ARRAY;
 
 		information.generateMipmaps = false;
 
-		information.wrapS = GL_REPEAT;
-		information.wrapT = GL_REPEAT;
-		information.minFilter = GL_NEAREST;
-		information.magFilter = GL_NEAREST;
+		information.wrapS = SCA_TEXTURE_REPEAT;
+		information.wrapT = SCA_TEXTURE_REPEAT;
+		information.minFilter = SCA_TEXTURE_NEAREST;
+		information.magFilter = SCA_TEXTURE_NEAREST;
     }
 
     texture_handle spritesheetTexture = rhi_create_texture(rhi, &information); 
@@ -53,15 +52,15 @@ texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet)
             offset[1] = 0;
         }
 
-        u32 format;
+        texture_pixel_format format;
         if (spritesheet->channels == 1)
-		    format = GL_RED;
+		    format = SCA_TEXTURE_RED;
         if (spritesheet->channels == 2)
-            format = GL_RG;    
+            format = SCA_TEXTURE_RG;    
         if (spritesheet->channels == 3)
-            format = GL_RGB;    
+            format = SCA_TEXTURE_RGB;    
         if (spritesheet->channels == 4)
-            format = GL_RGBA;    
+            format = SCA_TEXTURE_RGBA;    
 
         rhi_update_texture_array_layer(
             rhi, 
@@ -70,7 +69,7 @@ texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet)
             sprite.layer, 
             offset, 
             format, 
-            GL_UNSIGNED_BYTE, 
+            SCA_UNSIGNED_BYTE, 
             sprite.data.buffer
         );
 	}

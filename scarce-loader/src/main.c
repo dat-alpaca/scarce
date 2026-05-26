@@ -165,7 +165,7 @@ static bool initialize(context* context, config* config)
     asset_library_init(&context->assetLibrary, 2);
     asset_handle mainFont = asset_library_load_font(&context->assetLibrary, config->fontFilepath, 64);
     asset_handle spriteHandle = asset_library_load_spritesheet(&context->assetLibrary, "assets/core/items.png", 16);
-    spritesheet* fontSpritesheet = asset_library_get_spritesheet(&context->assetLibrary, spriteHandle);
+    spritesheet* fontSpritesheet = asset_library_get_spritesheet(&context->assetLibrary, mainFont);
     texture_handle fontTexture = upload_font_spritesheets(context->rhi, fontSpritesheet);
 
     // View:
