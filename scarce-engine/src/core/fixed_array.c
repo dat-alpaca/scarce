@@ -1,4 +1,5 @@
 #include "fixed_array.h"
+#include "platform/platform.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,7 @@ void fixed_array_init(fixed_array* array, u32 capacity)
     array->capacity = capacity;
     array->current = 0;
 
-    array->buffer = malloc(capacity);
+    array->buffer = platform_allocate(capacity);
     assert(array->buffer);
     memset(array->buffer, 0, capacity);
 }

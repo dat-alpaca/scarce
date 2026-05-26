@@ -11,7 +11,7 @@
 window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 {
     x11_window* window;
-    window = malloc(sizeof(x11_window)); 
+    window = platform_allocate(sizeof(x11_window)); 
     window->resizeCallback = NULL;
 
     window->display = XOpenDisplay(NULL);

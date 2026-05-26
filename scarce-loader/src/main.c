@@ -146,7 +146,7 @@ static bool initialize(context* context, config* config)
         return false;
     gEngine.baseAddress = context->applicationSpace;
 
-    context->memoryPool = (u8*)malloc(config->userSpaceBytes);
+    context->memoryPool = (u8*)platform_allocate(config->userSpaceBytes);
     gEngine.memoryPoolSize = config->userSpaceBytes;
 
     // Window:

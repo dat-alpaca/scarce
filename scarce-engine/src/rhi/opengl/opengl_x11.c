@@ -1,4 +1,5 @@
 #include "opengl_rhi.h"
+#include "platform/platform.h"
 #include "rhi/rhi.h"
 #include "platform/linux/window.h"
 #include "logging/logger.h"
@@ -17,7 +18,7 @@ void rhi_initialize_window(rhi rhi, window_handle handle)
     x11_window* x11 = (x11_window*)handle;
     opengl_rhi* gl = (opengl_rhi*)rhi;
     
-    opengl_x11_internal* glX11 = malloc(sizeof(opengl_x11_internal));
+    opengl_x11_internal* glX11 = platform_allocate(sizeof(opengl_x11_internal));
 
     int visualAttribs[] =
     {

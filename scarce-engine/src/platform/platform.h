@@ -57,6 +57,9 @@ typedef enum
     MEMORY_ANON         = 1 << 2
 } memory_flags;
 
+void* platform_allocate(u64 size);
+void platform_deallocate(void* address);
+
 void* platform_mmap(void *address, u32 length, protection_mode protection, memory_flags flags, file_descriptor fileDescriptor, i64 offset);
 void platform_munmmap(void *address, u32 length);
 u64 platform_page_size();

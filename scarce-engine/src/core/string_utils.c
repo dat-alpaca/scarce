@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "string_utils.h"
 #include "dynamic_array.h"
+#include "platform/platform.h"
 
 bool is_string_same(const char* lhs, const char* rhs, u32 size)
 {
@@ -43,7 +44,7 @@ void to_lower(char* string, u32 size)
 
 char* strdup(const char* string)
 {
-    char* destination = malloc(strlen (string) + 1);
+    char* destination = platform_allocate(strlen (string) + 1);
     if (destination == NULL) 
         return NULL;
 

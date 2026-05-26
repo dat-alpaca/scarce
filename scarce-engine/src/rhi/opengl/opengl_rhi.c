@@ -1,6 +1,7 @@
 #include "opengl_rhi.h"
 #include "defines.h"
 #include "logging/logger.h"
+#include "platform/platform.h"
 #include "rhi/rhi.h"
 #include "texture.h"
 
@@ -9,7 +10,7 @@
 
 rhi rhi_init()
 {
-    opengl_rhi* rhi = malloc(sizeof(opengl_rhi));
+    opengl_rhi* rhi = platform_allocate(sizeof(opengl_rhi));
     return rhi;
 }
 
