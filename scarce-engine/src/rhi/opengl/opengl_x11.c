@@ -1,5 +1,4 @@
 #include "opengl_rhi.h"
-
 #include "rhi/rhi.h"
 #include "memory/tag.h"
 #include "logging/logger.h"

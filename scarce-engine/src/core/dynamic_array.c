@@ -1,5 +1,6 @@
 #include "dynamic_array.h"
 #include "logging/logger.h"
+#include "platform/platform.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +15,7 @@ void dynamic_array_init(dynamic_array* array, u32 elementCount, u32 elementSize)
     array->capacity = elementSize * elementCount;
     array->current = 0;
 
-    array->buffer = malloc(array->capacity);
+    array->buffer = platform_allocate(array->capacity);
     assert(array->buffer);
     memset(array->buffer, 0, array->capacity);
 }
@@ -45,7 +46,7 @@ void dynamic_array_resize(dynamic_array* array, u32 newElementCount)
         array->current = newSize;
     }
 
-    u8* tempBuffer = (u8*)malloc(newSize);
+    u8* tempBuffer = (u8*)platform_allocate(newSize);
     assert(tempBuffer);
 
     if (array->buffer)

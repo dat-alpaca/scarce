@@ -1,6 +1,4 @@
 #include "fixed_array.h"
-#include "memory/memory_system.h"
-#include "memory/tag.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
