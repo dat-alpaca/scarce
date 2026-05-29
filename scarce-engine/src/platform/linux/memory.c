@@ -1,6 +1,16 @@
 #include "platform/platform.h"
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+void* platform_allocate(u64 size)
+{
+    return malloc(size);
+}
+void  platform_deallocate(void* address)
+{
+    free(address);
+}
 
 void* platform_mmap(void *address, u32 length, protection_mode protection, memory_flags flags, file_descriptor fileDescriptor, i64 offset)
 {

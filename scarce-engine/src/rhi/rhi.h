@@ -42,6 +42,7 @@ void rhi_bind_texture(rhi rhi, texture_handle texture, u32 binding);
 void rhi_draw(rhi rhi, u32 vertexCount);
 
 // Platform-dependent:
+void rhi_preinitialize_window(rhi rhi, window_handle window);
 void rhi_initialize_window(rhi rhi, window_handle window);
 
 void rhi_swap_buffers(rhi rhi, window_handle window);

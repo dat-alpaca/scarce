@@ -2,8 +2,13 @@ sources = files(
     'src/core/fixed_array.c',
     'src/core/dynamic_array.c',
     'src/core/random.c',
+
     'src/core/memory/memory.c',
     'src/core/memory/stack.c',
+    'src/core/memory/linear_arena.c',
+    'src/core/memory/stack_arena.c',
+    'src/core/memory/memory_system.c',
+    
     'src/core/string_utils.c',
     'src/core/file_utils.c',
     'src/core/logging/logger.c',

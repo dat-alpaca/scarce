@@ -4,7 +4,8 @@
 #include <string.h>
 #include <ini.h>
 
-#include "loader.h"
+#include "config.h"
+#include "defines.h"
 #include "string_utils.h"
 #include "platform/platform.h"
 
@@ -14,6 +15,7 @@ static int handler(void* user, const char* section, const char* name, const char
 
     #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 
+    // General:
     if (MATCH("general", "windowTitle")) 
         pConfig->windowTitle = strdup(value);
 
@@ -41,6 +43,16 @@ static int handler(void* user, const char* section, const char* name, const char
     else if (MATCH("general", "minWindowHeight"))
         pConfig->minWindowHeight = atoi(value);
 
+    // Memory:
+    else if (MATCH("memory", "unknownMemoryCapacity"))
+        pConfig->unknownMemoryCapacity = atoll(value);
+    
+    else if (MATCH("memory", "transientMemoryCapacity"))
+        pConfig->transientMemoryCapacity = atoll(value);
+
+    else if (MATCH("memory", "generalMemoryCapacity"))
+        pConfig->generalMemoryCapacity = atoll(value);
+
     else
         return 0;
     
@@ -64,7 +76,11 @@ static config_result create_default_config(const char* configFilepath)
         .memoryPageAmount = 1,
         .userSpaceBytes = 1024,
         .minWindowWidth = 640,
-        .minWindowHeight = 480
+        .minWindowHeight = 480,
+
+        .unknownMemoryCapacity = TO_KiB(1),
+        .transientMemoryCapacity = TO_KiB(1),
+        .generalMemoryCapacity = TO_KiB(1),
     };
 
     char buffer[1024];
@@ -78,7 +94,14 @@ static config_result create_default_config(const char* configFilepath)
         "memoryPageAmount = %" PRIu64 "\n"
         "userSpaceBytes = %" PRIu64 "\n"
         "minWindowWidth = %" PRIu32 "\n"
-        "minWindowHeight = %" PRIu32 "\n",
+        "minWindowHeight = %" PRIu32 "\n" 
+        
+        "\n"
+        "[memory]\n"
+        "unknownMemoryCapacity = %" PRIu64 "\n"
+        "transientMemoryCapacity = %" PRIu64 "\n"
+        "generalMemoryCapacity = %" PRIu64 "\n"
+        ,
         config.windowTitle,
         config.mainBinaryFilepath,
         config.fontFilepath,
@@ -87,7 +110,11 @@ static config_result create_default_config(const char* configFilepath)
         config.memoryPageAmount,
         config.userSpaceBytes,
         config.minWindowWidth,
-        config.minWindowHeight
+        config.minWindowHeight,
+
+        config.unknownMemoryCapacity,
+        config.transientMemoryCapacity,
+        config.generalMemoryCapacity
     );
     if (length > 0)
         platform_write_file(file, (void*)buffer, (u32)length);

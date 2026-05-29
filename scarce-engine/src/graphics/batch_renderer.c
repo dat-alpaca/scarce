@@ -180,7 +180,7 @@ void batch_renderer_set_cell(batch_renderer* renderer, batch_renderer_cell* cell
     c->layer = cell->layer;
 }
 
-void batch_renderer_get_mouse_grid_position(window_handle* windowHandle, batch_renderer* renderer, u32* x, u32* y)
+void batch_renderer_get_mouse_grid_position(window_handle windowHandle, batch_renderer* renderer, u32* x, u32* y)
 {
     double mouseX, mouseY;
     window_get_mouse_position(windowHandle, &mouseX, &mouseY);

@@ -2,6 +2,7 @@
 
 #include "fixed_array.h"
 #include "logging/logger.h"
+#include "memory/tag.h"
 #include "platform/platform.h"
 
 fixed_array file_read_contents(const char* filepath)

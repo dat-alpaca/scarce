@@ -30,7 +30,7 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
     return window;
 }
 
-bool window_is_key_pressed(window_handle* handle, key key)
+bool window_is_key_pressed(window_handle handle, key key)
 {
     if (!handle)
         return false;
@@ -141,7 +141,7 @@ bool window_is_key_pressed(window_handle* handle, key key)
     return glfwGetKey((GLFWwindow*)handle, keyCode);
 }
 
-bool window_is_mouse_btn_pressed(window_handle* handle, mouse_button button)
+bool window_is_mouse_btn_pressed(window_handle handle, mouse_button button)
 {
     switch(button)
     {
@@ -159,42 +159,42 @@ bool window_is_mouse_btn_pressed(window_handle* handle, mouse_button button)
     }
 }
 
-void window_get_mouse_position(window_handle* handle, double* x, double* y)
+void window_get_mouse_position(window_handle handle, double* x, double* y)
 {
     glfwGetCursorPos((GLFWwindow*)handle, x, y);
 }
 
-bool window_is_open(window_handle* handle)
+bool window_is_open(window_handle handle)
 {
     return !glfwWindowShouldClose((GLFWwindow*)handle);
 }
 
-void window_poll_events(window_handle* _)
+void window_poll_events(window_handle _)
 {
     glfwPollEvents();
 }
 
-void window_swap_buffers(window_handle* handle)
+void window_swap_buffers(window_handle handle)
 {
     glfwSwapBuffers((GLFWwindow*)handle);
 }
 
-void* window_get_user_pointer(window_handle* handle)
+void* window_get_user_pointer(window_handle handle)
 {
     return glfwGetWindowUserPointer((GLFWwindow*)handle);
 }
 
-void  window_set_user_pointer(window_handle* handle, void* pointer)
+void  window_set_user_pointer(window_handle handle, void* pointer)
 {
     glfwSetWindowUserPointer((GLFWwindow*)handle, pointer);
 }
 
-void window_set_resize_callback(window_handle* handle, window_resize_callback callback)
+void window_set_resize_callback(window_handle handle, window_resize_callback callback)
 {
     glfwSetWindowSizeCallback((GLFWwindow*)handle, (GLFWwindowsizefun)callback);
 }
 
-u64 window_get_time(window_handle* _)
+u64 window_get_time(window_handle _)
 {
     return glfwGetTime();
 }

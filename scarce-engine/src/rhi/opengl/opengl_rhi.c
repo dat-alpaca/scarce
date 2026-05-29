@@ -1,6 +1,8 @@
 #include "opengl_rhi.h"
 #include "defines.h"
 #include "logging/logger.h"
+#include "memory/memory_system.h"
+#include "memory/tag.h"
 #include "rhi/rhi.h"
 #include "texture.h"
 
@@ -9,21 +11,22 @@
 
 rhi rhi_init()
 {
-    opengl_rhi* rhi = malloc(sizeof(opengl_rhi));
-    return rhi;
+	opengl_rhi* gl = (opengl_rhi*)sca_allocate(TAG_SYSTEM, NULL, sizeof(opengl_rhi), 1);
+	gl->vao = gl_invalid;
+
+    return gl;
 }
 
 void rhi_begin_frame(rhi rhi)
 {
     opengl_rhi* gl = (opengl_rhi*)rhi;
-    if (!gl->vao)
-        glCreateVertexArrays(1, &gl->vao);
+	if (gl->vao == gl_invalid)
+		glCreateVertexArrays(1, &gl->vao);
 
     glClearColor(35.f / 255.f, 39.f / 255.f, 38.f / 255.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    opengl_rhi* oglrhi = (opengl_rhi*)rhi;
-    glBindVertexArray(oglrhi->vao);
+    glBindVertexArray(gl->vao);
 }
 void rhi_end_frame(rhi rhi)
 {
@@ -74,13 +77,13 @@ void rhi_update_buffer(rhi rhi, buffer_handle bufferHandle, void* buffer, u32 si
 }
 void rhi_bind_buffer(rhi rhi, buffer_handle bufferHandle, u32 binding, u32 stride)
 {
-    opengl_rhi* oglrhi = (opengl_rhi*)rhi;
-    glVertexArrayVertexBuffer(oglrhi->vao, binding, bufferHandle, 0, stride);
+    opengl_rhi* gl = (opengl_rhi*)rhi;
+    glVertexArrayVertexBuffer(gl->vao, binding, bufferHandle, 0, stride);
 }
 void rhi_bind_element_buffer(rhi rhi, buffer_handle bufferHandle)
 {
-    opengl_rhi* oglrhi = (opengl_rhi*)rhi;
-    glVertexArrayElementBuffer(oglrhi->vao, bufferHandle);
+    opengl_rhi* gl = (opengl_rhi*)rhi;
+    glVertexArrayElementBuffer(gl->vao, bufferHandle);
 }
 void rhi_destroy_buffer(rhi _, buffer_handle bufferHandle)
 {

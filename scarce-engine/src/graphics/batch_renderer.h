@@ -27,7 +27,7 @@ typedef struct
 typedef struct batch_renderer
 {
     batch_renderer_world world;
-    window_handle* window;
+    window_handle window;
     fixed_array cells;
     rhi rhi;
     
@@ -59,4 +59,4 @@ void batch_renderer_render(batch_renderer* renderer);
 batch_renderer_cell* batch_renderer_get_cell(batch_renderer* renderer, u32 x, u32 y);
 void batch_renderer_set_cell(batch_renderer* renderer, batch_renderer_cell* cell, u32 x, u32 y);
 
-void batch_renderer_get_mouse_grid_position(window_handle* window, batch_renderer* renderer, u32* x, u32* y);
+void batch_renderer_get_mouse_grid_position(window_handle window, batch_renderer* renderer, u32* x, u32* y);

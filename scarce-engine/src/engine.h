@@ -17,7 +17,7 @@
 
 typedef struct engine
 {
-    window_handle* window;
+    window_handle window;
     void* baseAddress;
     u32 memoryPoolSize;
     bool requestExit;
@@ -71,8 +71,8 @@ typedef struct engine
     void (*renderer_zero_buffer)(batch_renderer* renderer);
     batch_renderer_cell* (*renderer_get_cell)(batch_renderer* renderer, u32 x, u32 y);
     void (*renderer_set_cell)(batch_renderer* renderer, batch_renderer_cell* cell, u32 x, u32 y);
-    void (*renderer_get_mouse_grid_position)(window_handle* window, batch_renderer* renderer, u32* x, u32* y);
-    void (*renderer_get_mouse_position)(window_handle* windowHandle, batch_renderer* renderer, u32* x, u32* y);
+    void (*renderer_get_mouse_grid_position)(window_handle window, batch_renderer* renderer, u32* x, u32* y);
+    void (*renderer_get_mouse_position)(window_handle windowHandle, batch_renderer* renderer, u32* x, u32* y);
 
     // Logging:
     logger* logger;

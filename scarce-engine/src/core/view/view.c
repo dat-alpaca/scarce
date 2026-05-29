@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include "memory/memory_system.h"
+#include "memory/tag.h"
 #include "scarce.h"
 #include "view.h"
 #include "logging/logger.h"
@@ -16,7 +18,7 @@ void view_holder_init(view_holder* holder, u32 capacity)
     holder->currentViewIndex = SCA_VIEW_INVALID;
     holder->count = 0;
     holder->capacity = capacity;
-    holder->data = malloc(capacity * sizeof(view_data));
+    holder->data = sca_allocate(TAG_SYSTEM, NULL, capacity * sizeof(view_data), 1);
 }
 void view_holder_destroy(view_holder* holder)
 {

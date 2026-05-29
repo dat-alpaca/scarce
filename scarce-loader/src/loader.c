@@ -1,4 +1,5 @@
 #include "loader.h"
+#include "platform/platform.h"
 
 void* get_application_space(const char* filepath, u64 memoryPageAmount)
 {
@@ -9,13 +10,13 @@ void* get_application_space(const char* filepath, u64 memoryPageAmount)
     void* applicationSpace = platform_mmap
     (
         NULL,
-        TO_KiB(4) * memoryPageAmount,
+        platform_page_size() * memoryPageAmount,
         PROTECTION_READ | PROTECTION_WRITE | PROTECTION_EXECUTE, 
         MEMORY_PRIVATE | MEMORY_ANON, 
         invalid_file_descriptor, 0
     );
 
-    platform_read_file(mainBinary, applicationSpace, TO_KiB(4) * memoryPageAmount);
+    platform_read_file(mainBinary, applicationSpace, platform_page_size() * memoryPageAmount);
     return applicationSpace;
 }
 

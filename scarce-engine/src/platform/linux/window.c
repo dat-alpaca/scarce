@@ -1,29 +1,34 @@
-#include "logging/logger.h"
-#include "platform/platform.h"
-
-#define GLEW_NO_GLU
-#include <GL/glew.h>
-#include <GL/glx.h>
-#include <stdlib.h>
-
 #include "window.h"
 
-window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
+#include "memory/tag.h"
+#include "logging/logger.h"
+#include "platform/platform.h"
+#include "memory/memory_system.h"
+
+#include <GL/glx.h>
+#include <assert.h>
+#include <stdlib.h>
+
+window_handle window_init()
 {
-    x11_window* window;
-    window = malloc(sizeof(x11_window)); 
+    x11_window* window = sca_allocate(TAG_SYSTEM, NULL, sizeof(x11_window), 1);
     window->resizeCallback = NULL;
 
     window->display = XOpenDisplay(NULL);
     if (!window->display) 
         log_critical_s("Failed to open X11 display", 27);
 
-    i32 screen = DefaultScreen(window->display);
+    return window;
+}
 
-    XVisualInfo vinfo;
-    XMatchVisualInfo(window->display, screen, 24, TrueColor, &vinfo);
-    window->visual = vinfo.visual;
-    window->depth = vinfo.depth;
+void window_create(window_handle handle, const char* title, u32 minWidth, u32 minHeight)
+{
+    x11_window* window = (x11_window*)handle;
+
+    assert(window->display);
+    assert(window->visual);
+
+    i32 screen = DefaultScreen(window->display);
 
     XSetWindowAttributes windowAttributes = 
     {
@@ -53,72 +58,6 @@ window_handle window_init(const char* title, u32 minWidth, u32 minHeight)
 
     window->wm_delete_window = XInternAtom(window->display, "WM_DELETE_WINDOW", False);
     XSetWMProtocols(window->display, window->window, &window->wm_delete_window, 1);
-
-    return window;
-
-    /*
-    static int visualAttribs[] = 
-    {
-        GLX_X_RENDERABLE,  True,
-        GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-        GLX_RENDER_TYPE,   GLX_RGBA_BIT,
-        GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
-        GLX_RED_SIZE,      8,
-        GLX_GREEN_SIZE,    8,
-        GLX_BLUE_SIZE,     8,
-        GLX_ALPHA_SIZE,    8,
-        GLX_DEPTH_SIZE,    24,
-        GLX_STENCIL_SIZE,  8,
-        GLX_DOUBLEBUFFER,  True,
-        None
-    };
-
-    int framebufferCount;
-    GLXFBConfig* fbc = glXChooseFBConfig(window->display, DefaultScreen(window->display), visualAttribs, &framebufferCount);
-    XVisualInfo* vi = glXGetVisualFromFBConfig(window->display, fbc[0]);
-
-    XSetWindowAttributes swa = 
-    {
-        .colormap = XCreateColormap(window->display, RootWindow(window->display, vi->screen), vi->visual, AllocNone),
-        .background_pixmap = None,
-        .border_pixel = 0,
-
-        .event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | 
-                      ButtonReleaseMask | PointerMotionMask | StructureNotifyMask
-    };
-
-    window->window = XCreateWindow(window->display, RootWindow(window->display, vi->screen), 
-                                   0, 0, minWidth, minHeight, 0, vi->depth, InputOutput, 
-                                   vi->visual, CWColormap | CWEventMask, &swa);
-
-    
-
-    
-
-    // Context
-    int contextAttribs[] = 
-    {
-        GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
-        GLX_CONTEXT_MINOR_VERSION_ARB, 6,
-        GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-        None
-    };
-
-    PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB = 
-        (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
-    
-    window->context = glXCreateContextAttribsARB(window->display, fbc[0], NULL, True, contextAttribs);
-    XFree(fbc);
-    glXMakeCurrent(window->display, window->window, window->context);
-
-    glewExperimental = GL_TRUE;
-    glewInit();
-
-    
-
-
-    return window;
-*/
 }
 
 bool window_is_key_pressed(window_handle handle, key key)

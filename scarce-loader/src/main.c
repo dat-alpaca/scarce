@@ -1,13 +1,17 @@
 #include "assets/asset_library.h"
 #include "assets/asset_upload.h"
 
+#include "defines.h"
 #include "logging/logger.h"
+#include "memory/linear_arena.h"
+#include "memory/memory_system.h"
+#include "memory/tag.h"
 #include "random.h"
 #include "rhi/rhi.h"
 #include "scarce.h"
 
 #include "graphics/batch_renderer.h"
-#include "config/loader.h"
+#include "config/config.h"
 #include "loader.h"
 
 #include "platform/platform.h"
@@ -15,6 +19,7 @@
 #include "ui/hsml/hsml.h"
 #include "ui/ui.h"
 #include "view/view.h"
+#include <stdlib.h>
 
 static engine gEngine =
 {
@@ -112,7 +117,6 @@ static engine gEngine =
     .ui_text_box_aabb = ui_text_box_aabb,
 
     // UI HSML:
-    ///.ui_hsml = ui_hsml,
     .ui_hsml = ui_hsml,
 };
 
@@ -127,7 +131,7 @@ struct context
 } typedef context;
 
 /* Window */
-void window_size_callback(window_handle* window, i32 width, i32 height)
+void window_size_callback(window_handle window, i32 width, i32 height)
 {
     context* userContext = (context*)window_get_user_pointer(window);
     batch_renderer* r = &userContext->textRenderer;
@@ -140,25 +144,42 @@ static bool initialize(context* context, config* config)
 {
     random_init();
 
+    // Memory:
+    memory_options options;
+    {
+        options.memoryAmountPerTag[TAG_UNKNOWN] = config->unknownMemoryCapacity;
+        options.memoryAmountPerTag[TAG_GENERAL] = config->generalMemoryCapacity;
+        options.memoryAmountPerTag[TAG_TRANSIENT] = config->transientMemoryCapacity;
+        
+        options.memoryAmountPerTag[TAG_USER] 
+        = config->userSpaceBytes;
+
+        options.memoryAmountPerTag[TAG_SYSTEM] 
+        = TO_KiB(0.5);
+    }
+    memory_system_init(&options);
+
     // User space:
     context->applicationSpace = get_application_space(config->mainBinaryFilepath, config->memoryPageAmount);
     if (!context->applicationSpace)
         return false;
     gEngine.baseAddress = context->applicationSpace;
 
-    context->memoryPool = (u8*)malloc(config->userSpaceBytes);
+    context->memoryPool = sca_allocate(TAG_USER, NULL, config->userSpaceBytes, 1);
     gEngine.memoryPoolSize = config->userSpaceBytes;
 
-    // Window:
-    gEngine.window = window_init(config->windowTitle, config->minWindowWidth, config->minWindowHeight);
-    if (!gEngine.window)
+    // Window & RHI:
+    context->rhi = rhi_init();
+    gEngine.window = window_init();
+    if (!gEngine.window || !context->rhi)
         return false;
 
+    rhi_preinitialize_window(context->rhi, gEngine.window);
+    window_create(gEngine.window, config->windowTitle, config->minWindowWidth, config->minWindowHeight);
+    
     window_set_user_pointer(gEngine.window, context);
     window_set_resize_callback(gEngine.window, window_size_callback);
 
-    // RHI:
-    context->rhi = rhi_init();
     rhi_initialize_window(context->rhi, gEngine.window);
 
     // Assets:

@@ -1,5 +1,6 @@
 #pragma once
 #include "defines.h"
+#include "memory/tag.h"
 
 typedef struct
 {

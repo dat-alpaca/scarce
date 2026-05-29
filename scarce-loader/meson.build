@@ -1,7 +1,7 @@
 sources = files(
     'src/loader.c',
     'src/main.c',
-    'src/config/loader.c'
+    'src/config/config.c'
 )
 
 executable('scarce', 

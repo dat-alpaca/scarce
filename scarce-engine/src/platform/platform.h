@@ -1,5 +1,6 @@
 #pragma once
 #include "core/defines.h"
+#include "memory/tag.h"
 #include "mouse.h"
 #include "key.h"
 
@@ -57,15 +58,20 @@ typedef enum
     MEMORY_ANON         = 1 << 2
 } memory_flags;
 
+void* platform_allocate(u64 size);
+void  platform_deallocate(void* address);
+
 void* platform_mmap(void *address, u32 length, protection_mode protection, memory_flags flags, file_descriptor fileDescriptor, i64 offset);
 void platform_munmmap(void *address, u32 length);
 u64 platform_page_size();
 
 /* Window */
 typedef void* window_handle;
-typedef void (*window_resize_callback)(window_handle*, i32, i32);
+typedef void (*window_resize_callback)(window_handle, i32, i32);
 
-window_handle window_init(const char* title, u32 minWidth, u32 minHeight);
+window_handle window_init();
+void window_create(window_handle window, const char* title, u32 minWidth, u32 minHeight);
+
 bool window_is_key_pressed(window_handle handle, key key);
 bool window_is_mouse_btn_pressed(window_handle handle, mouse_button button);
 bool window_is_open(window_handle handle);
