@@ -13,6 +13,10 @@ window_handle window_init()
 {
     x11_window* window = sca_allocate(TAG_SYSTEM, NULL, sizeof(x11_window), 1);
     window->resizeCallback = NULL;
+    window->leftButtonPress = 0;
+    window->rightButtonPress = 0;
+    for (u32 i = 0; i < SCA_KEY_COUNT + 1; ++i)
+        window->keyPressed[i] = 0;
 
     window->display = XOpenDisplay(NULL);
     if (!window->display) 
