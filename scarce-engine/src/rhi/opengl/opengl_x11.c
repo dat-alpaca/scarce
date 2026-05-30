@@ -103,8 +103,6 @@ void rhi_initialize_window(rhi rhi, window_handle handle)
 
 void rhi_swap_buffers(rhi rhi, window_handle handle)
 {
-    opengl_rhi* _ = (opengl_rhi*)rhi;
     x11_window* window = (x11_window*)handle;
-    
     glXSwapBuffers(window->display, window->window);
 }

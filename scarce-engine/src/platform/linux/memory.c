@@ -7,6 +7,10 @@ void* platform_allocate(u64 size)
 {
     return malloc(size);
 }
+void* platform_reallocate(void* address, u64 newSize)
+{
+    return realloc(address, newSize);
+}
 void  platform_deallocate(void* address)
 {
     free(address);

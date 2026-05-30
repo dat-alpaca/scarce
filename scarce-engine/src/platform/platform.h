@@ -59,6 +59,7 @@ typedef enum
 } memory_flags;
 
 void* platform_allocate(u64 size);
+void* platform_reallocate(void* address, u64 newSize);
 void  platform_deallocate(void* address);
 
 void* platform_mmap(void *address, u32 length, protection_mode protection, memory_flags flags, file_descriptor fileDescriptor, i64 offset);

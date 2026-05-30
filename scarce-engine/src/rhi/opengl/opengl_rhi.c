@@ -3,7 +3,9 @@
 #include "logging/logger.h"
 #include "memory/memory_system.h"
 #include "memory/tag.h"
+#include "platform/platform.h"
 #include "rhi/rhi.h"
+#include "shader.h"
 #include "texture.h"
 
 #define GLEW_NO_GLU
@@ -69,7 +71,7 @@ buffer_handle rhi_create_buffer(rhi rhi, u32 size, buffer_usage usage)
 	glCreateBuffers(1, &bufferID);
 	glNamedBufferStorage(bufferID, size, NULL, flags);
 	
-	return bufferID;
+	return (buffer_handle)bufferID;
 }
 void rhi_update_buffer(rhi rhi, buffer_handle bufferHandle, void* buffer, u32 size, u32 offset)
 {
@@ -99,6 +101,7 @@ static gl_handle get_wrap_mode(texture_wrap wrap)
 		case SCA_TEXTURE_CLAMP_EDGE: return GL_CLAMP_TO_EDGE;
 		case SCA_TEXTURE_MIRRORED_REPEAT: return GL_MIRRORED_REPEAT;
 	}
+	return invalid_handle;
 }
 
 static gl_handle get_filter(texture_filter filter)
@@ -112,6 +115,7 @@ static gl_handle get_filter(texture_filter filter)
 		case SCA_TEXTURE_NEAREST_MIPMAP_LINEAR: return GL_NEAREST_MIPMAP_LINEAR;
 		case SCA_TEXTURE_LINEAR_MIPMAP_LINEAR: return GL_LINEAR_MIPMAP_LINEAR;
 	}
+	return invalid_handle;
 }
 
 texture_handle rhi_create_texture(rhi _, texture_information* information)
@@ -163,7 +167,7 @@ texture_handle rhi_create_texture(rhi _, texture_information* information)
 			break;
 	}
 
-	return textureID;
+	return (texture_handle)textureID;
 }
 void rhi_update_texture(rhi _, texture_handle texture, texture_information* information, void* data, u32 dataWidth, u32 dataHeight, texture_pixel_format dataFormat, u32 dataFormatSize, type dataType)
 {
@@ -295,7 +299,7 @@ shader_handle rhi_create_shader(rhi rhi, shader_type type, char* shaderContents)
     glCompileShader(shaderID);
     
     check_compile_error(shaderID);
-    return shaderID;
+    return (shader_handle)shaderID;
 }
 pipeline rhi_create_pipeline(rhi rhi, shader_handle vertexShader, shader_handle fragmentShader)
 {
