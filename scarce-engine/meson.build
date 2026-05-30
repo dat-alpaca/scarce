@@ -51,6 +51,7 @@ elif host_machine.system() == 'linux'
     sources += files('src/platform/linux/memory.c')
     sources += files('src/platform/linux/time.c')
 
+    # LibX:
     if get_option('use_native_windowing')
         x11_dep = dependency('x11')
         sources += files('src/platform/linux/window.c')
@@ -58,7 +59,7 @@ elif host_machine.system() == 'linux'
     endif
 
     # GL:
-    if true
+    if get_option('use_gl_rhi')
         sources += files('src/rhi/opengl/opengl_rhi.c')
         sources += files('src/rhi/opengl/opengl_x11.c')
     endif
@@ -67,6 +68,8 @@ endif
 
 if not get_option('use_native_windowing')
     sources += files('src/platform/glfw/window.c')
+    sources += files('src/rhi/opengl/opengl_rhi.c')
+    sources += files('src/rhi/opengl/opengl_x11.c')
     dependencies += glfw_dep
 endif
 

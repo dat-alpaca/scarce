@@ -147,13 +147,15 @@ texture_handle rhi_create_texture(rhi _, texture_information* information)
 			glGenerateTextureMipmap(textureID);
 	}
 
-	u32 internalFormat;
+	gl_handle internalFormat = gl_invalid;
 	switch (information->internalFormat)
 	{
 		case SCA_TEXTURE_R8: internalFormat = GL_R8; break;
     	case SCA_TEXTURE_RG8: internalFormat = GL_RG8; break;
     	case SCA_TEXTURE_RGB8: internalFormat = GL_RGB8; break;
-    	case SCA_TEXTURE_RGBA8: internalFormat = GL_RGBA8; break;	
+    	case SCA_TEXTURE_RGBA8: internalFormat = GL_RGBA8; break;
+		default:
+			log_critical_s("invalid texture internal format", 32);
 	}
 
 	switch (information->type)
@@ -173,13 +175,15 @@ void rhi_update_texture(rhi _, texture_handle texture, texture_information* info
 {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
-	gl_handle pixelFormat;
+	gl_handle pixelFormat = gl_invalid;
 	switch(dataFormat)
 	{
 		case SCA_TEXTURE_RED: pixelFormat = GL_RED; break;
 		case SCA_TEXTURE_RG: pixelFormat = GL_RG; break;
 		case SCA_TEXTURE_RGB: pixelFormat = GL_RGB; break;
 		case SCA_TEXTURE_RGBA: pixelFormat = GL_RGBA;  break;
+		default:
+			log_critical_s("invalid texture pixel format", 29);
 	}
 
 	gl_handle type;
@@ -223,13 +227,15 @@ void rhi_update_texture(rhi _, texture_handle texture, texture_information* info
 }
 void rhi_update_texture_array_layer(rhi _, texture_handle texture, texture_information* information, u32 layer, vec2 offset, texture_pixel_format dataFormat, type dataType, void* data)
 {
-	gl_handle pixelFormat;
+	gl_handle pixelFormat = gl_invalid;
 	switch(dataFormat)
 	{
 		case SCA_TEXTURE_RED: pixelFormat = GL_RED; break;
 		case SCA_TEXTURE_RG: pixelFormat = GL_RG; break;
 		case SCA_TEXTURE_RGB: pixelFormat = GL_RGB; break;
 		case SCA_TEXTURE_RGBA: pixelFormat = GL_RGBA;  break;
+		default:
+			log_critical_s("invalid texture array pixel format", 35);
 	}
 
 	gl_handle type;

@@ -1,5 +1,6 @@
 #include "asset_upload.h"
 #include "defines.h"
+#include "platform/platform.h"
 #include "texture.h"
 
 texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet)
@@ -52,7 +53,7 @@ texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet)
             offset[1] = 0;
         }
 
-        texture_pixel_format format;
+        texture_pixel_format format = invalid_handle;
         if (spritesheet->channels == 1)
 		    format = SCA_TEXTURE_RED;
         if (spritesheet->channels == 2)
@@ -61,6 +62,8 @@ texture_handle upload_font_spritesheets(rhi rhi, spritesheet* spritesheet)
             format = SCA_TEXTURE_RGB;    
         if (spritesheet->channels == 4)
             format = SCA_TEXTURE_RGBA;    
+
+        assert(format != invalid_handle);
 
         rhi_update_texture_array_layer(
             rhi, 

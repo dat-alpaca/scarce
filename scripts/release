@@ -2,7 +2,7 @@
 
 meson configure build \
     --prefix=$(pwd)/deploy \
-    -Dbuildtype=debug \
+    -Dbuildtype=release \
     -Dbuild_loader=true \
     -Dbuild_testbed=true \
     -Duse_gl_rhi=true \

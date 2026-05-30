@@ -117,10 +117,20 @@ static hsml_color_token_type hsml_parse_color(dynamic_array* text)
 {
     hsml_color_token_type color = HSML_COLOR_INVALID;
 
+    assert(text);
+    assert(text->buffer);
+    assert(text->current > 0);
+
+    char null = '\0';
+    dynamic_array_push(text, &null, 1);
+
     for (hsml_token_color_item* item = s_colorLookupTable; item->name != NULL; ++item)
     {
-        if (strcmp(item->name, text->buffer) == 0)
-            color = item->color;
+        if (strcmp(item->name, text->buffer) != 0)
+            continue;
+        
+        color = item->color;
+        break;
     }
 
     return color;
@@ -222,14 +232,23 @@ static hsml_token_type hsml_get_token_type(ui_state* state, file_descriptor desc
     dynamic_array_init(&buffer, 32, sizeof(char));
     hsml_fetch_text(state, descriptor, &buffer, HSML_TOKEN_DELIMITER, false, true);
 
-    if (!buffer.current)
+    if (!buffer.current || !buffer.buffer)
+    {
+        dynamic_array_destroy(&buffer);
         return HSML_TOKEN_INVALID;
+    }
+
+    char null = '\0';
+    dynamic_array_push(&buffer, &null, 1);
 
     hsml_token_type type = HSML_TOKEN_INVALID;
     for (hsml_token_lookup_item* item = s_tokenLookupTable; item->name != NULL; ++item)
     {
-        if (strcmp(item->name, buffer.buffer) == 0)
-            type = item->type;
+        if (strcmp(item->name, buffer.buffer) != 0)
+            continue;
+
+        type = item->type;
+        break;
     }
     
     dynamic_array_destroy(&buffer);
