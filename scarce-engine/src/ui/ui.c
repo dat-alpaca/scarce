@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "engine.h"
 #include "memory/stack.h"
+#include "memory/tag.h"
 #include "physics/aabb.h"
 #include "string_utils.h"
 
@@ -82,7 +83,7 @@ void ui_number(ui_state* state, u32 number)
 
     // Extract digits:
     fixed_array numberBuffer = { 0 };
-    fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH);
+    fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH, TAG_TRANSIENT);
 
     char temp[SCA_UI_MAX_NUMBER_LENGTH];
     u64 length = number_to_array(number, temp);

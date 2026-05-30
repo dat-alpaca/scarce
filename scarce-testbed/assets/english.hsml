@@ -75,7 +75,7 @@
     \color; white faint;
     \nudge; 1;
         \start;
-        %0 %1 %4
+        %0 %1 %2 %3 %4
         \end;
 \sameline; 0;
 \feed;
@@ -89,9 +89,9 @@
     \end;
 \nudge; 1;
 
-\textbox; %0; 0;
+\textbox; %2; 0;
 
-\if; %4 == 1;
+\if; %4;
     \feedline;
     \left; 1;
     \color; white faint;
@@ -103,16 +103,16 @@
 \endif;
 
 # Buttons:
-\bottom; 0;
-
 \sl; 1;
     \feed;
     \nudge; 1;
 
-    \button; %2; 0; lang;
-    \nudge; 1;
-    \button; %1; 0; quit;
-\sl; 0;
+    \bottom; 0;
+    \button; %0; 0; quit;
 
+    \nudge; 1;
+
+    \button; %1; 0; lang;
+\sl; 0;
 
 

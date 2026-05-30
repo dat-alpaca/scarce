@@ -1,5 +1,4 @@
 #pragma once
-#include "dynamic_array.h"
 #include "assets/spritesheet.h"
 #include "fixed_array.h"
 #include <freetype/freetype.h>
@@ -10,7 +9,7 @@ typedef u32 asset_handle;
 
 typedef struct asset_library
 {
-    dynamic_array spritesheets;
+    fixed_array spritesheets;
     FT_Library fontLibrary;
 } asset_library;
 

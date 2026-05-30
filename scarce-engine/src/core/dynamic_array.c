@@ -1,6 +1,6 @@
 #include "dynamic_array.h"
 #include "logging/logger.h"
-#include "platform/platform.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +15,7 @@ void dynamic_array_init(dynamic_array* array, u32 elementCount, u32 elementSize)
     array->capacity = elementSize * elementCount;
     array->current = 0;
 
-    array->buffer = platform_allocate(array->capacity);
+    array->buffer = malloc(array->capacity);
     assert(array->buffer);
     memset(array->buffer, 0, array->capacity);
 }
@@ -39,24 +39,17 @@ void dynamic_array_resize(dynamic_array* array, u32 newElementCount)
     if (newSize == array->capacity)
         return;
 
-    u32 usedSize = (newSize < array->current) ? newSize : array->current;
     if (newSize < array->current)
     {
         log_warn_s("Resized dynamic array down. Data will be lost.", 47);
-        array->current = newSize;
+        array->current = newSize; 
     }
 
-    u8* tempBuffer = (u8*)platform_allocate(newSize);
+    u8* tempBuffer = (u8*)realloc(array->buffer, newSize);
     assert(tempBuffer);
 
-    if (array->buffer)
-    {
-        memcpy(tempBuffer, array->buffer, usedSize);
-        free(array->buffer);
-    }
-    
     array->buffer = tempBuffer;
-    array->capacity = usedSize;
+    array->capacity = newSize;
 }
 u32 dynamic_array_size(dynamic_array* array)
 {
@@ -73,7 +66,11 @@ void* dynamic_array_push(dynamic_array* array, void* data, u32 count)
 
     u32 bytes = count * array->elementSize;
     if (array->current + bytes > array->capacity)
-        dynamic_array_resize(array, (array->capacity + 1) * SCA_DA_GROWTH_RATIO);
+    {
+        u32 currentCount = dynamic_array_size(array);
+        u32 newCount = (u32)((currentCount + count) * SCA_DA_GROWTH_RATIO) + 1;
+        dynamic_array_resize(array, newCount);
+    }
 
     if (data)
         memcpy((u8*)array->buffer + array->current, data, bytes);

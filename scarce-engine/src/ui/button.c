@@ -3,6 +3,7 @@
 #include "button.h"
 
 #include "fixed_array.h"
+#include "memory/tag.h"
 #include "scarce.h"
 #include "ui.h"
 #include "memory/memory.h"
@@ -28,7 +29,7 @@ void ui_button_render(ui_button* button, ui_state* state, const char* content)
     ui_set_color(state, button->isHovered ? &button->hoveredColor : &button->color);
     {
         fixed_array buffer = { 0 };
-        fixed_array_init(&buffer, button->width);
+        fixed_array_init(&buffer, button->width, TAG_TRANSIENT);
 
         if (button->alignMiddle)
         {
@@ -54,7 +55,7 @@ void ui_button_render(ui_button* button, ui_state* state, const char* content)
         }
         else if (button->alignRight)
         {
-
+            // Blank
         }
         else
         {

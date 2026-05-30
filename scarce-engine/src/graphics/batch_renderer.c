@@ -3,6 +3,7 @@
 #include "cglm/vec4.h"
 #include "defines.h"
 #include "file_utils.h"
+#include "memory/tag.h"
 #include <assert.h>
 
 #define GLEW_NO_GLU
@@ -44,7 +45,7 @@ static void reallocate_buffers(batch_renderer* renderer)
     
     u32 totalCells = renderer->gridWidth * renderer->gridHeight;
     u32 totalBytes = totalCells * sizeof(batch_renderer_cell);
-    fixed_array_init(&renderer->cells, totalBytes);
+    fixed_array_init(&renderer->cells, totalBytes, TAG_RENDERER);
 
     batch_renderer_cell emptyCell = { 0 };
     for (u32 i = 0; i < totalCells; ++i)

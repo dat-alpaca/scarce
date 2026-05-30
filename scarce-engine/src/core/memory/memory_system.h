@@ -5,10 +5,12 @@
 
 typedef struct
 {
-    linear_arena arena[SCA_LINEAR_TAGS];
+    linear_arena arena[TAG_LINEAR_END - TAG_LINEAR_START];
     stack_arena transientArena;
-} memory_system;
 
+    u64 generalCapacity[TAG_GENERAL_END - TAG_LINEAR_START];
+    u64 usedGeneralSize[TAG_GENERAL_END - TAG_LINEAR_START];
+} memory_system;
 extern memory_system gMemorySystem;
 
 struct
@@ -18,6 +20,7 @@ struct
 void memory_system_init(memory_options* options);
 
 void* sca_allocate(memory_tag tag, void* data, u32 size, u8 alignment);
+void sca_free(memory_tag tag, void* address, u32 size);
 
 struct
 {

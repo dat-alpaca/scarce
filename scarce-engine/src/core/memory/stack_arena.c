@@ -11,8 +11,8 @@ void stack_arena_init(stack_arena* arena, u32 capacity)
     assert(arena);
     assert(capacity > 0);
 
-    arena = platform_allocate(capacity);
-    assert(arena);
+    arena->data = platform_allocate(capacity);
+    assert(arena->data);
 
     arena->capacity = capacity;
     arena->current = 0;

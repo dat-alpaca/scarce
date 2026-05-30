@@ -19,6 +19,7 @@
 #include "ui/hsml/hsml.h"
 #include "ui/ui.h"
 #include "view/view.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 static engine gEngine =
@@ -144,18 +145,20 @@ static bool initialize(context* context, config* config)
 {
     random_init();
 
+    // if i change unknown to 160 it works?
+
     // Memory:
     memory_options options;
     {
         options.memoryAmountPerTag[TAG_UNKNOWN] = config->unknownMemoryCapacity;
-        options.memoryAmountPerTag[TAG_GENERAL] = config->generalMemoryCapacity;
-        options.memoryAmountPerTag[TAG_TRANSIENT] = config->transientMemoryCapacity;
-        
-        options.memoryAmountPerTag[TAG_USER] 
-        = config->userSpaceBytes;
+        options.memoryAmountPerTag[TAG_SYSTEM] = TO_KiB(0.5);
+        options.memoryAmountPerTag[TAG_USER] = config->userSpaceBytes;
 
-        options.memoryAmountPerTag[TAG_SYSTEM] 
-        = TO_KiB(0.5);
+        options.memoryAmountPerTag[TAG_ASSETS] = config->assetsMemoryCapacity;
+        options.memoryAmountPerTag[TAG_RENDERER] = config->rendererMemoryCapacity;
+        options.memoryAmountPerTag[TAG_GENERAL] = config->generalMemoryCapacity;
+        
+        options.memoryAmountPerTag[TAG_TRANSIENT] = config->transientMemoryCapacity;
     }
     memory_system_init(&options);
 
@@ -183,15 +186,15 @@ static bool initialize(context* context, config* config)
     rhi_initialize_window(context->rhi, gEngine.window);
 
     // Assets:
-    asset_library_init(&context->assetLibrary, 2);
-    asset_handle mainFont = asset_library_load_font(&context->assetLibrary, config->fontFilepath, 64);
+    asset_library_init(&context->assetLibrary, config->spritesheetCapacity);
+    asset_handle mainFont = asset_library_load_font(&context->assetLibrary, config->fontFilepath, config->mainFontHeight);
     asset_handle spriteHandle = asset_library_load_spritesheet(&context->assetLibrary, "assets/core/items.png", 16);
     spritesheet* fontSpritesheet = asset_library_get_spritesheet(&context->assetLibrary, mainFont);
     texture_handle fontTexture = upload_font_spritesheets(context->rhi, fontSpritesheet);
 
     // View:
     gEngine.viewHolder = &context->viewHolder;
-    view_holder_init(gEngine.viewHolder, 3);
+    view_holder_init(gEngine.viewHolder, 2);
 
     // Logger:
     logger mainLogger;
@@ -206,6 +209,42 @@ static bool initialize(context* context, config* config)
 
     return true;
 } 
+
+static void __debug_memory_usage()
+{
+    printf("----------\n");
+
+    u64 capacity, used;
+    capacity = gMemorySystem.arena[TAG_UNKNOWN].capacity;
+    used = gMemorySystem.arena[TAG_UNKNOWN].current;
+    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_UNKNOWN), used, capacity);
+
+    capacity = gMemorySystem.arena[TAG_SYSTEM].capacity;
+    used = gMemorySystem.arena[TAG_SYSTEM].current;
+    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_SYSTEM), used, capacity);
+
+    capacity = gMemorySystem.arena[TAG_USER].capacity;
+    used = gMemorySystem.arena[TAG_USER].current;
+    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_USER), used, capacity);
+
+    // General:
+    capacity = gMemorySystem.generalCapacity[TAG_ASSETS - TAG_GENERAL_START];
+    used = gMemorySystem.usedGeneralSize[TAG_ASSETS - TAG_GENERAL_START];
+    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_ASSETS), used, capacity);
+
+    capacity = gMemorySystem.generalCapacity[TAG_RENDERER - TAG_GENERAL_START];
+    used = gMemorySystem.usedGeneralSize[TAG_RENDERER - TAG_GENERAL_START];
+    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_RENDERER), used, capacity);
+
+    capacity = gMemorySystem.generalCapacity[TAG_GENERAL - TAG_GENERAL_START];
+    used = gMemorySystem.usedGeneralSize[TAG_GENERAL - TAG_GENERAL_START];
+    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_GENERAL), used, capacity);
+
+    // Transient:
+    capacity = gMemorySystem.transientArena.capacity;
+    used = gMemorySystem.transientArena.current;
+    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_TRANSIENT), used, capacity);
+}
 
 int main()
 {   
@@ -227,6 +266,8 @@ int main()
     while(window_is_open(gEngine.window))
     {
         window_poll_events(gEngine.window);
+
+        //__debug_memory_usage();
 
         if(!onUpdate(context.memoryPool) || gEngine.requestExit)
             break;

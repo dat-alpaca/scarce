@@ -1,17 +1,23 @@
 #include "fixed_array.h"
+
+#include "defines.h"
+#include "memory/tag.h"
+#include "memory/memory_system.h"
+
 #include <assert.h>
-#include <stdlib.h>
 #include <string.h>
 
-void fixed_array_init(fixed_array* array, u32 capacity)
+void fixed_array_init(fixed_array* array, u32 capacity, memory_tag tag)
 {
     assert(array);
 
+    array->tag = tag;
     array->capacity = capacity;
     array->current = 0;
 
-    array->buffer = malloc(capacity);
+    array->buffer = sca_allocate(tag, NULL, capacity, 1);
     assert(array->buffer);
+
     memset(array->buffer, 0, capacity);
 }
 
@@ -27,10 +33,12 @@ void* fixed_array_get(fixed_array* array, u32 index, u32 elementSize)
 
 void fixed_array_push(fixed_array* array, void* data, u32 bytes)
 {
-    assert(array && data && bytes > 0);
+    assert(array);
     assert(array->current + bytes <= array->capacity);
 
-    memcpy((u8*)array->buffer + array->current, data, bytes);
+    if (data)
+        memcpy((u8*)array->buffer + array->current, data, bytes);
+    
     array->current += bytes;
 }
 
@@ -51,7 +59,7 @@ void fixed_array_destroy(fixed_array* array)
     assert(array);
     assert(array->buffer);
 
-    free(array->buffer);
+    sca_free(array->tag, array->buffer, array->capacity);
     array->buffer = NULL;
 
     array->capacity = 0;

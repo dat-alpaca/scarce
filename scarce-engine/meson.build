@@ -70,7 +70,6 @@ if not get_option('use_native_windowing')
     dependencies += glfw_dep
 endif
 
-
 # Main library:
 engine_internal_includes = include_directories('src', 'src/core', 'src/graphics')
 engine_includes = [engine_internal_includes]

@@ -43,6 +43,12 @@ static int handler(void* user, const char* section, const char* name, const char
     else if (MATCH("general", "minWindowHeight"))
         pConfig->minWindowHeight = atoi(value);
 
+    else if (MATCH("general", "spritesheetCapacity"))
+        pConfig->spritesheetCapacity = atoi(value);
+
+    else if (MATCH("general", "mainFontHeight"))
+        pConfig->mainFontHeight = atoi(value);
+
     // Memory:
     else if (MATCH("memory", "unknownMemoryCapacity"))
         pConfig->unknownMemoryCapacity = atoll(value);
@@ -52,6 +58,12 @@ static int handler(void* user, const char* section, const char* name, const char
 
     else if (MATCH("memory", "generalMemoryCapacity"))
         pConfig->generalMemoryCapacity = atoll(value);
+
+    else if (MATCH("memory", "assetsMemoryCapacity"))
+        pConfig->assetsMemoryCapacity = atoll(value);
+
+    else if (MATCH("memory", "rendererMemoryCapacity"))
+        pConfig->rendererMemoryCapacity = atoll(value);
 
     else
         return 0;
@@ -77,10 +89,14 @@ static config_result create_default_config(const char* configFilepath)
         .userSpaceBytes = 1024,
         .minWindowWidth = 640,
         .minWindowHeight = 480,
+        .spritesheetCapacity = 2,
+        .mainFontHeight = 64,
 
-        .unknownMemoryCapacity = TO_KiB(1),
-        .transientMemoryCapacity = TO_KiB(1),
-        .generalMemoryCapacity = TO_KiB(1),
+        .unknownMemoryCapacity = 16,
+        .transientMemoryCapacity = 2560,
+        .generalMemoryCapacity = TO_KiB(10),
+        .assetsMemoryCapacity = TO_KiB(2),
+        .rendererMemoryCapacity = TO_KiB(32)
     };
 
     char buffer[1024];
@@ -95,12 +111,16 @@ static config_result create_default_config(const char* configFilepath)
         "userSpaceBytes = %" PRIu64 "\n"
         "minWindowWidth = %" PRIu32 "\n"
         "minWindowHeight = %" PRIu32 "\n" 
+        "spritesheetCapacity = %" PRIu32 "\n" 
+        "mainFontHeight = %" PRIu32 "\n" 
         
         "\n"
         "[memory]\n"
         "unknownMemoryCapacity = %" PRIu64 "\n"
         "transientMemoryCapacity = %" PRIu64 "\n"
         "generalMemoryCapacity = %" PRIu64 "\n"
+        "assetsMemoryCapacity = %" PRIu64 "\n"
+        "rendererMemoryCapacity = %" PRIu64 "\n"
         ,
         config.windowTitle,
         config.mainBinaryFilepath,
@@ -111,10 +131,14 @@ static config_result create_default_config(const char* configFilepath)
         config.userSpaceBytes,
         config.minWindowWidth,
         config.minWindowHeight,
+        config.spritesheetCapacity,
+        config.mainFontHeight,
 
         config.unknownMemoryCapacity,
         config.transientMemoryCapacity,
-        config.generalMemoryCapacity
+        config.generalMemoryCapacity,
+        config.assetsMemoryCapacity,
+        config.rendererMemoryCapacity
     );
     if (length > 0)
         platform_write_file(file, (void*)buffer, (u32)length);

@@ -7,11 +7,11 @@ project('scarce', 'c',
 
 # Dependencies:
 gl_dep          = dependency('gl')
-cglm_dep        = dependency('cglm', static: true)
-freetype_dep    = dependency('freetype2', static: true)
-glfw_dep        = dependency('glfw3', static: true)
-glew_dep        = dependency('glew', static: true, fallback: ['glew', 'glew_dep'])
-inih_dep        = dependency('inih', static: true)
+cglm_dep        = dependency('cglm')
+freetype_dep    = dependency('freetype2')
+glfw_dep        = dependency('glfw3')
+glew_dep        = dependency('glew', fallback: ['glew', 'glew_dep'])
+inih_dep        = dependency('inih')
 stb_dep         = dependency('stb')
 
 cglm_includes     = cglm_dep.partial_dependency(compile_args: true, includes: true)

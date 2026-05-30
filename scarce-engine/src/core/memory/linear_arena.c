@@ -11,7 +11,7 @@ void linear_arena_init(linear_arena* arena, u32 capacity)
     assert(capacity > 0);
 
     arena->data = platform_allocate(capacity);
-    assert(arena);
+    assert(arena->data);
 
     arena->capacity = capacity;
     arena->current = 0;
@@ -20,9 +20,9 @@ void* linear_arena_push(linear_arena* arena, void* data, u32 size, u8 alignment)
 {
     assert(arena);
 
-    u64 alignedOffset = get_aligned_value(arena->current, alignment);
+    u32 alignedOffset = (u32)get_aligned_value(arena->current, alignment);
     assert(alignedOffset + size <= arena->capacity);
-
+    
     void* alignedData = arena->data + alignedOffset;
     if (data && size > 0)
         memcpy(alignedData, data, size);

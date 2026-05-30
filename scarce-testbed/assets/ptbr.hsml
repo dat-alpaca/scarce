@@ -91,7 +91,7 @@
     \end;
 \nudge; 1;
 
-\textbox; %0; 0;
+\textbox; %2; 0;
 
 \if; %4 == 1;
     \feedline;
@@ -113,7 +113,7 @@
     \feed;
     \nudge; 1;
 
-    \button; %2; 0; lingua;
+    \button; %0; 0; sair;
     \nudge; 1;
-    \button; %1; 0; sair;
+    \button; %1; 0; ling;
 \sl; 0;

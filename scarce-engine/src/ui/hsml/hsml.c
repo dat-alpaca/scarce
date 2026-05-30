@@ -280,7 +280,6 @@ static void hsml_parse_character_tokens(ui_state* state, hsml_token* token)
 
 static void hsml_parse_tokens(ui_state* state, hsml_token* token, hsml_mode* mode, bool* executing)
 {
-    bool tokenProcessed = true;
     hsml_token_argument argumentType = hsml_get_argument_type(token->type); 
     switch(argumentType)
     {
@@ -310,20 +309,13 @@ static void hsml_parse_tokens(ui_state* state, hsml_token* token, hsml_mode* mod
             hsml_parse_character_tokens(state, token);
 
         default:
-            tokenProcessed = false;
             break;
     }
-
-    if (tokenProcessed && token->value.buffer)
-        dynamic_array_destroy(&token->value);
 }
 
 static void hsml_parse_text(ui_state* state, hsml_token* token, hsml_token* next)
 {
     ui_text(state, token->value.buffer, token->value.current);
-
-    if (token->value.buffer)
-        dynamic_array_destroy(&token->value);
 }
 
 void ui_hsml(ui_state* state, const char* filepath)
@@ -348,6 +340,13 @@ void ui_hsml(ui_state* state, const char* filepath)
 
         if (mode == HSML_MODE_TEXT && current->type == HSML_TOKEN_TEXT)
             hsml_parse_text(state, current, next);
+    }
+
+    hsml_token* data = (hsml_token*)tokens.buffer;
+    for (u32 i = 0; i < dynamic_array_size(&tokens); ++i)
+    {
+        if (data[i].value.buffer)
+            dynamic_array_destroy(&data[i].value); 
     }
 
     dynamic_array_destroy(&tokens);

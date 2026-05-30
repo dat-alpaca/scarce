@@ -6,7 +6,6 @@
 #include "string_utils.h"
 #include "ui/hsml/evaluator.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -17,8 +16,6 @@
 // Fetching:
 static void hsml_fetch_text(ui_state* state, file_descriptor descriptor, dynamic_array* buffer, char delimiter, bool ignoreSpace, bool allLower)
 {
-    dynamic_array_init(buffer, 32, sizeof(char));
-
     while (true)
     {
         char next;
@@ -73,55 +70,6 @@ static void hsml_fetch_text(ui_state* state, file_descriptor descriptor, dynamic
 static i32 hsml_fetch_number(ui_state* state, file_descriptor descriptor)
 {
     return hsml_get_expression_evaluation(state, descriptor);
-
-    dynamic_array buffer = { 0 };
-    dynamic_array_init(&buffer, 16, sizeof(char));
-
-    while (true)
-    {
-        char next;
-        if (!platform_read_file(descriptor, &next, 1))
-            return HSML_TOKEN_INVALID;
-
-        if (next == HSML_TOKEN_PLACEHOLDER)
-        {
-            hsml_token placeholder = hsml_fetch_placeholder_value(state, descriptor);
-            if (placeholder.type == HSML_TOKEN_TEXT)
-                log_critical_s("Invalid HSML: expected value", 29);
-            
-            u64 value = hsml_fetch_number_from_placeholder(&placeholder);
-            
-            dynamic_array_destroy(&placeholder.value);
-            dynamic_array_destroy(&buffer);
-            return value;
-        }
-
-        if (next == ' ')
-            continue;
-
-        if (!isdigit(next))
-            break;
-
-        dynamic_array_push(&buffer, &next, 1);
-    }
-
-    if (buffer.current <= 0)
-    {
-        log_critical_s("Invalid HSML file: delimiter missing", 37);
-        return 0;
-    }
-
-    char* endptr;
-    u32 num = (u32)strtol(buffer.buffer, &endptr, 10);
-
-    if (buffer.buffer == endptr)
-    {
-        log_critical_s("Invalid HSML file: no digits found", 35);
-        return 0;
-    }
-
-    dynamic_array_destroy(&buffer);
-    return num;
 }
 
 static char hsml_fetch_character(file_descriptor descriptor)
@@ -271,6 +219,7 @@ static hsml_token_lookup_item s_tokenLookupTable[] =
 static hsml_token_type hsml_get_token_type(ui_state* state, file_descriptor descriptor)
 {
     dynamic_array buffer = { 0 };
+    dynamic_array_init(&buffer, 32, sizeof(char));
     hsml_fetch_text(state, descriptor, &buffer, HSML_TOKEN_DELIMITER, false, true);
 
     if (!buffer.current)
@@ -319,12 +268,16 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
 
         // requires text argument
         case HSML_TOKEN_TEXT:
+        {
+            dynamic_array_init(&token.value, 32, sizeof(char));
             hsml_fetch_text(state, descriptor, &token.value, HSML_TOKEN_SYMBOL, false, false);
-            break;
-
+        } break;
+            
         case HSML_TOKEN_INCLUDE:
+        {
+            dynamic_array_init(&token.value, 32, sizeof(char));
             hsml_fetch_text(state, descriptor, &token.value, HSML_TOKEN_DELIMITER, true, false);
-            break;
+        } break;
     
         // Requires numerical parameter:
         case HSML_TOKEN_SAMELINE:   
@@ -381,10 +334,11 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
             u64 index = hsml_fetch_number(state, descriptor);
             
             dynamic_array buffer;
-            dynamic_array_init(&buffer, 16, sizeof(char));
+            dynamic_array_init(&buffer, 32, sizeof(char));
             hsml_fetch_text(state, descriptor, &buffer, HSML_TOKEN_DELIMITER, true, false);
             
             dynamic_array_init(&token.value, sizeof(u64) * 2 + buffer.current, sizeof(u64));
+
             dynamic_array_push(&token.value, &baseAddress, 1);
             dynamic_array_push(&token.value, &index, 1);
             dynamic_array_push(&token.value, buffer.buffer, buffer.current);

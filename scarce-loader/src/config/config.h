@@ -19,6 +19,11 @@ typedef struct config
     u64 unknownMemoryCapacity;
     u64 transientMemoryCapacity;
     u64 generalMemoryCapacity;
+    u64 assetsMemoryCapacity;
+    u64 rendererMemoryCapacity;
+
+    u32 spritesheetCapacity;
+    u32 mainFontHeight;
 } config;
 
 typedef struct
