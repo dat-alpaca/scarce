@@ -193,7 +193,7 @@ static bool initialize(context* context, config* config)
 
     // View:
     gEngine.viewHolder = &context->viewHolder;
-    view_holder_init(gEngine.viewHolder, 2);
+    view_holder_init(gEngine.viewHolder, config->viewCapacity);
 
     // Logger:
     logger mainLogger;
@@ -222,17 +222,19 @@ static void __debug_memory_usage()
 
         const char* name = get_system_memory_tag_name(tag);
         u32 nameLength = strlen(name);
-
         u32 leftWidth = nameLength + (11 - nameLength) / 2; 
 
-        printf
-        (
-            "[%*s%*s]: %5ld / %5ld KiB\n", 
+        printf("[%*s%*s]: %7ld / %7ld bytes", 
             leftWidth, name,
             11 - leftWidth, "", 
-            used / 1024, 
-            capacity / 1024
+            used, 
+            capacity
         );
+
+        if (used > capacity)
+            printf(" [" SCA_RED "!" SCA_RESET "]");
+
+        printf("\n");    
     }
 }
 

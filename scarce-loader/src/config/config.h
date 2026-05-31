@@ -4,27 +4,33 @@
 
 typedef struct config
 {
-    const char* windowTitle;
-    const char* mainBinaryFilepath;
+    // General:
+    u32 spritesheetCapacity;
+    u32 viewCapacity;
 
-    const char* vertexFilepath;
-    const char* fragmentFilepath;
-    const char* fontFilepath;
-    
-    u64 memoryPageAmount;
-    u64 userSpaceBytes;
+    // Window:
+    const char* windowTitle;
     u32 minWindowWidth;
     u32 minWindowHeight;
 
+    // User space:
+    const char* mainBinaryFilepath;
+    u64 memoryPageAmount;
+    u64 userSpaceBytes;
+
+    // Text renderer:
+    const char* fontFilepath;
+    const char* vertexFilepath;
+    const char* fragmentFilepath;
+    u32 mainFontHeight;
+    
+    // Memory arenas:
     u64 unknownMemoryCapacity;
     u64 transientMemoryCapacity;
     u64 generalMemoryCapacity;
     u64 hsmlMemoryCapacity;
     u64 assetsMemoryCapacity;
     u64 rendererMemoryCapacity;
-
-    u32 spritesheetCapacity;
-    u32 mainFontHeight;
 } config;
 
 typedef struct
