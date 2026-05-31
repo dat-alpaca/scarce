@@ -3,13 +3,19 @@
 #include "memory/stack_arena.h"
 #include "memory/tag.h"
 
+#define SCA_MEMORY_SYSTEM_MAX_TAGS 32
+
 typedef struct
 {
-    linear_arena arena[TAG_LINEAR_END - TAG_LINEAR_START];
-    stack_arena transientArena;
+    u64 capacity;
+    u64 used;
+} memory_system_general_stats;
 
-    u64 generalCapacity[TAG_GENERAL_END - TAG_LINEAR_START];
-    u64 usedGeneralSize[TAG_GENERAL_END - TAG_LINEAR_START];
+typedef struct
+{
+    linear_arena arena[TAG_LINEAR_AMOUNT];
+    stack_arena transientArena;
+    memory_system_general_stats generalStats[SCA_MEMORY_SYSTEM_MAX_TAGS];
 } memory_system;
 extern memory_system gMemorySystem;
 
@@ -20,6 +26,7 @@ struct
 void memory_system_init(memory_options* options);
 
 void* sca_allocate(memory_tag tag, void* data, u32 size, u8 alignment);
+void* sca_reallocate(memory_tag tag, void* data, u32 oldSize, u32 size);
 void sca_free(memory_tag tag, void* address, u32 size);
 
 struct

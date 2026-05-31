@@ -145,8 +145,6 @@ static bool initialize(context* context, config* config)
 {
     random_init();
 
-    // if i change unknown to 160 it works?
-
     // Memory:
     memory_options options;
     {
@@ -157,6 +155,7 @@ static bool initialize(context* context, config* config)
         options.memoryAmountPerTag[TAG_ASSETS] = config->assetsMemoryCapacity;
         options.memoryAmountPerTag[TAG_RENDERER] = config->rendererMemoryCapacity;
         options.memoryAmountPerTag[TAG_GENERAL] = config->generalMemoryCapacity;
+        options.memoryAmountPerTag[TAG_HSML] = config->hsmlMemoryCapacity;
         
         options.memoryAmountPerTag[TAG_TRANSIENT] = config->transientMemoryCapacity;
     }
@@ -188,7 +187,7 @@ static bool initialize(context* context, config* config)
     // Assets:
     asset_library_init(&context->assetLibrary, config->spritesheetCapacity);
     asset_handle mainFont = asset_library_load_font(&context->assetLibrary, config->fontFilepath, config->mainFontHeight);
-    asset_handle spriteHandle = asset_library_load_spritesheet(&context->assetLibrary, "assets/core/items.png", 16);
+    //asset_handle spriteHandle = asset_library_load_spritesheet(&context->assetLibrary, "assets/core/items.png", 16);
     spritesheet* fontSpritesheet = asset_library_get_spritesheet(&context->assetLibrary, mainFont);
     texture_handle fontTexture = upload_font_spritesheets(context->rhi, fontSpritesheet);
 
@@ -215,35 +214,26 @@ static void __debug_memory_usage()
     printf("----------\n");
 
     u64 capacity, used;
-    capacity = gMemorySystem.arena[TAG_UNKNOWN].capacity;
-    used = gMemorySystem.arena[TAG_UNKNOWN].current;
-    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_UNKNOWN), used, capacity);
+    for (memory_tag tag = TAG_START; tag < TAG_AMOUNT; ++tag)
+    {
+        memory_status status = memory_system_status(tag);
+        capacity = status.memoryCapacity;
+        used = status.memoryUsed;
 
-    capacity = gMemorySystem.arena[TAG_SYSTEM].capacity;
-    used = gMemorySystem.arena[TAG_SYSTEM].current;
-    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_SYSTEM), used, capacity);
+        const char* name = get_system_memory_tag_name(tag);
+        u32 nameLength = strlen(name);
 
-    capacity = gMemorySystem.arena[TAG_USER].capacity;
-    used = gMemorySystem.arena[TAG_USER].current;
-    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_USER), used, capacity);
+        u32 leftWidth = nameLength + (11 - nameLength) / 2; 
 
-    // General:
-    capacity = gMemorySystem.generalCapacity[TAG_ASSETS - TAG_GENERAL_START];
-    used = gMemorySystem.usedGeneralSize[TAG_ASSETS - TAG_GENERAL_START];
-    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_ASSETS), used, capacity);
-
-    capacity = gMemorySystem.generalCapacity[TAG_RENDERER - TAG_GENERAL_START];
-    used = gMemorySystem.usedGeneralSize[TAG_RENDERER - TAG_GENERAL_START];
-    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_RENDERER), used, capacity);
-
-    capacity = gMemorySystem.generalCapacity[TAG_GENERAL - TAG_GENERAL_START];
-    used = gMemorySystem.usedGeneralSize[TAG_GENERAL - TAG_GENERAL_START];
-    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_GENERAL), used, capacity);
-
-    // Transient:
-    capacity = gMemorySystem.transientArena.capacity;
-    used = gMemorySystem.transientArena.current;
-    printf("[%s]: %ld / %ld\n", get_memory_tag_name(TAG_TRANSIENT), used, capacity);
+        printf
+        (
+            "[%*s%*s]: %5ld / %5ld KiB\n", 
+            leftWidth, name,
+            11 - leftWidth, "", 
+            used / 1024, 
+            capacity / 1024
+        );
+    }
 }
 
 int main()
@@ -267,7 +257,7 @@ int main()
     {
         window_poll_events(gEngine.window);
 
-        //__debug_memory_usage();
+        __debug_memory_usage();
 
         if(!onUpdate(context.memoryPool) || gEngine.requestExit)
             break;

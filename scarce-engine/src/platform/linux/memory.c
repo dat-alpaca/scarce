@@ -1,11 +1,14 @@
 #include "platform/platform.h"
 #include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
 void* platform_allocate(u64 size)
 {
-    return malloc(size);
+    void* address = malloc(size);
+    memset(address, 0, size);
+    return address;
 }
 void* platform_reallocate(void* address, u64 newSize)
 {

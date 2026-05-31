@@ -1,6 +1,7 @@
 #include "evaluator.h"
 #include "dynamic_array.h"
 #include "logging/logger.h"
+#include "memory/tag.h"
 #include "platform/platform.h"
 #include "ui/hsml/defines.h"
 #include "ui/hsml/placeholder.h"
@@ -110,7 +111,7 @@ static u8 hsml_get_precedence(hsml_operator_type type)
 static dynamic_array hsml_get_expression_array(ui_state* state, file_descriptor descriptor)
 {
     dynamic_array conditionalArray = { 0 };
-    dynamic_array_init(&conditionalArray, 16, sizeof(hsml_evaluation));
+    dynamic_array_init(&conditionalArray, 16, sizeof(hsml_evaluation), TAG_HSML);
 
     bool possiblyValid = false;
     while (true)
@@ -182,8 +183,8 @@ static dynamic_array shunt_expression(dynamic_array* expression)
 {
     dynamic_array output = { 0 };
     dynamic_array operators = { 0 };
-    dynamic_array_init(&output, 16, sizeof(hsml_evaluation));
-    dynamic_array_init(&operators, 16, sizeof(hsml_evaluation));
+    dynamic_array_init(&output, 16, sizeof(hsml_evaluation), TAG_HSML);
+    dynamic_array_init(&operators, 16, sizeof(hsml_evaluation), TAG_TRANSIENT);
 
     hsml_evaluation* data = (hsml_evaluation*)expression->buffer;
     hsml_evaluation* operatorData = (hsml_evaluation*)operators.buffer;
@@ -260,7 +261,7 @@ static dynamic_array shunt_expression(dynamic_array* expression)
 static i32 hsml_evaluate_postfix(dynamic_array* output)
 {
     dynamic_array stack = { 0 };
-    dynamic_array_init(&stack, 8, sizeof(i32));
+    dynamic_array_init(&stack, 8, sizeof(i32), TAG_TRANSIENT);
 
     i32* stackData = (i32*)stack.buffer;
     hsml_evaluation* data = (hsml_evaluation*)output->buffer;

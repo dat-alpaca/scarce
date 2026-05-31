@@ -50,6 +50,8 @@ void* fixed_array_push(fixed_array* array, void* data, u32 count)
     
     if (data)
         memcpy((u8*)array->buffer + array->current, data, bytes);
+    else
+        memset(array->buffer + array->current, 0, bytes);
 
     void* previous = array->buffer + array->current;
     array->current += bytes;

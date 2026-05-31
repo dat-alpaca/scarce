@@ -10,7 +10,7 @@ gl_dep          = dependency('gl')
 cglm_dep        = dependency('cglm')
 freetype_dep    = dependency('freetype2')
 glfw_dep        = dependency('glfw3')
-glew_dep        = dependency('glew', fallback: ['glew', 'glew_dep'])
+glew_dep        = dependency('glew', fallback: ['glew', 'glew_dep'], static: true)
 inih_dep        = dependency('inih')
 stb_dep         = dependency('stb')
 

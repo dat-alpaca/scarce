@@ -4,6 +4,7 @@
 #include "core/string_utils.h"
 
 #include "defines.h"
+#include "memory/tag.h"
 #include "platform/platform.h"
 #include "batch_renderer.h"
 #include "ui/hsml/token.h"
@@ -93,7 +94,7 @@ hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descrip
     bool placeholderValueFound = false;
 
     dynamic_array buffer = { 0 };
-    dynamic_array_init(&buffer, 1, sizeof(char));
+    dynamic_array_init(&buffer, 8, sizeof(char), TAG_TRANSIENT);
 
     hsml_placeholder_read_mode mode = HSML_PLACEHOLDER_READ_U8;
     bool valueFound = false;
@@ -145,7 +146,7 @@ hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descrip
             placeholderValue = current->fetcher(state);
             placeholderValueFound = true;
 
-            dynamic_array_init(&result.value, 1, sizeof(u64));
+            dynamic_array_init(&result.value, 1, sizeof(u64), TAG_HSML);
             dynamic_array_push(&result.value, &placeholderValue, 1);
             
             break;
@@ -171,7 +172,7 @@ hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descrip
             case HSML_PLACEHOLDER_READ_U8:
             {
                 placeholderValue = pool[address];
-                dynamic_array_init(&result.value, 1, sizeof(u8));
+                dynamic_array_init(&result.value, 1, sizeof(u8), TAG_HSML);
                 dynamic_array_push(&result.value, &placeholderValue, 1);
                 
                 result.type = HSML_TOKEN_U8; 
@@ -180,7 +181,7 @@ hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descrip
             case HSML_PLACEHOLDER_READ_U16:
             {
                 placeholderValue = *(u16*)(&pool[address]);
-                dynamic_array_init(&result.value, 1, sizeof(u16));
+                dynamic_array_init(&result.value, 1, sizeof(u16), TAG_HSML);
                 dynamic_array_push(&result.value, &placeholderValue, 1);
                 
                 result.type = HSML_TOKEN_U16; 
@@ -192,7 +193,7 @@ hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descrip
                 placeholderValueFound = true;
 
                 placeholderValue = *(u32*)(&pool[address]);
-                dynamic_array_init(&result.value, 1, sizeof(u32));
+                dynamic_array_init(&result.value, 1, sizeof(u32), TAG_HSML);
                 dynamic_array_push(&result.value, &placeholderValue, 1);
             } break;
             case HSML_PLACEHOLDER_READ_U64:
@@ -201,7 +202,7 @@ hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descrip
                 placeholderValueFound = true;
 
                 placeholderValue = *(u64*)(&pool[address]);
-                dynamic_array_init(&result.value, 1, sizeof(u64));
+                dynamic_array_init(&result.value, 1, sizeof(u64), TAG_HSML);
                 dynamic_array_push(&result.value, &placeholderValue, 1);
             } break;
             case HSML_PLACEHOLDER_READ_STRING:
@@ -212,7 +213,7 @@ hsml_token hsml_fetch_placeholder_value(ui_state* state, file_descriptor descrip
                 char* data = (char*)(&pool[address]);
                 u8 length = data[0];
                 
-                dynamic_array_init(&result.value, length, sizeof(char));
+                dynamic_array_init(&result.value, length, sizeof(char), TAG_HSML);
                 for (u8 i = 1; i < length + 1; ++i)
                     dynamic_array_push(&result.value, &data[i], 1);
             } break;

@@ -1,21 +1,25 @@
 #include "dynamic_array.h"
+
+#include "defines.h"
 #include "logging/logger.h"
-#include "platform/platform.h"
+#include "memory/memory_system.h"
 
 #include <assert.h>
 #include <string.h>
 
 #define SCA_DA_GROWTH_RATIO 1.618
 
-void dynamic_array_init(dynamic_array* array, u32 elementCount, u32 elementSize)
+void dynamic_array_init(dynamic_array* array, u32 elementCount, u32 elementSize, memory_tag tag)
 {
     assert(array);
+    assert(!is_linear_system_memory_tag(tag));
 
+    array->tag = tag;
     array->elementSize = elementSize;
     array->capacity = elementSize * elementCount;
     array->current = 0;
 
-    array->buffer = platform_allocate(array->capacity);
+    array->buffer = sca_allocate(tag, NULL, array->capacity, 1);
     assert(array->buffer);
 
     memset(array->buffer, 0, array->capacity);
@@ -46,7 +50,7 @@ void dynamic_array_resize(dynamic_array* array, u32 newElementCount)
         array->current = newSize; 
     }
 
-    u8* tempBuffer = (u8*)platform_reallocate(array->buffer, newSize);
+    u8* tempBuffer = (u8*)sca_reallocate(array->tag, array->buffer, array->capacity, newSize);
     assert(tempBuffer);
 
     array->buffer = tempBuffer;
@@ -102,7 +106,7 @@ void dynamic_array_destroy(dynamic_array* array)
     assert(array);
     assert(array->buffer);
 
-    platform_deallocate(array->buffer);
+    sca_free(array->tag, array->buffer, array->capacity);
     array->buffer = NULL;
 
     array->capacity = 0;

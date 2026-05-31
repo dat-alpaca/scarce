@@ -1,5 +1,6 @@
 #pragma once
 #include "defines.h"
+#include "memory/tag.h"
 
 typedef struct
 {
@@ -7,9 +8,10 @@ typedef struct
     u32 capacity;
     u32 current;
     u32 elementSize;
+    memory_tag tag;
 } dynamic_array;
 
-void  dynamic_array_init(dynamic_array* array, u32 elementCount, u32 elementSize);
+void  dynamic_array_init(dynamic_array* array, u32 elementCount, u32 elementSize, memory_tag tag);
 void* dynamic_array_get(dynamic_array* array, u32 index);
 
 void  dynamic_array_resize(dynamic_array* array, u32 newElementCount);

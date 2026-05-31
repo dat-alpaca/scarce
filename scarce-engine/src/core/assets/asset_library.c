@@ -31,19 +31,17 @@ asset_handle asset_library_load_spritesheet(asset_library* library, const char* 
     // Loading:
     i32 width, height, channels;
 	u8* data = stbi_load(filepath, &width, &height, &channels, SCA_AUTO_CHANNELS);
+    assert(data);
 
     // Spritesheet:
-    u32 sheetIndex = fixed_array_size(&library->spritesheets);
-    fixed_array_push(&library->spritesheets, NULL, 1);
-
-    spritesheet* s = fixed_array_get(&library->spritesheets, sheetIndex);
-    s->spriteSize = spriteSize;
-    s->channels = channels;
+    spritesheet s = { 0 }; 
+    s.spriteSize = spriteSize;
+    s.channels = channels;
 
     u64 spriteCount = (width * height ) / (spriteSize * spriteSize);
 
     // Empty characters:
-    fixed_array_init(&s->sprites, spriteCount, sizeof(sprite), TAG_ASSETS);
+    fixed_array_init(&s.sprites, spriteCount, sizeof(sprite), TAG_ASSETS);
   
     // Spliting:
     u32 spritesPerRow = width / spriteSize;
@@ -63,11 +61,13 @@ asset_handle asset_library_load_spritesheet(asset_library* library, const char* 
             fixed_array_push(&character.data, &data[srcByteOffset], spriteSize * channels);
         }
 
-        fixed_array_push(&s->sprites, &character, 1);
+        fixed_array_push(&s.sprites, &character, 1);
     }
 
+    fixed_array_push(&library->spritesheets, &s, 1);
+
 	stbi_image_free(data);
-    return sheetIndex;
+    return fixed_array_size(&library->spritesheets) - 1;
 }
 asset_handle asset_library_load_sprites(asset_library* library, fixed_array* filepaths, u32 spriteSize, u32 channels)
 {

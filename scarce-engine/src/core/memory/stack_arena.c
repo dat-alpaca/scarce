@@ -38,6 +38,11 @@ void stack_arena_pop(stack_arena* arena, u32 size)
     assert(arena);
     arena->current -= size;
 }
+void stack_arena_clear(stack_arena* arena)
+{
+    assert(arena);
+    arena->current = 0;
+}
 
 void stack_arena_destroy(stack_arena* arena)
 {

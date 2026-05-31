@@ -19,6 +19,7 @@ typedef struct config
     u64 unknownMemoryCapacity;
     u64 transientMemoryCapacity;
     u64 generalMemoryCapacity;
+    u64 hsmlMemoryCapacity;
     u64 assetsMemoryCapacity;
     u64 rendererMemoryCapacity;
 

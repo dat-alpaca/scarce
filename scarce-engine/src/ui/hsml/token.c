@@ -1,5 +1,6 @@
 #include "token.h"
 
+#include "memory/tag.h"
 #include "platform/platform.h"
 #include "dynamic_array.h"
 #include "logging/logger.h"
@@ -75,7 +76,7 @@ static i32 hsml_fetch_number(ui_state* state, file_descriptor descriptor)
 static char hsml_fetch_character(file_descriptor descriptor)
 {
     dynamic_array buffer = { 0 };
-    dynamic_array_init(&buffer, 16, sizeof(char));
+    dynamic_array_init(&buffer, 16, sizeof(char), TAG_TRANSIENT);
 
     char symbol;
     while(true)
@@ -139,10 +140,10 @@ static hsml_color_token_type hsml_parse_color(dynamic_array* text)
 static void hsml_fetch_colors(file_descriptor descriptor, dynamic_array* colors)
 {
     char null = '\0';
-    dynamic_array_init(colors, 3, sizeof(hsml_color_token_type));
+    dynamic_array_init(colors, 3, sizeof(hsml_color_token_type), TAG_HSML);
 
     dynamic_array text = { 0 };
-    dynamic_array_init(&text, 16, sizeof(char));
+    dynamic_array_init(&text, 16, sizeof(char), TAG_TRANSIENT);
     while (true)
     {
         char next;
@@ -229,7 +230,7 @@ static hsml_token_lookup_item s_tokenLookupTable[] =
 static hsml_token_type hsml_get_token_type(ui_state* state, file_descriptor descriptor)
 {
     dynamic_array buffer = { 0 };
-    dynamic_array_init(&buffer, 32, sizeof(char));
+    dynamic_array_init(&buffer, 32, sizeof(char), TAG_TRANSIENT);
     hsml_fetch_text(state, descriptor, &buffer, HSML_TOKEN_DELIMITER, false, true);
 
     if (!buffer.current || !buffer.buffer)
@@ -266,7 +267,7 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
         case HSML_TOKEN_IF:
         {
             u32 condition = (u32)hsml_fetch_condition(state, descriptor);
-            dynamic_array_init(&token.value, 1, sizeof(u32));
+            dynamic_array_init(&token.value, 1, sizeof(u32), TAG_HSML);
             dynamic_array_push(&token.value, &condition, 1);
         } break;
         case HSML_TOKEN_END_IF:
@@ -288,13 +289,13 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
         // requires text argument
         case HSML_TOKEN_TEXT:
         {
-            dynamic_array_init(&token.value, 32, sizeof(char));
+            dynamic_array_init(&token.value, 32, sizeof(char), TAG_HSML);
             hsml_fetch_text(state, descriptor, &token.value, HSML_TOKEN_SYMBOL, false, false);
         } break;
             
         case HSML_TOKEN_INCLUDE:
         {
-            dynamic_array_init(&token.value, 32, sizeof(char));
+            dynamic_array_init(&token.value, 32, sizeof(char), TAG_HSML);
             hsml_fetch_text(state, descriptor, &token.value, HSML_TOKEN_DELIMITER, true, false);
         } break;
     
@@ -316,7 +317,7 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
         {
             i32 number = hsml_fetch_number(state, descriptor);
             
-            dynamic_array_init(&token.value, 1, sizeof(u32));
+            dynamic_array_init(&token.value, 1, sizeof(u32), TAG_HSML);
             dynamic_array_push(&token.value, &number, 1);
         } break;
 
@@ -326,7 +327,7 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
             u64 baseAddress = hsml_fetch_number(state, descriptor);
             u64 index = hsml_fetch_number(state, descriptor);
             
-            dynamic_array_init(&token.value, 2, sizeof(u64));
+            dynamic_array_init(&token.value, 2, sizeof(u64), TAG_HSML);
             dynamic_array_push(&token.value, &baseAddress, 1);
             dynamic_array_push(&token.value, &index, 1);
         } break;
@@ -338,7 +339,7 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
             u8 w = hsml_fetch_number(state, descriptor);
             u8 h = hsml_fetch_number(state, descriptor);
             
-            dynamic_array_init(&token.value, 4, sizeof(u8));
+            dynamic_array_init(&token.value, 4, sizeof(u8), TAG_HSML);
             dynamic_array_push(&token.value, &x, 1);
             dynamic_array_push(&token.value, &y, 1);
             dynamic_array_push(&token.value, &w, 1);
@@ -353,10 +354,10 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
             u64 index = hsml_fetch_number(state, descriptor);
             
             dynamic_array buffer;
-            dynamic_array_init(&buffer, 32, sizeof(char));
+            dynamic_array_init(&buffer, 32, sizeof(char), TAG_TRANSIENT);
             hsml_fetch_text(state, descriptor, &buffer, HSML_TOKEN_DELIMITER, true, false);
             
-            dynamic_array_init(&token.value, sizeof(u64) * 2 + buffer.current, sizeof(u64));
+            dynamic_array_init(&token.value, sizeof(u64) * 2 + buffer.current, sizeof(u64), TAG_HSML);
 
             dynamic_array_push(&token.value, &baseAddress, 1);
             dynamic_array_push(&token.value, &index, 1);
@@ -368,7 +369,7 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
         case HSML_TOKEN_HLINE:
         {
             u32 character = (u32)hsml_fetch_character(descriptor);
-            dynamic_array_init(&token.value, 1, sizeof(u32));
+            dynamic_array_init(&token.value, 1, sizeof(u32), TAG_HSML);
             dynamic_array_push(&token.value, &character, 1);
         } break;
 
@@ -377,7 +378,7 @@ static hsml_token hsml_create_token(ui_state* state, hsml_token_type type, file_
             u8 x = (u8)hsml_fetch_number(state, descriptor);
             char character = (char)hsml_fetch_character(descriptor);
             
-            dynamic_array_init(&token.value, 2, sizeof(u8));
+            dynamic_array_init(&token.value, 2, sizeof(u8), TAG_HSML);
             dynamic_array_push(&token.value, &x, 1);
             dynamic_array_push(&token.value, &character, 1);
         } break;
@@ -454,7 +455,7 @@ void hsml_tokenize(ui_state* state, const char* filepath, dynamic_array* tokens)
         return;
     }
 
-    dynamic_array_init(tokens, 256, sizeof(hsml_token));
+    dynamic_array_init(tokens, 256, sizeof(hsml_token), TAG_HSML);
 
     char symbol;
     hsml_mode mode = HSML_MODE_NORMAL;

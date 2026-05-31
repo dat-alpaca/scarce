@@ -59,6 +59,9 @@ static int handler(void* user, const char* section, const char* name, const char
     else if (MATCH("memory", "generalMemoryCapacity"))
         pConfig->generalMemoryCapacity = atoll(value);
 
+    else if (MATCH("memory", "hsmlMemoryCapacity"))
+        pConfig->hsmlMemoryCapacity = atoll(value);
+
     else if (MATCH("memory", "assetsMemoryCapacity"))
         pConfig->assetsMemoryCapacity = atoll(value);
 
@@ -95,6 +98,7 @@ static config_result create_default_config(const char* configFilepath)
         .unknownMemoryCapacity = 16,
         .transientMemoryCapacity = 2560,
         .generalMemoryCapacity = TO_KiB(10),
+        .hsmlMemoryCapacity = 256,
         .assetsMemoryCapacity = TO_KiB(2),
         .rendererMemoryCapacity = TO_KiB(32)
     };
@@ -119,6 +123,7 @@ static config_result create_default_config(const char* configFilepath)
         "unknownMemoryCapacity = %" PRIu64 "\n"
         "transientMemoryCapacity = %" PRIu64 "\n"
         "generalMemoryCapacity = %" PRIu64 "\n"
+        "hsmlMemoryCapacity = %" PRIu64 "\n"
         "assetsMemoryCapacity = %" PRIu64 "\n"
         "rendererMemoryCapacity = %" PRIu64 "\n"
         ,
@@ -137,6 +142,7 @@ static config_result create_default_config(const char* configFilepath)
         config.unknownMemoryCapacity,
         config.transientMemoryCapacity,
         config.generalMemoryCapacity,
+        config.hsmlMemoryCapacity,
         config.assetsMemoryCapacity,
         config.rendererMemoryCapacity
     );
