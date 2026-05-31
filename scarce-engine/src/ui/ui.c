@@ -83,7 +83,7 @@ void ui_number(ui_state* state, u32 number)
 
     // Extract digits:
     fixed_array numberBuffer = { 0 };
-    fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH, TAG_TRANSIENT);
+    fixed_array_init(&numberBuffer, SCA_UI_MAX_NUMBER_LENGTH, sizeof(char), TAG_TRANSIENT);
 
     char temp[SCA_UI_MAX_NUMBER_LENGTH];
     u64 length = number_to_array(number, temp);

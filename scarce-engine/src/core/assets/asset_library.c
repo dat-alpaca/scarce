@@ -21,7 +21,7 @@ void asset_library_init(asset_library* library, u32 spritesheetCapacity)
     FT_Init_FreeType(&library->fontLibrary);
     assert(library->fontLibrary);
 
-    fixed_array_init(&library->spritesheets, spritesheetCapacity * sizeof(spritesheet), TAG_SYSTEM);
+    fixed_array_init(&library->spritesheets, spritesheetCapacity, sizeof(spritesheet), TAG_SYSTEM);
 }
 
 asset_handle asset_library_load_spritesheet(asset_library* library, const char* filepath, u32 spriteSize)
@@ -33,17 +33,17 @@ asset_handle asset_library_load_spritesheet(asset_library* library, const char* 
 	u8* data = stbi_load(filepath, &width, &height, &channels, SCA_AUTO_CHANNELS);
 
     // Spritesheet:
-    u32 sheetIndex = library->spritesheets.current / sizeof(spritesheet);
-    fixed_array_push(&library->spritesheets, NULL, sizeof(spritesheet));
+    u32 sheetIndex = fixed_array_size(&library->spritesheets);
+    fixed_array_push(&library->spritesheets, NULL, 1);
 
-    spritesheet* s = fixed_array_get(&library->spritesheets, sheetIndex, sizeof(spritesheet));
+    spritesheet* s = fixed_array_get(&library->spritesheets, sheetIndex);
     s->spriteSize = spriteSize;
     s->channels = channels;
 
     u64 spriteCount = (width * height ) / (spriteSize * spriteSize);
 
     // Empty characters:
-    fixed_array_init(&s->sprites, spriteCount * sizeof(sprite), TAG_ASSETS);
+    fixed_array_init(&s->sprites, spriteCount, sizeof(sprite), TAG_ASSETS);
   
     // Spliting:
     u32 spritesPerRow = width / spriteSize;
@@ -52,7 +52,7 @@ asset_handle asset_library_load_spritesheet(asset_library* library, const char* 
     {
         sprite character = { 0 };
         character.layer = i;
-        fixed_array_init(&character.data, spriteByteSize, TAG_ASSETS);
+        fixed_array_init(&character.data, spriteByteSize, 1, TAG_ASSETS);
 
         u32 spriteX = i % spritesPerRow;
         u32 spriteY = i / spritesPerRow;
@@ -63,7 +63,7 @@ asset_handle asset_library_load_spritesheet(asset_library* library, const char* 
             fixed_array_push(&character.data, &data[srcByteOffset], spriteSize * channels);
         }
 
-        fixed_array_push(&s->sprites, &character, sizeof(sprite));
+        fixed_array_push(&s->sprites, &character, 1);
     }
 
 	stbi_image_free(data);
@@ -76,10 +76,10 @@ asset_handle asset_library_load_sprites(asset_library* library, fixed_array* fil
     assert(spriteSize > 0);
 
     // Spritesheet:
-    u32 sheetIndex = library->spritesheets.current / sizeof(spritesheet);
-    fixed_array_push(&library->spritesheets, NULL, sizeof(spritesheet));
+    u32 sheetIndex = fixed_array_size(&library->spritesheets);
+    fixed_array_push(&library->spritesheets, NULL, 1);
 
-    spritesheet* s = fixed_array_get(&library->spritesheets, sheetIndex, sizeof(spritesheet));
+    spritesheet* s = fixed_array_get(&library->spritesheets, sheetIndex);
     s->spriteSize = spriteSize;
     s->channels = channels;
 
@@ -107,10 +107,10 @@ asset_handle asset_library_load_sprites(asset_library* library, fixed_array* fil
 
         sprite sprite = { 0 };
         sprite.layer = i;
-        fixed_array_init(&sprite.data, width * height * channels, TAG_ASSETS);
+        fixed_array_init(&sprite.data, width * height * channels, 1, TAG_ASSETS);
         fixed_array_push(&sprite.data, data, width * height * channels);
         
-        fixed_array_push(&s->sprites, &sprite, sizeof(sprite));
+        fixed_array_push(&s->sprites, &sprite, 1);
     }
 
     return sheetIndex;
@@ -120,10 +120,10 @@ asset_handle asset_library_load_font(asset_library* library, const char* filepat
 {
     assert(library && library->fontLibrary);
     
-    u32 sheetIndex = library->spritesheets.current / sizeof(spritesheet);
-    fixed_array_push(&library->spritesheets, NULL, sizeof(spritesheet));
+    u32 sheetIndex = fixed_array_size(&library->spritesheets);
+    fixed_array_push(&library->spritesheets, NULL, 1);
 
-    spritesheet* fontSpritesheet = fixed_array_get(&library->spritesheets, sheetIndex, sizeof(spritesheet));
+    spritesheet* fontSpritesheet = fixed_array_get(&library->spritesheets, sheetIndex);
     fontSpritesheet->spriteSize = height;
     fontSpritesheet->channels = 1;
 
@@ -132,11 +132,11 @@ asset_handle asset_library_load_font(asset_library* library, const char* filepat
         return false;
 
     u64 fontCharacterAmount = (SCA_FONT_MAX_INDEX + 1);
-    fixed_array_init(&fontSpritesheet->sprites, fontCharacterAmount * sizeof(sprite), TAG_ASSETS);
+    fixed_array_init(&fontSpritesheet->sprites, fontCharacterAmount, sizeof(sprite), TAG_ASSETS);
     for(u32 i = 0; i < fontCharacterAmount; ++i) 
     {
         sprite emptySprite = { 0 };
-        fixed_array_push(&fontSpritesheet->sprites, &emptySprite, sizeof(sprite));
+        fixed_array_push(&fontSpritesheet->sprites, &emptySprite, 1);
     }
 
     FT_Set_Pixel_Sizes(face, 0, height);
@@ -158,9 +158,9 @@ asset_handle asset_library_load_font(asset_library* library, const char* filepat
 
         if (width <= 0 || rows <= 0 || !bitmap->buffer)
         {
-            sprite* character = (sprite*)fixed_array_get(&fontSpritesheet->sprites, i, sizeof(sprite));
+            sprite* character = (sprite*)fixed_array_get(&fontSpritesheet->sprites, i);
             character->layer = i;
-            fixed_array_init(&character->data, area, TAG_ASSETS);
+            fixed_array_init(&character->data, area, 1, TAG_ASSETS);
 
             u8 zero = 0;
             for (u32 j = 0; j < area; ++j)
@@ -169,9 +169,9 @@ asset_handle asset_library_load_font(asset_library* library, const char* filepat
             continue;
         }
 
-        sprite* character = (sprite*)fixed_array_get(&fontSpritesheet->sprites, i, sizeof(sprite));
+        sprite* character = (sprite*)fixed_array_get(&fontSpritesheet->sprites, i);
         character->layer = i;
-        fixed_array_init(&character->data, area, TAG_ASSETS);
+        fixed_array_init(&character->data, area, 1, TAG_ASSETS);
 
         for (u32 y = 0; y < height; ++y)
         {
@@ -195,5 +195,5 @@ asset_handle asset_library_load_font(asset_library* library, const char* filepat
 spritesheet* asset_library_get_spritesheet(asset_library* library, asset_handle handle)
 {
     assert(library);
-    return fixed_array_get(&library->spritesheets, handle, sizeof(spritesheet));
+    return fixed_array_get(&library->spritesheets, handle);
 }

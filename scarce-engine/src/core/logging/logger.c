@@ -23,7 +23,7 @@ void log_warn(logger* logger, const char* message, u32 length)
     }
 
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, length, TAG_TRANSIENT);
+    fixed_array_init(&buffer, length, sizeof(char), TAG_TRANSIENT);
     fixed_array_push(&buffer, (void*)message, length);
 
     platform_write_file(platform_stderr(), buffer.buffer, length);
@@ -43,7 +43,7 @@ void log_error(logger* logger, const char* message, u32 length)
     }
 
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, length, TAG_TRANSIENT);
+    fixed_array_init(&buffer, length, sizeof(char), TAG_TRANSIENT);
     fixed_array_push(&buffer, (void*)message, length);
 
     platform_write_file(platform_stderr(), buffer.buffer, length);
@@ -63,7 +63,7 @@ void log_info(logger* logger, const char* message, u32 length)
     }
 
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, length, TAG_TRANSIENT);
+    fixed_array_init(&buffer, length, sizeof(char), TAG_TRANSIENT);
     fixed_array_push(&buffer, (void*)message, length);
 
     platform_write_file(platform_stderr(), buffer.buffer, length);
@@ -83,7 +83,7 @@ void log_critical(logger* logger, const char* message, u32 length)
     }
 
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, length, TAG_TRANSIENT);
+    fixed_array_init(&buffer, length, sizeof(char), TAG_TRANSIENT);
     fixed_array_push(&buffer, (void*)message, length);
 
     platform_write_file(platform_stderr(), buffer.buffer, length);
@@ -102,7 +102,7 @@ void log_warn_s(const char* message, u32 length)
     platform_write_file(platform_stderr(), (char*)prefix, prefixLength);
 
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, length, TAG_TRANSIENT);
+    fixed_array_init(&buffer, length, sizeof(char), TAG_TRANSIENT);
     fixed_array_push(&buffer, (void*)message, length);
 
     platform_write_file(platform_stderr(), buffer.buffer, length);
@@ -119,7 +119,7 @@ void log_error_s( const char* message, u32 length)
     platform_write_file(platform_stderr(), (char*)prefix, prefixLength);
 
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, length, TAG_TRANSIENT);
+    fixed_array_init(&buffer, length, sizeof(char), TAG_TRANSIENT);
     fixed_array_push(&buffer, (void*)message, length);
 
     platform_write_file(platform_stderr(), buffer.buffer, length);
@@ -136,7 +136,7 @@ void log_info_s(const char* message, u32 length)
     platform_write_file(platform_stderr(), (char*)prefix, prefixLength);
 
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, length, TAG_TRANSIENT);
+    fixed_array_init(&buffer, length, sizeof(char), TAG_TRANSIENT);
     fixed_array_push(&buffer, (void*)message, length);
 
     platform_write_file(platform_stderr(), buffer.buffer, length);
@@ -153,7 +153,7 @@ void log_critical_s(const char* message, u32 length)
     platform_write_file(platform_stderr(), (char*)prefix, prefixLength);
 
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, length, TAG_TRANSIENT);
+    fixed_array_init(&buffer, length, sizeof(char), TAG_TRANSIENT);
     fixed_array_push(&buffer, (void*)message, length);
 
     platform_write_file(platform_stderr(), buffer.buffer, length);

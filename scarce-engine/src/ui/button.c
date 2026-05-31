@@ -29,7 +29,7 @@ void ui_button_render(ui_button* button, ui_state* state, const char* content)
     ui_set_color(state, button->isHovered ? &button->hoveredColor : &button->color);
     {
         fixed_array buffer = { 0 };
-        fixed_array_init(&buffer, button->width, TAG_TRANSIENT);
+        fixed_array_init(&buffer, button->width, sizeof(char), TAG_TRANSIENT);
 
         if (button->alignMiddle)
         {

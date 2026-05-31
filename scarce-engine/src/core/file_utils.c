@@ -16,7 +16,7 @@ fixed_array file_read_contents(const char* filepath)
         log_critical_s("Failed to read file bytes", 26);
     
     fixed_array buffer = { 0 };
-    fixed_array_init(&buffer, fileSize + 1, TAG_TRANSIENT);
+    fixed_array_init(&buffer, fileSize + 1, sizeof(char), TAG_TRANSIENT);
 
     platform_read_file(file, buffer.buffer, fileSize);
     buffer.current = fileSize;

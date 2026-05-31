@@ -7,44 +7,61 @@
 #include <assert.h>
 #include <string.h>
 
-void fixed_array_init(fixed_array* array, u32 capacity, memory_tag tag)
+void fixed_array_init(fixed_array* array, u32 elementCount, u32 elementSize, memory_tag tag)
 {
     assert(array);
 
     array->tag = tag;
-    array->capacity = capacity;
+    array->elementSize = elementSize;
+    array->capacity = elementSize * elementCount;
     array->current = 0;
 
-    array->buffer = sca_allocate(tag, NULL, capacity, 1);
+    array->buffer = sca_allocate(tag, NULL, array->capacity, 1);
     assert(array->buffer);
 
-    memset(array->buffer, 0, capacity);
+    memset(array->buffer, 0, array->capacity);
 }
 
-void* fixed_array_get(fixed_array* array, u32 index, u32 elementSize)
+void* fixed_array_get(fixed_array* array, u32 index)
 {
-    u32 offset = index * elementSize;
+    u32 offset = index * array->elementSize;
     assert(array && array->buffer);
     assert(offset >= 0);
-    assert(offset + elementSize <= array->current);
+    assert(offset + array->elementSize <= array->current);
 
     return (u8*)array->buffer + offset;
 }
-
-void fixed_array_push(fixed_array* array, void* data, u32 bytes)
+u32 fixed_array_size(fixed_array* array)
 {
     assert(array);
-    assert(array->current + bytes <= array->capacity);
-
-    if (data)
-        memcpy((u8*)array->buffer + array->current, data, bytes);
-    
-    array->current += bytes;
+    return array->current / array->elementSize;
+}
+bool fixed_array_empty(fixed_array* array)
+{
+    return fixed_array_size(array) == 0;
 }
 
-void fixed_array_pop(fixed_array* array, u32 bytes)
+void* fixed_array_push(fixed_array* array, void* data, u32 count)
 {
+    assert(array);
+
+    u32 bytes = count * array->elementSize;
+    assert(array->current + bytes <= array->capacity);
+    
+    if (data)
+        memcpy((u8*)array->buffer + array->current, data, bytes);
+
+    void* previous = array->buffer + array->current;
+    array->current += bytes;
+
+    return previous;
+}
+
+void fixed_array_pop(fixed_array* array, u32 count)
+{
+    u32 bytes = count * array->elementSize;
     assert(array->current >= bytes);
+
     array->current -= bytes;
 }
 

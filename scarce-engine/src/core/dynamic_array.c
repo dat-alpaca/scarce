@@ -17,6 +17,7 @@ void dynamic_array_init(dynamic_array* array, u32 elementCount, u32 elementSize)
 
     array->buffer = platform_allocate(array->capacity);
     assert(array->buffer);
+
     memset(array->buffer, 0, array->capacity);
 }
 
@@ -53,6 +54,7 @@ void dynamic_array_resize(dynamic_array* array, u32 newElementCount)
 }
 u32 dynamic_array_size(dynamic_array* array)
 {
+    assert(array);
     return array->current / array->elementSize;
 }
 bool dynamic_array_empty(dynamic_array* array)

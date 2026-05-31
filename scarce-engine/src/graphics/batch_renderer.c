@@ -22,9 +22,7 @@ static void zero_buffer(batch_renderer* renderer)
 
     for (u32 i = 0; i < totalCells; ++i)
     {
-        batch_renderer_cell* c = (batch_renderer_cell*)fixed_array_get(
-            &renderer->cells, i, sizeof(batch_renderer_cell)
-        );
+        batch_renderer_cell* c = (batch_renderer_cell*)fixed_array_get(&renderer->cells, i);
 
         u32 x = i % renderer->gridWidth;
         u32 y = i / renderer->gridWidth;
@@ -44,16 +42,16 @@ static void reallocate_buffers(batch_renderer* renderer)
         fixed_array_destroy(&renderer->cells);
     
     u32 totalCells = renderer->gridWidth * renderer->gridHeight;
-    u32 totalBytes = totalCells * sizeof(batch_renderer_cell);
-    fixed_array_init(&renderer->cells, totalBytes, TAG_RENDERER);
+    fixed_array_init(&renderer->cells, totalCells, sizeof(batch_renderer_cell), TAG_RENDERER);
 
     batch_renderer_cell emptyCell = { 0 };
     for (u32 i = 0; i < totalCells; ++i)
-        fixed_array_push(&renderer->cells, &emptyCell, sizeof(batch_renderer_cell));
+        fixed_array_push(&renderer->cells, &emptyCell, 1);
 
     if (renderer->charactersSSBO != buffer_invalid)
         rhi_destroy_buffer(renderer->rhi, renderer->charactersSSBO);
 
+    u32 totalBytes = totalCells * sizeof(batch_renderer_cell);
     renderer->charactersSSBO = rhi_create_buffer(renderer->rhi, totalBytes, BUFFER_COHERENT);
     zero_buffer(renderer);
 }
@@ -165,10 +163,7 @@ batch_renderer_cell* batch_renderer_get_cell(batch_renderer* renderer, u32 x, u3
         return NULL;
     
     u32 index = y * renderer->gridWidth + x;
-    return (batch_renderer_cell*)fixed_array_get
-    (
-        &renderer->cells, index, sizeof(batch_renderer_cell)
-    );
+    return (batch_renderer_cell*)fixed_array_get(&renderer->cells, index);
 }
 
 void batch_renderer_set_cell(batch_renderer* renderer, batch_renderer_cell* cell, u32 x, u32 y)
