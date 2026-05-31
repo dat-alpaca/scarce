@@ -1,12 +1,5 @@
-#include "assets/asset_library.h"
-#include "assets/asset_upload.h"
-
-#include "memory/memory_system.h"
-#include "random.h"
 #include "scarce.h"
-
-#include "config/config.h"
-#include "loader.h"
+#include "random.h"
 #include "ui/hsml/hsml.h"
 
 engine gEngine =
