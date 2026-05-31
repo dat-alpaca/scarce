@@ -1,26 +1,13 @@
 #include "assets/asset_library.h"
 #include "assets/asset_upload.h"
 
-#include "defines.h"
-#include "logging/logger.h"
-#include "memory/linear_arena.h"
 #include "memory/memory_system.h"
-#include "memory/tag.h"
 #include "random.h"
-#include "rhi/rhi.h"
 #include "scarce.h"
 
-#include "graphics/batch_renderer.h"
 #include "config/config.h"
 #include "loader.h"
-
-#include "platform/platform.h"
-#include "texture.h"
 #include "ui/hsml/hsml.h"
-#include "ui/ui.h"
-#include "view/view.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 static engine gEngine =
 {
